@@ -1,0 +1,186 @@
+[workspace]
+resolver = "3"
+members = [".", "crates/devin-proto"]
+
+[workspace.package]
+edition = "2024"
+license = "MIT"
+repository = "https://github.com/min9lin9/devin2api"
+
+# Lint policy: unsafe code is forbidden; clippy pedantic is on with the
+# doc-only and naming-noise lints relaxed. CI denies all warnings.
+[workspace.lints.rust]
+unsafe_code = "forbid"
+elided_lifetimes_in_paths = "warn"
+
+[workspace.lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
+must_use_candidate = "allow"
+module_name_repetitions = "allow"
+
+[workspace.dependencies]
+# Async runtime and HTTP server.
+tokio = { version = "1", features = ["full"] }
+axum = { version = "0.8", features = ["ws"] }
+tower = { version = "0.5", features = ["util", "limit"] }
+tower-http = { version = "0.7", features = ["trace", "limit"] }
+futures-util = "0.3"
+
+# ConnectRPC protocol stack (pinned by the parity contract).
+connectrpc = "=0.9.0"
+connectrpc-build = "=0.9.0"
+buffa = "=0.9.2"
+buffa-types = "0.9"
+
+# Serialization.
+serde = { version = "1", features = ["derive"] }
+# raw_value: verbatim JSON capture for request DTOs (Go json.RawMessage
+# parity); already enabled transitively via axum, pinned here because
+# src/protocol uses it directly.
+serde_json = { version = "1", features = ["raw_value"] }
+serde_yaml_ng = "0.10"
+toml = "1"
+
+# Upstream HTTP client: rustls, streaming bodies, SOCKS proxies.
+reqwest = { version = "0.12", default-features = false, features = [
+    "rustls-tls-native-roots",
+    "stream",
+    "socks",
+    "http2",
+    "json",
+] }
+
+# Utilities.
+anyhow = "1"
+base64 = "0.22"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+tokio-util = "0.7"
+bytes = "1"
+thiserror = "2"
+sha2 = "0.11"
+subtle = "2"
+rand = "0.10"
+socket2 = "0.6"
+sysinfo = "0.39"
+# jiff: civil/local time for debuglog dir names, RFC3339Nano timestamps and
+# day-bucket aggregation (Go time.Local parity); already locked via buffa-types.
+jiff = "0.2"
+
+[package]
+name = "devin2api"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+autobins = false
+description = "Rust port of devin2api: OpenAI/Anthropic-compatible proxy for Devin"
+
+[features]
+default = []
+# QA-only process-comparison driver; not part of the released daemon.
+qa = []
+
+[dependencies]
+tokio.workspace = true
+axum.workspace = true
+tower.workspace = true
+tower-http.workspace = true
+futures-util.workspace = true
+connectrpc.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+serde_yaml_ng.workspace = true
+toml.workspace = true
+reqwest.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+tokio-util.workspace = true
+bytes.workspace = true
+# http/http-body-util: the connectrpc ClientTransport seam speaks
+# http::Request/Response and http_body::Body; connectrpc re-exports only
+# the http_body trait, so the request/response types and BodyExt helpers
+# are direct deps (same versions already resolved transitively).
+http = "1"
+http-body = "1"
+http-body-util = "0.1"
+hyper = { version = "1", features = ["server", "http1", "http2"] }
+hyper-util = { version = "0.1", features = ["tokio", "server", "server-auto", "service"] }
+# buffa: transport.rs names buffa::Message/DecodeOptions directly; pinned
+# in workspace deps alongside connectrpc.
+buffa.workspace = true
+anyhow.workspace = true
+base64.workspace = true
+thiserror.workspace = true
+sha2.workspace = true
+subtle.workspace = true
+# Direct dep for the sanitize rule engine (Go regexp parity: RE2 syntax,
+# ASCII class opt-outs); already locked transitively via tracing-subscriber.
+regex-automata = "0.4.18"
+jiff.workspace = true
+rand.workspace = true
+socket2.workspace = true
+sysinfo.workspace = true
+# flate2 (zlib-rs backend already locked via connectrpc): pre-compressed
+# gzip bodies for embedded panel assets >= 1KB (Go serveStatic parity).
+flate2 = { version = "1", default-features = false, features = ["zlib-rs"] }
+devin-proto = { path = "crates/devin-proto" }
+buffa-descriptor = { version = "0.9", features = ["reflect"] }
+
+[dev-dependencies]
+# test-util enables tokio's paused clock (`time::pause`/`advance`,
+# `#[tokio::test(start_paused)]`) — the deterministic time control the
+# parity plan mandates for timer-driven tests. Dev-only: release binaries
+# keep the production feature set.
+tokio = { workspace = true, features = ["test-util"] }
+
+[lints]
+workspace = true
+
+[[bin]]
+name = "devin-2api"
+path = "src/bin/devin-2api.rs"
+
+[[bin]]
+name = "probe"
+path = "src/bin/probe.rs"
+
+[[bin]]
+name = "protoextract"
+path = "src/bin/protoextract.rs"
+
+[[bin]]
+name = "protocensus"
+path = "src/bin/protocensus.rs"
+
+[[bin]]
+name = "loadtest"
+path = "src/bin/loadtest.rs"
+
+[[bin]]
+name = "upstreamstub"
+path = "src/bin/upstreamstub.rs"
+
+[[bin]]
+name = "qa"
+path = "src/bin/qa.rs"
+required-features = ["qa"]
+
+# Lean dev profile: devin-proto's generated bindings are ~82MB of Rust and
+# debuginfo roughly doubles rustc RSS (13GB -> ~6GB) on this 4-core host.
+# Tests do not need debuginfo. Keeping it here (not in env vars) guarantees
+# every cargo invocation resolves the same profile fingerprint, so workers
+# can never trigger a duplicate devin-proto rebuild by forgetting an env var.
+[profile.dev]
+debug = 0
+
+# Release: thin LTO across the workspace — the hot path is all cross-crate
+# calls (connectrpc decode, serde_json encode, hyper IO) that default
+# codegen-units=16 never inlines. codegen-units stays at the default: the
+# devin-proto crate is ~82MB of generated Rust and cgu=1 would serialize
+# its release compile beyond the host's patience for a marginal gain.
+[profile.release]
+lto = "thin"

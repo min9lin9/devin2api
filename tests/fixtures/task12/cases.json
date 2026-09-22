@@ -1,0 +1,2789 @@
+{
+ "cases": [
+  {
+   "name": "responses_stream_reasoning_and_tool_items",
+   "protocol": "responses",
+   "mode": "stream",
+   "model": "gpt-test",
+   "events": [
+    {
+     "type": "start",
+     "partial": {
+      "content": [],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "thinking_start",
+     "partial": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "inspect",
+        "signature": "encrypted",
+        "signature_type": "",
+        "redacted": false
+       },
+       {
+        "kind": "tool_call",
+        "tool_call": {
+         "id": "call-1",
+         "name": "lookup",
+         "arguments": "{\"city\":\"Shanghai\"}",
+         "custom": false
+        }
+       }
+      ],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "thinking_delta",
+     "delta": "inspect",
+     "partial": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "inspect",
+        "signature": "encrypted",
+        "signature_type": "",
+        "redacted": false
+       },
+       {
+        "kind": "tool_call",
+        "tool_call": {
+         "id": "call-1",
+         "name": "lookup",
+         "arguments": "{\"city\":\"Shanghai\"}",
+         "custom": false
+        }
+       }
+      ],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "thinking_end",
+     "content": "inspect",
+     "partial": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "inspect",
+        "signature": "encrypted",
+        "signature_type": "",
+        "redacted": false
+       },
+       {
+        "kind": "tool_call",
+        "tool_call": {
+         "id": "call-1",
+         "name": "lookup",
+         "arguments": "{\"city\":\"Shanghai\"}",
+         "custom": false
+        }
+       }
+      ],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "toolcall_start",
+     "content_index": 1,
+     "partial": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "inspect",
+        "signature": "encrypted",
+        "signature_type": "",
+        "redacted": false
+       },
+       {
+        "kind": "tool_call",
+        "tool_call": {
+         "id": "call-1",
+         "name": "lookup",
+         "arguments": "{\"city\":\"Shanghai\"}",
+         "custom": false
+        }
+       }
+      ],
+      "stop_reason": "pending"
+     },
+     "tool_call_id": "call-1",
+     "tool_name": "lookup"
+    },
+    {
+     "type": "toolcall_delta",
+     "content_index": 1,
+     "delta": "{\"city\":\"",
+     "partial": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "inspect",
+        "signature": "encrypted",
+        "signature_type": "",
+        "redacted": false
+       },
+       {
+        "kind": "tool_call",
+        "tool_call": {
+         "id": "call-1",
+         "name": "lookup",
+         "arguments": "{\"city\":\"Shanghai\"}",
+         "custom": false
+        }
+       }
+      ],
+      "stop_reason": "pending"
+     },
+     "tool_call_id": "call-1"
+    },
+    {
+     "type": "toolcall_delta",
+     "content_index": 1,
+     "delta": "Shanghai\"}",
+     "partial": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "inspect",
+        "signature": "encrypted",
+        "signature_type": "",
+        "redacted": false
+       },
+       {
+        "kind": "tool_call",
+        "tool_call": {
+         "id": "call-1",
+         "name": "lookup",
+         "arguments": "{\"city\":\"Shanghai\"}",
+         "custom": false
+        }
+       }
+      ],
+      "stop_reason": "pending"
+     },
+     "tool_call_id": "call-1"
+    },
+    {
+     "type": "toolcall_end",
+     "content_index": 1,
+     "partial": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "inspect",
+        "signature": "encrypted",
+        "signature_type": "",
+        "redacted": false
+       },
+       {
+        "kind": "tool_call",
+        "tool_call": {
+         "id": "call-1",
+         "name": "lookup",
+         "arguments": "{\"city\":\"Shanghai\"}",
+         "custom": false
+        }
+       }
+      ],
+      "stop_reason": "pending"
+     },
+     "tool_call": {
+      "id": "call-1",
+      "name": "lookup",
+      "arguments": "{\"city\":\"Shanghai\"}"
+     }
+    },
+    {
+     "type": "done",
+     "reason": "toolUse",
+     "message": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "inspect",
+        "signature": "encrypted",
+        "signature_type": "",
+        "redacted": false
+       },
+       {
+        "kind": "tool_call",
+        "tool_call": {
+         "id": "call-1",
+         "name": "lookup",
+         "arguments": "{\"city\":\"Shanghai\"}",
+         "custom": false
+        }
+       }
+      ],
+      "stop_reason": "toolUse",
+      "usage": {
+       "input": 10,
+       "output": 5,
+       "cache_read": 2,
+       "cache_write": 0,
+       "total_tokens": 17
+      }
+     }
+    }
+   ]
+  },
+  {
+   "name": "responses_stream_final_text_message",
+   "protocol": "responses",
+   "mode": "stream",
+   "model": "gpt-test",
+   "events": [
+    {
+     "type": "start",
+     "partial": {
+      "content": [],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "text_start",
+     "partial": {
+      "content": [
+       {
+        "kind": "text",
+        "text": "final answer"
+       }
+      ],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "text_delta",
+     "delta": "final ",
+     "partial": {
+      "content": [
+       {
+        "kind": "text",
+        "text": "final answer"
+       }
+      ],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "text_delta",
+     "delta": "answer",
+     "partial": {
+      "content": [
+       {
+        "kind": "text",
+        "text": "final answer"
+       }
+      ],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "text_end",
+     "content": "final answer",
+     "partial": {
+      "content": [
+       {
+        "kind": "text",
+        "text": "final answer"
+       }
+      ],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "done",
+     "reason": "stop",
+     "message": {
+      "content": [
+       {
+        "kind": "text",
+        "text": "final answer"
+       }
+      ],
+      "stop_reason": "stop"
+     }
+    }
+   ]
+  },
+  {
+   "name": "responses_stream_late_signature",
+   "protocol": "responses",
+   "mode": "stream",
+   "model": "gpt-test",
+   "events": [
+    {
+     "type": "start",
+     "partial": {
+      "content": [],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "thinking_start",
+     "partial": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "inspect",
+        "signature": "",
+        "signature_type": "",
+        "redacted": false
+       },
+       {
+        "kind": "tool_call",
+        "tool_call": {
+         "id": "call-1",
+         "name": "lookup",
+         "arguments": "{\"city\":\"Shanghai\"}",
+         "custom": false
+        }
+       }
+      ],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "thinking_delta",
+     "delta": "inspect",
+     "partial": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "inspect",
+        "signature": "",
+        "signature_type": "",
+        "redacted": false
+       },
+       {
+        "kind": "tool_call",
+        "tool_call": {
+         "id": "call-1",
+         "name": "lookup",
+         "arguments": "{\"city\":\"Shanghai\"}",
+         "custom": false
+        }
+       }
+      ],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "thinking_end",
+     "content": "inspect",
+     "partial": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "inspect",
+        "signature": "",
+        "signature_type": "",
+        "redacted": false
+       },
+       {
+        "kind": "tool_call",
+        "tool_call": {
+         "id": "call-1",
+         "name": "lookup",
+         "arguments": "{\"city\":\"Shanghai\"}",
+         "custom": false
+        }
+       }
+      ],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "toolcall_start",
+     "content_index": 1,
+     "partial": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "inspect",
+        "signature": "",
+        "signature_type": "",
+        "redacted": false
+       },
+       {
+        "kind": "tool_call",
+        "tool_call": {
+         "id": "call-1",
+         "name": "lookup",
+         "arguments": "{\"city\":\"Shanghai\"}",
+         "custom": false
+        }
+       }
+      ],
+      "stop_reason": "pending"
+     },
+     "tool_call_id": "call-1",
+     "tool_name": "lookup"
+    },
+    {
+     "type": "toolcall_delta",
+     "content_index": 1,
+     "delta": "{\"city\":\"Shanghai\"}",
+     "partial": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "inspect",
+        "signature": "",
+        "signature_type": "",
+        "redacted": false
+       },
+       {
+        "kind": "tool_call",
+        "tool_call": {
+         "id": "call-1",
+         "name": "lookup",
+         "arguments": "{\"city\":\"Shanghai\"}",
+         "custom": false
+        }
+       }
+      ],
+      "stop_reason": "pending"
+     },
+     "tool_call_id": "call-1"
+    },
+    {
+     "type": "thinking_signature",
+     "delta": "sig",
+     "partial": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "inspect",
+        "signature": "sig",
+        "signature_type": "",
+        "redacted": false
+       },
+       {
+        "kind": "tool_call",
+        "tool_call": {
+         "id": "call-1",
+         "name": "lookup",
+         "arguments": "{\"city\":\"Shanghai\"}",
+         "custom": false
+        }
+       }
+      ],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "toolcall_end",
+     "content_index": 1,
+     "partial": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "inspect",
+        "signature": "sig",
+        "signature_type": "",
+        "redacted": false
+       },
+       {
+        "kind": "tool_call",
+        "tool_call": {
+         "id": "call-1",
+         "name": "lookup",
+         "arguments": "{\"city\":\"Shanghai\"}",
+         "custom": false
+        }
+       }
+      ],
+      "stop_reason": "pending"
+     },
+     "tool_call": {
+      "id": "call-1",
+      "name": "lookup",
+      "arguments": "{\"city\":\"Shanghai\"}"
+     }
+    },
+    {
+     "type": "done",
+     "reason": "toolUse",
+     "message": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "inspect",
+        "signature": "sig",
+        "signature_type": "",
+        "redacted": false
+       },
+       {
+        "kind": "tool_call",
+        "tool_call": {
+         "id": "call-1",
+         "name": "lookup",
+         "arguments": "{\"city\":\"Shanghai\"}",
+         "custom": false
+        }
+       }
+      ],
+      "stop_reason": "toolUse"
+     }
+    }
+   ]
+  },
+  {
+   "name": "responses_stream_signature_fragments",
+   "protocol": "responses",
+   "mode": "stream",
+   "model": "gpt-test",
+   "events": [
+    {
+     "type": "start",
+     "partial": {
+      "content": [],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "thinking_start",
+     "partial": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "inspect",
+        "signature": "",
+        "signature_type": "",
+        "redacted": false
+       }
+      ],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "thinking_delta",
+     "delta": "inspect",
+     "partial": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "inspect",
+        "signature": "",
+        "signature_type": "",
+        "redacted": false
+       }
+      ],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "thinking_end",
+     "content": "inspect",
+     "partial": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "inspect",
+        "signature": "",
+        "signature_type": "",
+        "redacted": false
+       }
+      ],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "thinking_signature",
+     "delta": "AAA",
+     "partial": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "inspect",
+        "signature": "AAABBB",
+        "signature_type": "",
+        "redacted": false
+       }
+      ],
+      "stop_reason": "stop"
+     }
+    },
+    {
+     "type": "thinking_signature",
+     "delta": "BBB",
+     "partial": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "inspect",
+        "signature": "AAABBB",
+        "signature_type": "",
+        "redacted": false
+       }
+      ],
+      "stop_reason": "stop"
+     }
+    },
+    {
+     "type": "done",
+     "reason": "stop",
+     "message": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "inspect",
+        "signature": "AAABBB",
+        "signature_type": "",
+        "redacted": false
+       }
+      ],
+      "stop_reason": "stop"
+     }
+    }
+   ]
+  },
+  {
+   "name": "responses_stream_signature_only_reasoning",
+   "protocol": "responses",
+   "mode": "stream",
+   "model": "gpt-test",
+   "events": [
+    {
+     "type": "start",
+     "partial": {
+      "content": [],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "thinking_start",
+     "partial": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "",
+        "signature": "sig",
+        "signature_type": "",
+        "redacted": false
+       }
+      ],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "thinking_end",
+     "partial": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "",
+        "signature": "sig",
+        "signature_type": "",
+        "redacted": false
+       }
+      ],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "done",
+     "reason": "stop",
+     "message": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "",
+        "signature": "sig",
+        "signature_type": "",
+        "redacted": false
+       }
+      ],
+      "stop_reason": "stop"
+     }
+    }
+   ]
+  },
+  {
+   "name": "responses_stream_rejects_unknown_event",
+   "protocol": "responses",
+   "mode": "stream",
+   "model": "gpt-test",
+   "events": [
+    {
+     "type": "unknown"
+    }
+   ]
+  },
+  {
+   "name": "responses_stream_rejects_done_with_open_item",
+   "protocol": "responses",
+   "mode": "stream",
+   "model": "gpt-test",
+   "events": [
+    {
+     "type": "text_start",
+     "partial": {
+      "content": [
+       {
+        "kind": "text",
+        "text": "partial"
+       }
+      ],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "done",
+     "reason": "stop",
+     "message": {
+      "content": [
+       {
+        "kind": "text",
+        "text": "partial"
+       }
+      ],
+      "stop_reason": "stop"
+     }
+    }
+   ]
+  },
+  {
+   "name": "responses_stream_length_incomplete",
+   "protocol": "responses",
+   "mode": "stream",
+   "model": "gpt-test",
+   "events": [
+    {
+     "type": "start",
+     "partial": {
+      "content": [],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "done",
+     "reason": "length",
+     "message": {
+      "content": [],
+      "stop_reason": "length"
+     }
+    }
+   ]
+  },
+  {
+   "name": "responses_final_cached_usage",
+   "protocol": "responses",
+   "mode": "final",
+   "model": "gpt-test",
+   "message": {
+    "content": [
+     {
+      "kind": "text",
+      "text": "hi"
+     }
+    ],
+    "stop_reason": "stop",
+    "response_model": "gpt-test",
+    "usage": {
+     "input": 167,
+     "output": 61,
+     "cache_read": 12195,
+     "cache_write": 0,
+     "total_tokens": 12423
+    }
+   }
+  },
+  {
+   "name": "responses_stream_openai_signature_item_id",
+   "protocol": "responses",
+   "mode": "stream",
+   "model": "gpt-test",
+   "events": [
+    {
+     "type": "start",
+     "partial": {
+      "content": [],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "thinking_start",
+     "partial": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "",
+        "signature": "[{\"id\":\"rs_real1\",\"type\":\"reasoning\",\"encrypted_content\":\"gAAA\",\"summary\":[],\"content\":[],\"status\":\"\"}]",
+        "signature_type": "openai",
+        "redacted": true
+       }
+      ],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "thinking_end",
+     "partial": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "",
+        "signature": "[{\"id\":\"rs_real1\",\"type\":\"reasoning\",\"encrypted_content\":\"gAAA\",\"summary\":[],\"content\":[],\"status\":\"\"}]",
+        "signature_type": "openai",
+        "redacted": true
+       }
+      ],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "done",
+     "reason": "stop",
+     "message": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "",
+        "signature": "[{\"id\":\"rs_real1\",\"type\":\"reasoning\",\"encrypted_content\":\"gAAA\",\"summary\":[],\"content\":[],\"status\":\"\"}]",
+        "signature_type": "openai",
+        "redacted": true
+       }
+      ],
+      "stop_reason": "stop"
+     }
+    }
+   ]
+  },
+  {
+   "name": "responses_stream_message_item_output_id",
+   "protocol": "responses",
+   "mode": "stream",
+   "model": "gpt-test",
+   "events": [
+    {
+     "type": "start",
+     "partial": {
+      "content": [],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "text_start",
+     "partial": {
+      "content": [
+       {
+        "kind": "text",
+        "text": ""
+       }
+      ],
+      "stop_reason": "pending",
+      "output_id": "msg_up1"
+     }
+    },
+    {
+     "type": "text_delta",
+     "delta": "hi",
+     "partial": {
+      "content": [
+       {
+        "kind": "text",
+        "text": ""
+       }
+      ],
+      "stop_reason": "pending",
+      "output_id": "msg_up1"
+     }
+    },
+    {
+     "type": "text_end",
+     "content": "hi",
+     "partial": {
+      "content": [
+       {
+        "kind": "text",
+        "text": ""
+       }
+      ],
+      "stop_reason": "pending",
+      "output_id": "msg_up1"
+     }
+    },
+    {
+     "type": "done",
+     "reason": "stop",
+     "message": {
+      "content": [
+       {
+        "kind": "text",
+        "text": "hi"
+       }
+      ],
+      "stop_reason": "stop",
+      "output_id": "msg_up1"
+     }
+    }
+   ]
+  },
+  {
+   "name": "responses_stream_custom_tool_call",
+   "protocol": "responses",
+   "mode": "stream",
+   "model": "gpt-test",
+   "events": [
+    {
+     "type": "start",
+     "partial": {
+      "content": [],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "toolcall_start",
+     "partial": {
+      "content": [
+       {
+        "kind": "tool_call",
+        "tool_call": {
+         "id": "c1",
+         "name": "apply_patch",
+         "arguments": "*** Begin Patch",
+         "custom": true
+        }
+       }
+      ],
+      "stop_reason": "pending"
+     },
+     "tool_call_id": "c1",
+     "tool_name": "apply_patch"
+    },
+    {
+     "type": "toolcall_delta",
+     "delta": "*** Begin Patch",
+     "partial": {
+      "content": [
+       {
+        "kind": "tool_call",
+        "tool_call": {
+         "id": "c1",
+         "name": "apply_patch",
+         "arguments": "*** Begin Patch",
+         "custom": true
+        }
+       }
+      ],
+      "stop_reason": "pending"
+     },
+     "tool_call_id": "c1"
+    },
+    {
+     "type": "toolcall_end",
+     "partial": {
+      "content": [
+       {
+        "kind": "tool_call",
+        "tool_call": {
+         "id": "c1",
+         "name": "apply_patch",
+         "arguments": "*** Begin Patch",
+         "custom": true
+        }
+       }
+      ],
+      "stop_reason": "pending"
+     },
+     "tool_call": {
+      "id": "c1",
+      "name": "apply_patch",
+      "arguments": "*** Begin Patch",
+      "custom": true
+     }
+    },
+    {
+     "type": "done",
+     "reason": "toolUse",
+     "message": {
+      "content": [
+       {
+        "kind": "tool_call",
+        "tool_call": {
+         "id": "c1",
+         "name": "apply_patch",
+         "arguments": "*** Begin Patch",
+         "custom": true
+        }
+       }
+      ],
+      "stop_reason": "toolUse"
+     }
+    }
+   ]
+  },
+  {
+   "name": "responses_stream_failure_after_partial_tool",
+   "protocol": "responses",
+   "mode": "stream",
+   "model": "gpt-test",
+   "events": [
+    {
+     "type": "start",
+     "partial": {
+      "content": [],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "toolcall_start",
+     "partial": {
+      "content": [
+       {
+        "kind": "tool_call",
+        "tool_call": {
+         "id": "call-1",
+         "name": "lookup",
+         "arguments": "{\"city\":\"Shanghai\"}",
+         "custom": false
+        }
+       }
+      ],
+      "stop_reason": "pending"
+     },
+     "tool_call_id": "call-1",
+     "tool_name": "lookup"
+    },
+    {
+     "type": "toolcall_delta",
+     "delta": "{\"city\":\"",
+     "partial": {
+      "content": [
+       {
+        "kind": "tool_call",
+        "tool_call": {
+         "id": "call-1",
+         "name": "lookup",
+         "arguments": "{\"city\":\"Shanghai\"}",
+         "custom": false
+        }
+       }
+      ],
+      "stop_reason": "pending"
+     },
+     "tool_call_id": "call-1"
+    },
+    {
+     "type": "error",
+     "reason": "error",
+     "error": {
+      "content": [
+       {
+        "kind": "tool_call",
+        "tool_call": {
+         "id": "call-1",
+         "name": "lookup",
+         "arguments": "{\"city\":\"Shanghai\"}",
+         "custom": false
+        }
+       }
+      ],
+      "stop_reason": "error",
+      "provider": "devin",
+      "error_message": "resource_exhausted: rate limit exceeded"
+     }
+    }
+   ]
+  },
+  {
+   "name": "chat_stream_role_and_text",
+   "protocol": "chat",
+   "mode": "stream",
+   "model": "gpt-test",
+   "events": [
+    {
+     "type": "start",
+     "partial": {
+      "content": [],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "text_start",
+     "partial": {
+      "content": [
+       {
+        "kind": "text",
+        "text": "final answer"
+       }
+      ],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "text_delta",
+     "delta": "final ",
+     "partial": {
+      "content": [
+       {
+        "kind": "text",
+        "text": "final answer"
+       }
+      ],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "text_delta",
+     "delta": "answer",
+     "partial": {
+      "content": [
+       {
+        "kind": "text",
+        "text": "final answer"
+       }
+      ],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "text_end",
+     "content": "final answer",
+     "partial": {
+      "content": [
+       {
+        "kind": "text",
+        "text": "final answer"
+       }
+      ],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "done",
+     "reason": "stop",
+     "message": {
+      "content": [
+       {
+        "kind": "text",
+        "text": "final answer"
+       }
+      ],
+      "stop_reason": "stop"
+     }
+    }
+   ]
+  },
+  {
+   "name": "chat_stream_tool_calls",
+   "protocol": "chat",
+   "mode": "stream",
+   "model": "gpt-test",
+   "events": [
+    {
+     "type": "start",
+     "partial": {
+      "content": [],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "toolcall_start",
+     "partial": {
+      "content": [
+       {
+        "kind": "tool_call",
+        "tool_call": {
+         "id": "call-1",
+         "name": "lookup",
+         "arguments": "{\"city\":\"Shanghai\"}",
+         "custom": false
+        }
+       }
+      ],
+      "stop_reason": "pending"
+     },
+     "tool_call_id": "call-1",
+     "tool_name": "lookup"
+    },
+    {
+     "type": "toolcall_delta",
+     "delta": "{\"city\":\"",
+     "partial": {
+      "content": [
+       {
+        "kind": "tool_call",
+        "tool_call": {
+         "id": "call-1",
+         "name": "lookup",
+         "arguments": "{\"city\":\"Shanghai\"}",
+         "custom": false
+        }
+       }
+      ],
+      "stop_reason": "pending"
+     },
+     "tool_call_id": "call-1"
+    },
+    {
+     "type": "toolcall_delta",
+     "delta": "Shanghai\"}",
+     "partial": {
+      "content": [
+       {
+        "kind": "tool_call",
+        "tool_call": {
+         "id": "call-1",
+         "name": "lookup",
+         "arguments": "{\"city\":\"Shanghai\"}",
+         "custom": false
+        }
+       }
+      ],
+      "stop_reason": "pending"
+     },
+     "tool_call_id": "call-1"
+    },
+    {
+     "type": "toolcall_end",
+     "partial": {
+      "content": [
+       {
+        "kind": "tool_call",
+        "tool_call": {
+         "id": "call-1",
+         "name": "lookup",
+         "arguments": "{\"city\":\"Shanghai\"}",
+         "custom": false
+        }
+       }
+      ],
+      "stop_reason": "pending"
+     },
+     "tool_call": {
+      "id": "call-1",
+      "name": "lookup",
+      "arguments": "{\"city\":\"Shanghai\"}"
+     }
+    },
+    {
+     "type": "done",
+     "reason": "toolUse",
+     "message": {
+      "content": [
+       {
+        "kind": "tool_call",
+        "tool_call": {
+         "id": "call-1",
+         "name": "lookup",
+         "arguments": "{\"city\":\"Shanghai\"}",
+         "custom": false
+        }
+       }
+      ],
+      "stop_reason": "toolUse"
+     }
+    }
+   ]
+  },
+  {
+   "name": "chat_stream_tool_call_after_other_blocks",
+   "protocol": "chat",
+   "mode": "stream",
+   "model": "gpt-test",
+   "events": [
+    {
+     "type": "start",
+     "partial": {
+      "content": [],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "toolcall_start",
+     "content_index": 2,
+     "partial": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "t",
+        "signature": "",
+        "signature_type": "",
+        "redacted": false
+       },
+       {
+        "kind": "text",
+        "text": "x"
+       },
+       {
+        "kind": "tool_call",
+        "tool_call": {
+         "id": "call-1",
+         "name": "lookup",
+         "arguments": "{\"city\":\"Shanghai\"}",
+         "custom": false
+        }
+       }
+      ],
+      "stop_reason": "pending"
+     },
+     "tool_call_id": "call-1",
+     "tool_name": "lookup"
+    },
+    {
+     "type": "toolcall_delta",
+     "content_index": 2,
+     "delta": "{\"city\":\"",
+     "partial": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "t",
+        "signature": "",
+        "signature_type": "",
+        "redacted": false
+       },
+       {
+        "kind": "text",
+        "text": "x"
+       },
+       {
+        "kind": "tool_call",
+        "tool_call": {
+         "id": "call-1",
+         "name": "lookup",
+         "arguments": "{\"city\":\"Shanghai\"}",
+         "custom": false
+        }
+       }
+      ],
+      "stop_reason": "pending"
+     },
+     "tool_call_id": "call-rekeyed"
+    },
+    {
+     "type": "toolcall_delta",
+     "content_index": 2,
+     "delta": "Shanghai\"}",
+     "partial": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "t",
+        "signature": "",
+        "signature_type": "",
+        "redacted": false
+       },
+       {
+        "kind": "text",
+        "text": "x"
+       },
+       {
+        "kind": "tool_call",
+        "tool_call": {
+         "id": "call-1",
+         "name": "lookup",
+         "arguments": "{\"city\":\"Shanghai\"}",
+         "custom": false
+        }
+       }
+      ],
+      "stop_reason": "pending"
+     },
+     "tool_call_id": "call-rekeyed"
+    },
+    {
+     "type": "toolcall_end",
+     "content_index": 2,
+     "partial": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "t",
+        "signature": "",
+        "signature_type": "",
+        "redacted": false
+       },
+       {
+        "kind": "text",
+        "text": "x"
+       },
+       {
+        "kind": "tool_call",
+        "tool_call": {
+         "id": "call-1",
+         "name": "lookup",
+         "arguments": "{\"city\":\"Shanghai\"}",
+         "custom": false
+        }
+       }
+      ],
+      "stop_reason": "pending"
+     },
+     "tool_call": {
+      "id": "call-1",
+      "name": "lookup",
+      "arguments": "{\"city\":\"Shanghai\"}"
+     }
+    },
+    {
+     "type": "done",
+     "reason": "toolUse",
+     "message": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "t",
+        "signature": "",
+        "signature_type": "",
+        "redacted": false
+       },
+       {
+        "kind": "text",
+        "text": "x"
+       },
+       {
+        "kind": "tool_call",
+        "tool_call": {
+         "id": "call-1",
+         "name": "lookup",
+         "arguments": "{\"city\":\"Shanghai\"}",
+         "custom": false
+        }
+       }
+      ],
+      "stop_reason": "toolUse"
+     }
+    }
+   ]
+  },
+  {
+   "name": "chat_final",
+   "protocol": "chat",
+   "mode": "final",
+   "model": "",
+   "message": {
+    "content": [
+     {
+      "kind": "text",
+      "text": "hello"
+     }
+    ],
+    "stop_reason": "stop",
+    "response_id": "chatcmpl-1",
+    "response_model": "gpt-test",
+    "usage": {
+     "input": 10,
+     "output": 5,
+     "cache_read": 3,
+     "cache_write": 0,
+     "total_tokens": 18
+    }
+   }
+  },
+  {
+   "name": "chat_final_with_reasoning",
+   "protocol": "chat",
+   "mode": "final",
+   "model": "",
+   "message": {
+    "content": [
+     {
+      "kind": "thinking",
+      "thinking": "think",
+      "signature": "",
+      "signature_type": "",
+      "redacted": false
+     },
+     {
+      "kind": "text",
+      "text": "hello"
+     }
+    ],
+    "stop_reason": "stop",
+    "response_id": "chatcmpl-2",
+    "response_model": "gpt-test"
+   }
+  },
+  {
+   "name": "chat_final_text_with_tool_calls",
+   "protocol": "chat",
+   "mode": "final",
+   "model": "",
+   "message": {
+    "content": [
+     {
+      "kind": "text",
+      "text": "let me check"
+     },
+     {
+      "kind": "tool_call",
+      "tool_call": {
+       "id": "c1",
+       "name": "read_file",
+       "arguments": "{\"path\":\"a\"}",
+       "custom": false
+      }
+     }
+    ],
+    "stop_reason": "toolUse",
+    "response_model": "gpt-test"
+   }
+  },
+  {
+   "name": "chat_final_tool_call_only",
+   "protocol": "chat",
+   "mode": "final",
+   "model": "",
+   "message": {
+    "content": [
+     {
+      "kind": "tool_call",
+      "tool_call": {
+       "id": "c1",
+       "name": "read_file",
+       "arguments": "{\"path\":\"a\"}",
+       "custom": false
+      }
+     }
+    ],
+    "stop_reason": "toolUse",
+    "response_model": "gpt-test"
+   }
+  },
+  {
+   "name": "chat_stream_error",
+   "protocol": "chat",
+   "mode": "stream",
+   "model": "gpt-test",
+   "events": [
+    {
+     "type": "error",
+     "reason": "error",
+     "error": {
+      "content": [],
+      "stop_reason": "error",
+      "provider": "devin",
+      "error_message": "resource_exhausted: rate limit exceeded"
+     }
+    }
+   ]
+  },
+  {
+   "name": "chat_stream_thinking_as_reasoning_content",
+   "protocol": "chat",
+   "mode": "stream",
+   "model": "gpt-test",
+   "events": [
+    {
+     "type": "start",
+     "partial": {
+      "content": [],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "thinking_start",
+     "partial": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "think",
+        "signature": "",
+        "signature_type": "",
+        "redacted": false
+       },
+       {
+        "kind": "text",
+        "text": "hello"
+       }
+      ],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "thinking_delta",
+     "delta": "think",
+     "partial": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "think",
+        "signature": "",
+        "signature_type": "",
+        "redacted": false
+       },
+       {
+        "kind": "text",
+        "text": "hello"
+       }
+      ],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "thinking_end",
+     "content": "think",
+     "partial": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "think",
+        "signature": "",
+        "signature_type": "",
+        "redacted": false
+       },
+       {
+        "kind": "text",
+        "text": "hello"
+       }
+      ],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "text_start",
+     "content_index": 1,
+     "partial": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "think",
+        "signature": "",
+        "signature_type": "",
+        "redacted": false
+       },
+       {
+        "kind": "text",
+        "text": "hello"
+       }
+      ],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "text_delta",
+     "content_index": 1,
+     "delta": "hello",
+     "partial": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "think",
+        "signature": "",
+        "signature_type": "",
+        "redacted": false
+       },
+       {
+        "kind": "text",
+        "text": "hello"
+       }
+      ],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "text_end",
+     "content_index": 1,
+     "content": "hello",
+     "partial": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "think",
+        "signature": "",
+        "signature_type": "",
+        "redacted": false
+       },
+       {
+        "kind": "text",
+        "text": "hello"
+       }
+      ],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "done",
+     "reason": "stop",
+     "message": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "think",
+        "signature": "",
+        "signature_type": "",
+        "redacted": false
+       },
+       {
+        "kind": "text",
+        "text": "hello"
+       }
+      ],
+      "stop_reason": "stop"
+     }
+    }
+   ]
+  },
+  {
+   "name": "chat_stream_include_usage",
+   "protocol": "chat",
+   "mode": "stream",
+   "model": "gpt-test",
+   "include_usage": true,
+   "events": [
+    {
+     "type": "start",
+     "partial": {
+      "content": [],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "text_start",
+     "partial": {
+      "content": [
+       {
+        "kind": "text",
+        "text": "hi"
+       }
+      ],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "text_delta",
+     "delta": "hi",
+     "partial": {
+      "content": [
+       {
+        "kind": "text",
+        "text": "hi"
+       }
+      ],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "text_end",
+     "content": "hi",
+     "partial": {
+      "content": [
+       {
+        "kind": "text",
+        "text": "hi"
+       }
+      ],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "done",
+     "reason": "stop",
+     "message": {
+      "content": [
+       {
+        "kind": "text",
+        "text": "hi"
+       }
+      ],
+      "stop_reason": "stop",
+      "usage": {
+       "input": 10,
+       "output": 5,
+       "cache_read": 0,
+       "cache_write": 0,
+       "total_tokens": 15
+      }
+     }
+    }
+   ]
+  },
+  {
+   "name": "messages_stream_message_start_and_text",
+   "protocol": "messages",
+   "mode": "stream",
+   "model": "claude-test",
+   "events": [
+    {
+     "type": "start",
+     "partial": {
+      "content": [],
+      "stop_reason": "pending",
+      "response_id": "msg-1"
+     }
+    },
+    {
+     "type": "text_start",
+     "partial": {
+      "content": [
+       {
+        "kind": "text",
+        "text": "hello"
+       }
+      ],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "text_delta",
+     "delta": "hello",
+     "partial": {
+      "content": [
+       {
+        "kind": "text",
+        "text": "hello"
+       }
+      ],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "text_end",
+     "content": "hello",
+     "partial": {
+      "content": [
+       {
+        "kind": "text",
+        "text": "hello"
+       }
+      ],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "done",
+     "reason": "stop",
+     "message": {
+      "content": [
+       {
+        "kind": "text",
+        "text": "hello"
+       }
+      ],
+      "stop_reason": "stop"
+     }
+    }
+   ]
+  },
+  {
+   "name": "messages_stream_tool_use",
+   "protocol": "messages",
+   "mode": "stream",
+   "model": "claude-test",
+   "events": [
+    {
+     "type": "start",
+     "partial": {
+      "content": [],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "toolcall_start",
+     "partial": {
+      "content": [
+       {
+        "kind": "tool_call",
+        "tool_call": {
+         "id": "call-1",
+         "name": "lookup",
+         "arguments": "{\"city\":\"Shanghai\"}",
+         "custom": false
+        }
+       }
+      ],
+      "stop_reason": "pending"
+     },
+     "tool_call_id": "call-1",
+     "tool_name": "lookup"
+    },
+    {
+     "type": "toolcall_delta",
+     "delta": "{\"city\":\"",
+     "partial": {
+      "content": [
+       {
+        "kind": "tool_call",
+        "tool_call": {
+         "id": "call-1",
+         "name": "lookup",
+         "arguments": "{\"city\":\"Shanghai\"}",
+         "custom": false
+        }
+       }
+      ],
+      "stop_reason": "pending"
+     },
+     "tool_call_id": "call-1"
+    },
+    {
+     "type": "toolcall_delta",
+     "delta": "Shanghai\"}",
+     "partial": {
+      "content": [
+       {
+        "kind": "tool_call",
+        "tool_call": {
+         "id": "call-1",
+         "name": "lookup",
+         "arguments": "{\"city\":\"Shanghai\"}",
+         "custom": false
+        }
+       }
+      ],
+      "stop_reason": "pending"
+     },
+     "tool_call_id": "call-1"
+    },
+    {
+     "type": "toolcall_end",
+     "partial": {
+      "content": [
+       {
+        "kind": "tool_call",
+        "tool_call": {
+         "id": "call-1",
+         "name": "lookup",
+         "arguments": "{\"city\":\"Shanghai\"}",
+         "custom": false
+        }
+       }
+      ],
+      "stop_reason": "pending"
+     },
+     "tool_call": {
+      "id": "call-1",
+      "name": "lookup",
+      "arguments": "{\"city\":\"Shanghai\"}"
+     }
+    },
+    {
+     "type": "done",
+     "reason": "toolUse",
+     "message": {
+      "content": [
+       {
+        "kind": "tool_call",
+        "tool_call": {
+         "id": "call-1",
+         "name": "lookup",
+         "arguments": "{\"city\":\"Shanghai\"}",
+         "custom": false
+        }
+       }
+      ],
+      "stop_reason": "toolUse"
+     }
+    }
+   ]
+  },
+  {
+   "name": "messages_stream_late_signature",
+   "protocol": "messages",
+   "mode": "stream",
+   "model": "claude-test",
+   "events": [
+    {
+     "type": "start",
+     "partial": {
+      "content": [],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "thinking_start",
+     "partial": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "inspect",
+        "signature": "",
+        "signature_type": "",
+        "redacted": false
+       },
+       {
+        "kind": "tool_call",
+        "tool_call": {
+         "id": "call-1",
+         "name": "lookup",
+         "arguments": "{\"city\":\"Shanghai\"}",
+         "custom": false
+        }
+       }
+      ],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "thinking_delta",
+     "delta": "inspect",
+     "partial": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "inspect",
+        "signature": "",
+        "signature_type": "",
+        "redacted": false
+       },
+       {
+        "kind": "tool_call",
+        "tool_call": {
+         "id": "call-1",
+         "name": "lookup",
+         "arguments": "{\"city\":\"Shanghai\"}",
+         "custom": false
+        }
+       }
+      ],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "thinking_end",
+     "content": "inspect",
+     "partial": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "inspect",
+        "signature": "",
+        "signature_type": "",
+        "redacted": false
+       },
+       {
+        "kind": "tool_call",
+        "tool_call": {
+         "id": "call-1",
+         "name": "lookup",
+         "arguments": "{\"city\":\"Shanghai\"}",
+         "custom": false
+        }
+       }
+      ],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "toolcall_start",
+     "content_index": 1,
+     "partial": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "inspect",
+        "signature": "",
+        "signature_type": "",
+        "redacted": false
+       },
+       {
+        "kind": "tool_call",
+        "tool_call": {
+         "id": "call-1",
+         "name": "lookup",
+         "arguments": "{\"city\":\"Shanghai\"}",
+         "custom": false
+        }
+       }
+      ],
+      "stop_reason": "pending"
+     },
+     "tool_call_id": "call-1",
+     "tool_name": "lookup"
+    },
+    {
+     "type": "toolcall_delta",
+     "content_index": 1,
+     "delta": "{\"city\":\"Shanghai\"}",
+     "partial": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "inspect",
+        "signature": "",
+        "signature_type": "",
+        "redacted": false
+       },
+       {
+        "kind": "tool_call",
+        "tool_call": {
+         "id": "call-1",
+         "name": "lookup",
+         "arguments": "{\"city\":\"Shanghai\"}",
+         "custom": false
+        }
+       }
+      ],
+      "stop_reason": "pending"
+     },
+     "tool_call_id": "call-1"
+    },
+    {
+     "type": "thinking_signature",
+     "delta": "sig",
+     "partial": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "inspect",
+        "signature": "sig",
+        "signature_type": "",
+        "redacted": false
+       },
+       {
+        "kind": "tool_call",
+        "tool_call": {
+         "id": "call-1",
+         "name": "lookup",
+         "arguments": "{\"city\":\"Shanghai\"}",
+         "custom": false
+        }
+       }
+      ],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "toolcall_end",
+     "content_index": 1,
+     "partial": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "inspect",
+        "signature": "sig",
+        "signature_type": "",
+        "redacted": false
+       },
+       {
+        "kind": "tool_call",
+        "tool_call": {
+         "id": "call-1",
+         "name": "lookup",
+         "arguments": "{\"city\":\"Shanghai\"}",
+         "custom": false
+        }
+       }
+      ],
+      "stop_reason": "pending"
+     },
+     "tool_call": {
+      "id": "call-1",
+      "name": "lookup",
+      "arguments": "{\"city\":\"Shanghai\"}"
+     }
+    },
+    {
+     "type": "done",
+     "reason": "toolUse",
+     "message": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "inspect",
+        "signature": "sig",
+        "signature_type": "",
+        "redacted": false
+       },
+       {
+        "kind": "tool_call",
+        "tool_call": {
+         "id": "call-1",
+         "name": "lookup",
+         "arguments": "{\"city\":\"Shanghai\"}",
+         "custom": false
+        }
+       }
+      ],
+      "stop_reason": "toolUse"
+     }
+    }
+   ]
+  },
+  {
+   "name": "messages_stream_closes_blocks_in_index_order",
+   "protocol": "messages",
+   "mode": "stream",
+   "model": "claude-test",
+   "events": [
+    {
+     "type": "start",
+     "partial": {
+      "content": [],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "thinking_start",
+     "partial": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "inspect",
+        "signature": "",
+        "signature_type": "",
+        "redacted": false
+       },
+       {
+        "kind": "text",
+        "text": "4"
+       }
+      ],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "thinking_delta",
+     "delta": "inspect",
+     "partial": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "inspect",
+        "signature": "",
+        "signature_type": "",
+        "redacted": false
+       },
+       {
+        "kind": "text",
+        "text": "4"
+       }
+      ],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "thinking_end",
+     "content": "inspect",
+     "partial": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "inspect",
+        "signature": "",
+        "signature_type": "",
+        "redacted": false
+       },
+       {
+        "kind": "text",
+        "text": "4"
+       }
+      ],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "text_start",
+     "content_index": 1,
+     "partial": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "inspect",
+        "signature": "",
+        "signature_type": "",
+        "redacted": false
+       },
+       {
+        "kind": "text",
+        "text": "4"
+       }
+      ],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "text_delta",
+     "content_index": 1,
+     "delta": "4",
+     "partial": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "inspect",
+        "signature": "",
+        "signature_type": "",
+        "redacted": false
+       },
+       {
+        "kind": "text",
+        "text": "4"
+       }
+      ],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "text_end",
+     "content_index": 1,
+     "content": "4",
+     "partial": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "inspect",
+        "signature": "",
+        "signature_type": "",
+        "redacted": false
+       },
+       {
+        "kind": "text",
+        "text": "4"
+       }
+      ],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "thinking_signature",
+     "delta": "sig",
+     "partial": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "inspect",
+        "signature": "sig",
+        "signature_type": "",
+        "redacted": false
+       },
+       {
+        "kind": "text",
+        "text": "4"
+       }
+      ],
+      "stop_reason": "stop"
+     }
+    },
+    {
+     "type": "done",
+     "reason": "stop",
+     "message": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "inspect",
+        "signature": "sig",
+        "signature_type": "",
+        "redacted": false
+       },
+       {
+        "kind": "text",
+        "text": "4"
+       }
+      ],
+      "stop_reason": "stop"
+     }
+    }
+   ]
+  },
+  {
+   "name": "messages_stream_signature_fragments",
+   "protocol": "messages",
+   "mode": "stream",
+   "model": "claude-test",
+   "events": [
+    {
+     "type": "start",
+     "partial": {
+      "content": [],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "thinking_start",
+     "partial": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "inspect",
+        "signature": "",
+        "signature_type": "",
+        "redacted": false
+       }
+      ],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "thinking_delta",
+     "delta": "inspect",
+     "partial": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "inspect",
+        "signature": "",
+        "signature_type": "",
+        "redacted": false
+       }
+      ],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "thinking_end",
+     "content": "inspect",
+     "partial": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "inspect",
+        "signature": "",
+        "signature_type": "",
+        "redacted": false
+       }
+      ],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "thinking_signature",
+     "delta": "AAA",
+     "partial": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "inspect",
+        "signature": "AAABBB",
+        "signature_type": "",
+        "redacted": false
+       }
+      ],
+      "stop_reason": "stop"
+     }
+    },
+    {
+     "type": "thinking_signature",
+     "delta": "BBB",
+     "partial": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "inspect",
+        "signature": "AAABBB",
+        "signature_type": "",
+        "redacted": false
+       }
+      ],
+      "stop_reason": "stop"
+     }
+    },
+    {
+     "type": "done",
+     "reason": "stop",
+     "message": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "inspect",
+        "signature": "AAABBB",
+        "signature_type": "",
+        "redacted": false
+       }
+      ],
+      "stop_reason": "stop"
+     }
+    }
+   ]
+  },
+  {
+   "name": "messages_final",
+   "protocol": "messages",
+   "mode": "final",
+   "model": "",
+   "message": {
+    "content": [
+     {
+      "kind": "text",
+      "text": "hello"
+     }
+    ],
+    "stop_reason": "stop",
+    "response_id": "msg-1",
+    "response_model": "claude-test",
+    "usage": {
+     "input": 10,
+     "output": 5,
+     "cache_read": 3,
+     "cache_write": 2,
+     "total_tokens": 0
+    }
+   }
+  },
+  {
+   "name": "messages_stream_error",
+   "protocol": "messages",
+   "mode": "stream",
+   "model": "claude-test",
+   "events": [
+    {
+     "type": "error",
+     "reason": "error",
+     "error": {
+      "content": [],
+      "stop_reason": "error",
+      "provider": "devin",
+      "error_message": "permission_denied: not allowed"
+     }
+    }
+   ]
+  },
+  {
+   "name": "messages_stream_signature_ready_at_thinking_end",
+   "protocol": "messages",
+   "mode": "stream",
+   "model": "claude-test",
+   "events": [
+    {
+     "type": "start",
+     "partial": {
+      "content": [],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "thinking_start",
+     "partial": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "inspect",
+        "signature": "sig",
+        "signature_type": "",
+        "redacted": false
+       }
+      ],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "thinking_delta",
+     "delta": "inspect",
+     "partial": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "inspect",
+        "signature": "sig",
+        "signature_type": "",
+        "redacted": false
+       }
+      ],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "thinking_end",
+     "content": "inspect",
+     "partial": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "inspect",
+        "signature": "sig",
+        "signature_type": "",
+        "redacted": false
+       }
+      ],
+      "stop_reason": "pending"
+     }
+    }
+   ]
+  },
+  {
+   "name": "messages_stream_redacted_thinking_deferred_start",
+   "protocol": "messages",
+   "mode": "stream",
+   "model": "claude-test",
+   "events": [
+    {
+     "type": "start",
+     "partial": {
+      "content": [],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "thinking_start",
+     "partial": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "hidden",
+        "signature": "sealed-payload",
+        "signature_type": "",
+        "redacted": true
+       }
+      ],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "thinking_end",
+     "partial": {
+      "content": [
+       {
+        "kind": "thinking",
+        "thinking": "hidden",
+        "signature": "sealed-payload",
+        "signature_type": "",
+        "redacted": true
+       }
+      ],
+      "stop_reason": "pending"
+     }
+    }
+   ]
+  },
+  {
+   "name": "messages_stream_failure_after_partial_tool",
+   "protocol": "messages",
+   "mode": "stream",
+   "model": "claude-test",
+   "events": [
+    {
+     "type": "start",
+     "partial": {
+      "content": [],
+      "stop_reason": "pending"
+     }
+    },
+    {
+     "type": "toolcall_start",
+     "partial": {
+      "content": [
+       {
+        "kind": "tool_call",
+        "tool_call": {
+         "id": "call-1",
+         "name": "lookup",
+         "arguments": "{\"city\":\"Shanghai\"}",
+         "custom": false
+        }
+       }
+      ],
+      "stop_reason": "pending"
+     },
+     "tool_call_id": "call-1",
+     "tool_name": "lookup"
+    },
+    {
+     "type": "toolcall_delta",
+     "delta": "{\"city\":\"",
+     "partial": {
+      "content": [
+       {
+        "kind": "tool_call",
+        "tool_call": {
+         "id": "call-1",
+         "name": "lookup",
+         "arguments": "{\"city\":\"Shanghai\"}",
+         "custom": false
+        }
+       }
+      ],
+      "stop_reason": "pending"
+     },
+     "tool_call_id": "call-1"
+    },
+    {
+     "type": "error",
+     "reason": "error",
+     "error": {
+      "content": [
+       {
+        "kind": "tool_call",
+        "tool_call": {
+         "id": "call-1",
+         "name": "lookup",
+         "arguments": "{\"city\":\"Shanghai\"}",
+         "custom": false
+        }
+       }
+      ],
+      "stop_reason": "error",
+      "provider": "devin",
+      "error_message": "resource_exhausted: rate limit exceeded"
+     }
+    }
+   ]
+  },
+  {
+   "name": "responses_encode_error_rate_limit",
+   "protocol": "responses",
+   "mode": "error",
+   "debug_ref": "dbg-1",
+   "error": {
+    "message": "rate limit exceeded, reset in 30 seconds",
+    "code": "resource_exhausted"
+   }
+  },
+  {
+   "name": "chat_encode_error_internal",
+   "protocol": "chat",
+   "mode": "error",
+   "error": {
+    "message": "invalid_argument: an internal error occurred (trace ID: abc)"
+   }
+  },
+  {
+   "name": "messages_encode_error_permission",
+   "protocol": "messages",
+   "mode": "error",
+   "debug_ref": "dbg-2",
+   "error": {
+    "message": "not allowed",
+    "code": "permission_denied"
+   }
+  },
+  {
+   "name": "responses_http_error_rate_limit",
+   "protocol": "responses",
+   "mode": "http_error",
+   "http_error": {
+    "failure": {
+     "message": "quota exhausted",
+     "code": "resource_exhausted",
+     "retry_after_seconds": 30
+    },
+    "stage": "provider_stream",
+    "debug_ref": "dbg-3"
+   }
+  },
+  {
+   "name": "chat_http_error_client_fixable",
+   "protocol": "chat",
+   "mode": "http_error",
+   "http_error": {
+    "failure": {
+     "message": "invalid_argument: model does not support image"
+    },
+    "client_fixable": true,
+    "stage": "http_decode"
+   }
+  },
+  {
+   "name": "messages_http_error_upstream",
+   "protocol": "messages",
+   "mode": "http_error",
+   "http_error": {
+    "failure": {
+     "message": "unavailable: upstream offline"
+    },
+    "stage": "provider_stream",
+    "debug_ref": "dbg-4"
+   }
+  },
+  {
+   "name": "messages_http_error_client_fixable",
+   "protocol": "messages",
+   "mode": "http_error",
+   "http_error": {
+    "failure": {
+     "message": "invalid_argument: The prompt is too long for this model"
+    },
+    "client_fixable": true,
+    "stage": "http_decode"
+   }
+  }
+ ]
+}

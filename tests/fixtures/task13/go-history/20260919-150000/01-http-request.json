@@ -1,0 +1,17 @@
+{
+  "authorization": "\u003credacted\u003e",
+  "image": {
+    "file": "attachments/image-001.png",
+    "mime_type": "image/png",
+    "size": 14,
+    "sha256": "3c6ed5fc41c950bf0db531eb22f945467fb8d999f80d82ba27dcc9fd90add54d"
+  },
+  "messages": [
+    {
+      "content": "hi \u003cb\u003e\u0026bye\u003c/b\u003e",
+      "role": "user"
+    }
+  ],
+  "model": "swe-2",
+  "stream": true
+}

@@ -1,0 +1,233 @@
+# devin-2api (Rust)
+
+> [한국어](README.md) | **English** | [中文](README.zh-CN.md)
+
+devin-2api is an unofficial protocol adapter that exposes the models available to your Devin account ([app.devin.ai](https://app.devin.ai/)) behind OpenAI- and Anthropic-compatible endpoints — so standard clients (Codex, Claude Code, any SDK) can call them through familiar APIs.
+
+This repository is a Rust port of the original Go [devin2api](https://github.com/WncFht/devin2api). It targets functional parity; the only intentional differences are the five approved exceptions listed in the [compatibility document](docs/compatibility.md).
+
+> **Disclaimer**: this project is not affiliated with or endorsed by Cognition. It authenticates with your own Devin session token against an internal RPC surface. It is intended for personal use with your own account; you are responsible for complying with Devin's terms of service.
+
+## Features
+
+- **Three API surfaces on one upstream** — `POST /v1/responses` (OpenAI Responses, incl. a WebSocket transport with multi-turn sessions for Codex-style clients), `POST /v1/chat/completions` (OpenAI Chat), `POST /v1/messages` (Anthropic Messages)
+- **Streaming and non-streaming** responses (typed SSE / JSON)
+- **Reasoning that round-trips** — thinking signatures are preserved and replayed across turns: `encrypted_content` reasoning items on Responses, `redacted_thinking` on Anthropic, `reasoning_content` on Chat
+- **Faithful tool calling** — custom/freeform tool calls (e.g. `apply_patch`) round-trip untouched; tool names and `tool_choice` are validated locally; strict call↔result re-pairing matches what upstream enforces
+- **Resilient upstream streams** — expired tokens are reloaded from the credentials source, pre-content upstream failures (transport breaks, silent stalls, empty replies) are retried transparently, and early failures surface as real HTTP errors instead of SSE errors after a committed `200`
+- **Rate-limit gate** — upstream `resource_exhausted` trips a local cooldown latch: queued requests wait briefly then fast-fail `429` + `Retry-After` instead of hammering a limited upstream, drip-released probes detect recovery, and latch state persists across restarts (`logs/gate-state.json`). An optional `max_rpm` token bucket shapes outbound pressure before the latch ever trips
+- **Normalized error contract** — upstream error codes map to proper HTTP status and per-protocol error types; rate limits become `429` + `Retry-After`; every request carries `X-Request-Id`/`debug_ref` pointing at its debug directory
+- **`/v1/models` capability flags** — context window, tool/thinking/image support surfaced from the upstream model catalog
+- **Admin panel at `/panel`** — request browser, usage/cost aggregation, quota tracking, process metrics, per-request debug directories, and a redacted config view with hot reload for most fields
+- **Easy to deploy** — single static binary, container image on [GHCR](https://github.com/min9lin9/devin2api/pkgs/container/devin2api)
+
+## Quick start
+
+### 1. Provide a Devin token
+
+devin-2api authenticates to Devin with your Devin session token (`devin-session-token$...`). If `devin.token` is left empty in `config.yaml`, the adapter discovers one automatically, in order:
+
+1. `DEVIN_TOKEN` or `WINDSURF_API_KEY` environment variable;
+2. the Devin CLI credential file — `~/.local/share/devin/credentials.toml` on macOS/Linux; `%APPDATA%\devin\credentials.toml` (then `%LOCALAPPDATA%\devin\credentials.toml`) on Windows. The Windows CLI is not distributed standalone but ships inside the [Windsurf desktop app](https://devin.ai/download) — after installing it, `& "C:\Program Files\Windsurf\resources\app\extensions\windsurf\devin\bin\devin.exe" auth login` produces the file above.
+
+On macOS you can also extract the token from the Devin app's local state:
+
+```bash
+sqlite3 ~/Library/"Application Support"/Devin/User/globalStorage/state.vscdb \
+  "SELECT json_extract(value, '$.apiKey') FROM ItemTable WHERE key='windsurfAuthStatus';"
+```
+
+Tokens expire. When upstream answers `unauthenticated`, the adapter re-reads the same source chain — so if the Devin CLI refreshes `credentials.toml`, the proxy heals itself without a restart.
+
+### 2. Configure
+
+```bash
+cp config.example.yaml config.yaml
+```
+
+Edit `config.yaml` and fill in your token (starting from `config.example.yaml`, you only need to fill in `devin.token` — the base URL and model are pre-filled as examples).
+
+### 3. Run
+
+Prebuilt binary (from [Releases](https://github.com/min9lin9/devin2api/releases), `checksums.txt` attached for verification). Assets are named `devin-2api-{darwin,linux}-{amd64,arm64}`; Windows ships as same-named `.zip` bundles (exe + `config.example.yaml` + LICENSE):
+
+```bash
+# Linux shown; on macOS use devin-2api-darwin-arm64 or -darwin-amd64
+curl -fLO https://github.com/min9lin9/devin2api/releases/latest/download/devin-2api-linux-amd64
+chmod +x devin-2api-linux-amd64
+./devin-2api-linux-amd64 -config config.yaml
+```
+
+On Windows: unzip `devin-2api-windows-amd64.zip`, edit `config.yaml` (the token may stay empty — step 1 item 2 covers the Windsurf-bundled `devin.exe` that produces the credential file), then run `devin-2api.exe -config config.yaml` in a console. Ctrl+C triggers the same graceful drain; closing the window and `taskkill /F` do not — Windows offers no graceful kill for console processes.
+
+From source (generated proto bindings are committed under `crates/devin-proto`, no extra tooling needed):
+
+```bash
+cargo build --locked --release --bin devin-2api
+./target/release/devin-2api -config config.yaml
+```
+
+Docker (image published on [GHCR](https://github.com/min9lin9/devin2api/pkgs/container/devin2api)):
+
+```bash
+docker run --rm -p 8080:8080 \
+  -v "$PWD/config.yaml:/app/config.yaml" \
+  ghcr.io/min9lin9/devin2api --config /app/config.yaml
+```
+
+Run as a service (optional):
+
+| Platform | Supervisor                               | Layout                                                                                                       | Install / upgrade            |
+| -------- | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------ | ---------------------------- |
+| macOS    | launchd agent                            | bin `~/.local/bin` · config+state `~/Library/Application Support/devin-2api`                                 | `scripts/deploy.sh`          |
+| Linux    | `systemd --user`                         | bin `~/.local/bin` · config `~/.config/devin-2api` · state `~/.local/state/devin-2api`                       | `scripts/deploy-linux.sh`    |
+| Windows  | none — console, or NSSM / Task Scheduler | exe `%LOCALAPPDATA%\Programs\devin-2api` · config `%APPDATA%\devin-2api` · state `%LOCALAPPDATA%\devin-2api` | `scripts/deploy-windows.ps1` |
+
+The binary resolves its paths per platform convention: config via `-config` flag → `DEVIN2API_CONFIG` → `./config.yaml` → the platform default above; state via `-state-dir` → `DEVIN2API_STATE_DIR` → platform default. Both deploy scripts install or upgrade in one shot (`--release latest` fetches a prebuilt binary), verify `/healthz` reports the new version, then probe `GET /v1/models` to confirm upstream auth actually works. They treat the repo as home — syncing `config.yaml` into the platform config dir and keeping a `logs` symlink inside the repo pointing at the state dir — so clone first, then run:
+
+```bash
+git clone https://github.com/min9lin9/devin2api && cd devin2api
+bash scripts/deploy-linux.sh --release latest    # macOS: scripts/deploy.sh
+```
+
+On first run `config.yaml` is generated from `config.example.yaml` with a random `auth.api_key`/`dashboard.password`, and you're prompted for the Devin token (left empty it falls back to auto-discovery); to preset values, `cp config.example.yaml config.yaml` and edit beforehand. `--check` reports installed/running/latest versions; `--uninstall` removes the service and binary while keeping config and logs.
+
+On Linux, run `loginctl enable-linger $USER` if the service must outlive your login session.
+
+### 4. Verify
+
+```bash
+curl http://localhost:8080/healthz
+# {"status":"ok","version":"...","uptime_seconds":12,"debug_logging":false}
+```
+
+## Usage
+
+> **Note**: `/v1/*` endpoints support optional API key authentication. Set `auth.api_key` in `config.yaml` to require clients to send `Authorization: Bearer <api_key>` or `X-Api-Key: <api_key>`. If left empty, the endpoints remain open — only bind beyond loopback if you also set a key, or you are handing out your Devin quota to the network.
+
+Endpoints:
+
+- `POST /v1/responses` — OpenAI Responses (`GET` on the same path negotiates WebSocket transport)
+- `POST /v1/chat/completions` — OpenAI Chat Completions
+- `POST /v1/messages` — Anthropic Messages
+- `GET /v1/models`, `GET /v1/models/{model}` — upstream model catalog with capability flags
+- `GET /panel` — admin panel (request browser, usage, quota, process stats); `dashboard.password` protects it
+
+The proxy is **stateless**: every HTTP request must carry the full conversation (`previous_response_id` is accepted but ignored — there is no server-side response store). Over the WebSocket transport, multi-turn sessions are maintained per connection and incremental inputs are expanded into full transcripts transparently.
+
+Call `http://localhost:8080/v1/responses` with your OpenAI Responses API client.
+
+Non-streaming:
+
+```bash
+curl http://localhost:8080/v1/responses \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "glm-5-2",
+    "input": "Hello"
+  }'
+```
+
+Streaming (SSE):
+
+```bash
+curl -N http://localhost:8080/v1/responses \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "glm-5-2",
+    "input": "Hello",
+    "stream": true
+  }'
+```
+
+The request body follows the OpenAI Responses API (`input`, `instructions`, `tools`, `stream`, …). Anthropic Messages clients call `/v1/messages` instead:
+
+```bash
+curl http://localhost:8080/v1/messages \
+  -H "Content-Type: application/json" \
+  -H "anthropic-version: 2023-06-01" \
+  -d '{
+    "model": "glm-5-2",
+    "max_tokens": 256,
+    "messages": [{"role": "user", "content": "Hello"}]
+  }'
+```
+
+## Configuration
+
+Configuration is a YAML file loaded once at startup. Unknown fields are rejected. See `config.example.yaml` for the fully commented reference.
+
+| Field                                            | Description                                                                                                                                                       | Required / Default                                                                                           |
+| ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `server.listen`                                  | HTTP listen address                                                                                                                                               | Yes                                                                                                          |
+| `server.max_concurrency`                         | Max concurrent `/v1/*` requests                                                                                                                                   | `1024`                                                                                                       |
+| `devin.base_url`                                 | Devin Connect service base URL                                                                                                                                    | Yes, once `devin.token` is set (no default in code; `config.example.yaml` uses `https://server.codeium.com`) |
+| `devin.token`                                    | Devin session token (`devin-session-token$...`); empty = discover from env / credentials file                                                                     | No — endpoints return a normalized upstream-auth failure until a token is discoverable                       |
+| `devin.model`                                    | Devin chat model UID (e.g. `glm-5-2`)                                                                                                                             | Yes, once `devin.token` is set (no default in code)                                                          |
+| `devin.aliases`                                  | Client model name → upstream UID map (`swe-2: swe-2-max`); match order exact → case-insensitive → `"*"` catch-all; aliases appear in `/v1/models` with `alias_of` | none                                                                                                         |
+| `devin.client_name`/`client_version`/`client_os` | Client identity sent in upstream metadata                                                                                                                         | `chisel` / `3000.2.17` / `mac`                                                                               |
+| `devin.proxy`                                    | Upstream proxy URL (`http(s)://`, `socks5(h)://`); empty = direct / env vars                                                                                      | none                                                                                                         |
+| `devin.force_http1`                              | Per-request TCP connections to upstream (avoids HTTP/2 stream serialization)                                                                                      | `true`                                                                                                       |
+| `devin.max_rpm`                                  | Message rate limit to upstream (msgs/min, token bucket); `<=0` unlimited — the 429 cooldown latch applies either way                                              | `0` (unlimited; `config.example.yaml` ships `80`)                                                            |
+| `devin.gate_max_hold_seconds`                    | Max queued wait inside a cooldown latch before fast-fail `429` + `Retry-After`                                                                                    | `15`                                                                                                         |
+| `devin.gate_drip_interval_seconds`               | Probe release interval inside a latch — paces upstream arrivals and unlatch detection while limited                                                               | `8`                                                                                                          |
+| `devin.gate_default_latch_seconds`               | Fallback latch duration when upstream `resource_exhausted` doesn't declare a reset time                                                                           | `60`                                                                                                         |
+| `devin.gate_window_offset_seconds`               | Estimated position of the upstream minute-bucket boundary inside the local minute (which second it falls on)                                                      | `0` (local `:00`; observed boundary is local `:59`)                                                          |
+| `devin.gate_window_guard_seconds`                | Dead zone on both sides of the estimated bucket boundary — requests inside it sleep until the next window                                                         | `2`                                                                                                          |
+| `debug.enabled`                                  | Write per-request debug logs under `logs/` in the state directory                                                                                                 | `false`                                                                                                      |
+| `debug.retention_days`                           | Days to keep request log dirs; `<=0` disables time-based cleanup                                                                                                  | `14`                                                                                                         |
+| `debug.max_total_mb`                             | Total `logs/` size cap; evicts oldest dirs first                                                                                                                  | `1024`                                                                                                       |
+| `debug.payload_hours`                            | Hours before large stage files (03/04/06/attachments) are stripped, keeping meta/error evidence                                                                   | `24`                                                                                                         |
+| `debug.keep_error_dirs`                          | Newest N failed dirs (with `error.json`) protected from size eviction                                                                                             | `32`                                                                                                         |
+| `debug.quota_interval_minutes`                   | Quota snapshot interval into `logs/quota.jsonl`; `<=0` disables                                                                                                   | `5`                                                                                                          |
+| `debug.pprof_listen`                             | Rust runtime diagnostics listener address (e.g. `127.0.0.1:6060`); unauthenticated — loopback only. Name kept for Go compatibility                                | empty (disabled)                                                                                             |
+| `dashboard.password`                             | `/panel` admin password; empty = no login required                                                                                                                | none                                                                                                         |
+| `auth.api_key`                                   | API key for `/v1/*` endpoints; empty disables auth. Clients may send `Authorization: Bearer <key>` or `X-Api-Key: <key>`                                          | none (open)                                                                                                  |
+
+Notes:
+
+- tokens are never written to logs (redacted as `<redacted>`);
+- if `devin.token` is empty, requests still go upstream and return a normalized upstream-auth failure — once a token shows up in any discovery source the next request succeeds, no restart needed;
+- `config.yaml` is gitignored — keep real tokens out of git anyway.
+
+## Compatibility with the Go original
+
+This Rust port **shares the config file, state directory and log formats** with the Go reference. Migration rules, the one-writer state rule, the rollback procedure and the five approved behavioral differences are in [docs/compatibility.md](docs/compatibility.md). Summary:
+
+- Existing `config.yaml`, `credentials.toml` and `logs/` history are read as-is — no migration.
+- **One writer per state directory at a time** — never run the Go and Rust daemons against the same state dir concurrently.
+- Rollback restores a separate backed-up copy of the state directory (procedure in [docs/deployment.md](docs/deployment.md)).
+
+## Measured performance
+
+Same-host comparison against the Go reference (4-core Ryzen 5 5600G, loopback stub, paired 30-second samples, bootstrap CIs). Full numbers and methodology in [docs/perf.md](docs/perf.md).
+
+- **SSE streaming throughput is lower than Go**: 0.45–1.03× on Chat SSE cells (the gap widens with concurrency and debug logging; c1 debug-on favors Rust). Responses/Messages SSE share the same path.
+- **Buffered JSON and WebSocket are faster**: chat JSON 1.28×, WebSocket turns 1.47×.
+- **Memory use is much lower**: peak RSS is 0.22–0.75× of Go in every cell.
+- All reliability gates pass: zero unexpected failures/duplicate/missing terminal events/leaked permits across 100k stub-backed requests, cancellation p99 15ms.
+
+This port does not claim to be faster on the SSE path — the measurements say otherwise.
+
+## Platform support status
+
+The release matrix is six targets: Linux amd64/arm64 (static musl), macOS amd64/arm64, Windows amd64/arm64 (zip). Current status:
+
+- **Verified (native build + smoke on this host)**: `x86_64-unknown-linux-musl` — statically linked, no interpreter.
+- **CI-verified only**: the other five targets build on native hosted runners in `.github/workflows/release.yml`. Windows arm64 is cross-built on an amd64 runner with no emulated smoke.
+- Go-only diagnostics (pprof/fgprof) are replaced by Rust diagnostics — see the per-platform capability matrix in [docs/perf.md](docs/perf.md).
+
+## Documentation
+
+- **Deployment, rollback, offline smoke**: [docs/deployment.md](docs/deployment.md)
+- **Go↔Rust compatibility, approved exceptions, migration**: [docs/compatibility.md](docs/compatibility.md)
+- **Measured performance + Rust runtime diagnostics/profiling**: [docs/perf.md](docs/perf.md)
+- **Upstream protocol reverse-engineering reference**: [docs/protocol.md](docs/protocol.md)
+- **Error reference and troubleshooting**: [docs/troubleshooting.md](docs/troubleshooting.md)
+- **Command reference for every binary/flag**: [docs/commands.md](docs/commands.md)
+- **Toolchain, codegen, CI/release**: [docs/toolchain.md](docs/toolchain.md)
+- **License**: [MIT](LICENSE) · third-party crate licenses: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)
+
+## Acknowledgments
+
+This project is a Rust port of the Go implementation [WncFht/devin2api](https://github.com/WncFht/devin2api), which builds on [leookun/devin-2api](https://github.com/leookun/devin-2api) — thanks to the original authors for their work. The upstream protocol schemas (`proto/`) were extracted from the Devin CLI binary; provenance hashes are recorded in `proto/SHA256SUMS`.

@@ -1,0 +1,14 @@
+.git
+.omo
+target
+target-*
+node_modules
+test-results
+outputs
+config.yaml
+logs
+*.log
+# Dockerfile.release consumes verified release binaries explicitly.
+!dist
+!dist/devin-2api-linux-amd64
+!dist/devin-2api-linux-arm64

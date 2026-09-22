@@ -1,0 +1,6 @@
+x86_64-unknown-linux-musl	devin-2api-linux-amd64	binary
+aarch64-unknown-linux-musl	devin-2api-linux-arm64	binary
+x86_64-apple-darwin	devin-2api-darwin-amd64	binary
+aarch64-apple-darwin	devin-2api-darwin-arm64	binary
+x86_64-pc-windows-msvc	devin-2api-windows-amd64.zip	windows-zip
+aarch64-pc-windows-msvc	devin-2api-windows-arm64.zip	windows-zip

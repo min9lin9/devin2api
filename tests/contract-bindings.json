@@ -1,0 +1,1181 @@
+{
+  "schema": 3,
+  "bindings": {
+    "cmd/devin-2api/main_test.go::ListenURL": {
+      "rust_case": "lifecycle::listen_url_matches_go",
+      "reason": "startup/lifecycle equivalent check"
+    },
+    "cmd/devin-2api/main_test.go::RedactConfigSecretsProxyUserinfo": {
+      "rust_case": "config_contract::redacted_view_hides_secrets",
+      "reason": "startup/lifecycle equivalent check"
+    },
+    "cmd/devin-2api/main_test.go::ReloadClassifiesEveryConfigField": {
+      "rust_case": "lifecycle::reload_is_validate_then_commit_and_updates_auth",
+      "reason": "startup/lifecycle equivalent check"
+    },
+    "cmd/devin-2api/main_test.go::ReloadRuntimeConfigRejectsEmptyUpstream": {
+      "rust_case": "lifecycle::reload_is_validate_then_commit_and_updates_auth",
+      "reason": "startup/lifecycle equivalent check"
+    },
+    "cmd/devin-2api/main_test.go::RunReturnsServeError": {
+      "rust_case": "lifecycle::bind_collision_is_recorded_and_recovery_is_idempotent",
+      "reason": "startup/lifecycle equivalent check"
+    },
+    "cmd/protoextract/main_test.go::FlattenDescriptorsProducesOneCompilableWireCompatibleFile": {
+      "rust_case": "auxiliary_cli::flattened_real_schema_links_and_preserves_streaming_and_comments",
+      "reason": "proto extraction end-to-end check"
+    },
+    "cmd/protoextract/main_test.go::IndividualProtoCanBeReconstructed": {
+      "rust_case": "auxiliary_cli::protoextract_scans_and_census_diff_reports_change",
+      "reason": "proto extraction end-to-end check"
+    },
+    "cmd/protoextract/main_test.go::ManifestReportsMissingDependenciesAndCommentCoverage": {
+      "rust_case": "auxiliary_cli::protoextract_scans_and_census_diff_reports_change",
+      "reason": "proto extraction end-to-end check"
+    },
+    "cmd/protoextract/main_test.go::PrepareFreshOutputDeletesExistingContents": {
+      "rust_case": "auxiliary_cli::protoextract_scans_and_census_diff_reports_change",
+      "reason": "proto extraction end-to-end check"
+    },
+    "cmd/protoextract/main_test.go::ScanFileDescriptorsHandlesProto2CommentsAndDuplicates": {
+      "rust_case": "auxiliary_cli::protoextract_scans_and_census_diff_reports_change",
+      "reason": "proto extraction end-to-end check"
+    },
+    "cmd/protoextract/main_test.go::ValidateDestructiveOutputPathRejectsBroadOrSourceContainingTargets": {
+      "rust_case": "auxiliary_cli::protoextract_scans_and_census_diff_reports_change",
+      "reason": "proto extraction end-to-end check"
+    },
+    "internal/adapter/devin/devin_test.go::BuildRequestAggregatesThinkingBlocks": {
+      "rust_case": "request_projection::corpus_requests_match_go_oracle",
+      "reason": "Go-oracle request corpus covers BuildRequest variants"
+    },
+    "internal/adapter/devin/devin_test.go::BuildRequestAttachesImagesInSameTurn": {
+      "rust_case": "request_projection::corpus_requests_match_go_oracle",
+      "reason": "Go-oracle request corpus covers BuildRequest variants"
+    },
+    "internal/adapter/devin/devin_test.go::BuildRequestCustomToolCallUsesInvalidJSONStr": {
+      "rust_case": "request_projection::corpus_requests_match_go_oracle",
+      "reason": "Go-oracle request corpus covers BuildRequest variants"
+    },
+    "internal/adapter/devin/devin_test.go::BuildRequestDefaultSamplingParams": {
+      "rust_case": "request_projection::corpus_requests_match_go_oracle",
+      "reason": "Go-oracle request corpus covers BuildRequest variants"
+    },
+    "internal/adapter/devin/devin_test.go::BuildRequestForwardsSamplingParams": {
+      "rust_case": "request_projection::corpus_requests_match_go_oracle",
+      "reason": "Go-oracle request corpus covers BuildRequest variants"
+    },
+    "internal/adapter/devin/devin_test.go::BuildRequestIgnoresEmptyToolDescriptions": {
+      "rust_case": "request_projection::corpus_requests_match_go_oracle",
+      "reason": "Go-oracle request corpus covers BuildRequest variants"
+    },
+    "internal/adapter/devin/devin_test.go::BuildRequestMapsLoopMessages": {
+      "rust_case": "request_projection::corpus_requests_match_go_oracle",
+      "reason": "Go-oracle request corpus covers BuildRequest variants"
+    },
+    "internal/adapter/devin/devin_test.go::BuildRequestMergesParallelToolCalls": {
+      "rust_case": "request_projection::corpus_requests_match_go_oracle",
+      "reason": "Go-oracle request corpus covers BuildRequest variants"
+    },
+    "internal/adapter/devin/devin_test.go::BuildRequestOmitsHistoricalImages": {
+      "rust_case": "request_projection::corpus_requests_match_go_oracle",
+      "reason": "Go-oracle request corpus covers BuildRequest variants"
+    },
+    "internal/adapter/devin/devin_test.go::BuildRequestRejectsNamedToolChoiceOutsideTools": {
+      "rust_case": "request_projection::corpus_requests_match_go_oracle",
+      "reason": "Go-oracle request corpus covers BuildRequest variants"
+    },
+    "internal/adapter/devin/devin_test.go::BuildRequestReplaysSignatureMetadata": {
+      "rust_case": "request_projection::corpus_requests_match_go_oracle",
+      "reason": "Go-oracle request corpus covers BuildRequest variants"
+    },
+    "internal/adapter/devin/devin_test.go::BuildRequestReportsRepairs": {
+      "rust_case": "request_projection::corpus_requests_match_go_oracle",
+      "reason": "Go-oracle request corpus covers BuildRequest variants"
+    },
+    "internal/adapter/devin/devin_test.go::BuildRequestToolChoiceMapping": {
+      "rust_case": "request_projection::corpus_requests_match_go_oracle",
+      "reason": "Go-oracle request corpus covers BuildRequest variants"
+    },
+    "internal/adapter/devin/devin_test.go::BuildRequestWithoutToolsKeepsPromptUnchanged": {
+      "rust_case": "request_projection::corpus_requests_match_go_oracle",
+      "reason": "Go-oracle request corpus covers BuildRequest variants"
+    },
+    "internal/adapter/devin/devin_test.go::ConnectErrorPassthrough": {
+      "rust_case": "upstream_lifecycle::connect_semantic_error_no_retry",
+      "reason": "semantic Connect error passthrough check"
+    },
+    "internal/adapter/devin/devin_test.go::DecoderToEncoderReplayContract": {
+      "rust_case": "response_decoder::golden_frames_tool_call_turn",
+      "reason": "decoder replay contract check"
+    },
+    "internal/adapter/devin/devin_test.go::DeriveSessionIDSDifferAcrossConversations": {
+      "rust_case": "request_projection::session_ids_match_go_oracle",
+      "reason": "session-id Go oracle/stability check"
+    },
+    "internal/adapter/devin/devin_test.go::DeriveSessionIDSSurvivesCompaction": {
+      "rust_case": "request_projection::session_ids_match_go_oracle",
+      "reason": "session-id Go oracle/stability check"
+    },
+    "internal/adapter/devin/devin_test.go::DeriveSessionIDsStableForSamePrefix": {
+      "rust_case": "request_projection::session_ids_stable_across_turns",
+      "reason": "session-id Go oracle/stability check"
+    },
+    "internal/adapter/devin/devin_test.go::IsTransientConnectError": {
+      "rust_case": "upstream_lifecycle::connect_transient_retry_then_success",
+      "reason": "transient connection classification check"
+    },
+    "internal/adapter/devin/devin_test.go::ListModelsSingleflight": {
+      "rust_case": "catalog_auth::concurrent_requests_share_one_fetch",
+      "reason": "catalog singleflight check"
+    },
+    "internal/adapter/devin/devin_test.go::ListModelsWaiterCancel": {
+      "rust_case": "catalog_auth::concurrent_refresh_and_cancelled_leader",
+      "reason": "catalog cancellation check"
+    },
+    "internal/adapter/devin/devin_test.go::MapStopReason": {
+      "rust_case": "response_decoder::maps_stop_reason",
+      "reason": "stop-reason mapping check"
+    },
+    "internal/adapter/devin/devin_test.go::PairToolCallsWithResultsConsumesDuplicateID": {
+      "rust_case": "request_projection::duplicate_call_ids_pair_positionally",
+      "reason": "duplicate-call positional binding check"
+    },
+    "internal/adapter/devin/devin_test.go::PairToolCallsWithResultsKeepsDuplicateResults": {
+      "rust_case": "request_projection::duplicate_results_all_kept",
+      "reason": "duplicate-result preservation check"
+    },
+    "internal/adapter/devin/devin_test.go::RecordProtoJSONRedactsMetadata": {
+      "rust_case": "debuglog_compat::RecorderWritesRedactedStagesAndAttachments",
+      "reason": "proto JSON redaction check"
+    },
+    "internal/adapter/devin/devin_test.go::ReloadToken": {
+      "rust_case": "catalog_auth::token_source_precedence_and_identity",
+      "reason": "token refresh/source check"
+    },
+    "internal/adapter/devin/devin_test.go::RepairLeakedXMLArguments": {
+      "rust_case": "request_projection::sanitize_texts_match_go_oracle",
+      "reason": "Go-oracle sanitize corpus check"
+    },
+    "internal/adapter/devin/devin_test.go::ResolveModelAlias": {
+      "rust_case": "catalog_auth::alias_resolution_and_capability_projection",
+      "reason": "model alias check"
+    },
+    "internal/adapter/devin/devin_test.go::ResponseDecoderAggregatesToolArgumentFragments": {
+      "rust_case": "response_decoder::aggregates_tool_argument_fragments",
+      "reason": "dedicated response decoder behavior test"
+    },
+    "internal/adapter/devin/devin_test.go::ResponseDecoderBindsLateToolCallID": {
+      "rust_case": "response_decoder::binds_late_tool_call_id",
+      "reason": "dedicated response decoder behavior test"
+    },
+    "internal/adapter/devin/devin_test.go::ResponseDecoderCompletesPartialWithThinking": {
+      "rust_case": "response_decoder::completes_partial_with_thinking",
+      "reason": "dedicated response decoder behavior test"
+    },
+    "internal/adapter/devin/devin_test.go::ResponseDecoderConsumesUsageAfterStopReason": {
+      "rust_case": "response_decoder::consumes_usage_after_stop_reason",
+      "reason": "dedicated response decoder behavior test"
+    },
+    "internal/adapter/devin/devin_test.go::ResponseDecoderCustomToolCall": {
+      "rust_case": "response_decoder::custom_tool_call_passthrough",
+      "reason": "dedicated response decoder behavior test"
+    },
+    "internal/adapter/devin/devin_test.go::ResponseDecoderLateSignatureSynthesizesBlock": {
+      "rust_case": "response_decoder::late_signature_synthesizes_block",
+      "reason": "dedicated response decoder behavior test"
+    },
+    "internal/adapter/devin/devin_test.go::ResponseDecoderLocalStopSequence": {
+      "rust_case": "response_decoder::local_stop_sequence",
+      "reason": "dedicated response decoder behavior test"
+    },
+    "internal/adapter/devin/devin_test.go::ResponseDecoderMapsOneFrameToOrderedEvents": {
+      "rust_case": "response_decoder::maps_one_frame_to_ordered_events",
+      "reason": "dedicated response decoder behavior test"
+    },
+    "internal/adapter/devin/devin_test.go::ResponseDecoderMergesLateSignature": {
+      "rust_case": "response_decoder::merges_late_signature",
+      "reason": "dedicated response decoder behavior test"
+    },
+    "internal/adapter/devin/devin_test.go::ResponseDecoderNoStopMatchFlushesTail": {
+      "rust_case": "response_decoder::no_stop_match_flushes_tail",
+      "reason": "dedicated response decoder behavior test"
+    },
+    "internal/adapter/devin/devin_test.go::ResponseDecoderRejectsEOFWithoutStopReason": {
+      "rust_case": "response_decoder::eof_without_stop_and_unknown_fields",
+      "reason": "dedicated response decoder behavior test"
+    },
+    "internal/adapter/devin/devin_test.go::ResponseDecoderRejectsEmptyNormalEOF": {
+      "rust_case": "response_decoder::eof_without_stop_and_unknown_fields",
+      "reason": "dedicated response decoder behavior test"
+    },
+    "internal/adapter/devin/devin_test.go::ResponseDecoderSplitsSecondIdlessCall": {
+      "rust_case": "response_decoder::splits_second_idless_call",
+      "reason": "dedicated response decoder behavior test"
+    },
+    "internal/adapter/devin/devin_test.go::ResponseDecoderStopSequenceAcrossDeltas": {
+      "rust_case": "response_decoder::stop_sequence_across_deltas",
+      "reason": "dedicated response decoder behavior test"
+    },
+    "internal/adapter/devin/devin_test.go::ResponseDecoderStopSequenceRuneBoundary": {
+      "rust_case": "response_decoder::stop_sequence_rune_boundary",
+      "reason": "dedicated response decoder behavior test"
+    },
+    "internal/adapter/devin/devin_test.go::ResponseDecoderStoresSignatureTypeAndOutputID": {
+      "rust_case": "response_decoder::stores_signature_type_and_output_id",
+      "reason": "dedicated response decoder behavior test"
+    },
+    "internal/adapter/devin/devin_test.go::ResponseDecoderSynthesizesThinkingForBareSignature": {
+      "rust_case": "response_decoder::synthesizes_thinking_for_bare_signature",
+      "reason": "dedicated response decoder behavior test"
+    },
+    "internal/adapter/devin/devin_test.go::ResponseDecoderUnwrapsCustomToolArguments": {
+      "rust_case": "response_decoder::unwraps_custom_tool_arguments",
+      "reason": "dedicated response decoder behavior test"
+    },
+    "internal/adapter/devin/devin_test.go::ResponseStreamContinuesEmptyEndTurn": {
+      "rust_case": "upstream_lifecycle::empty_end_turn_continuation",
+      "reason": "upstream stream state-machine check"
+    },
+    "internal/adapter/devin/devin_test.go::ResponseStreamDoesNotReopenAfterContent": {
+      "rust_case": "upstream_lifecycle::post_content_eof_no_replay",
+      "reason": "upstream stream state-machine check"
+    },
+    "internal/adapter/devin/devin_test.go::ResponseStreamEmptyEndTurnSurfacesWithoutRetry": {
+      "rust_case": "upstream_lifecycle::empty_end_turn_continuation",
+      "reason": "upstream stream state-machine check"
+    },
+    "internal/adapter/devin/devin_test.go::ResponseStreamFailsOnUpstreamStall": {
+      "rust_case": "upstream_lifecycle::stall_watchdog_reopens_precontent",
+      "reason": "upstream stream state-machine check"
+    },
+    "internal/adapter/devin/devin_test.go::ResponseStreamNoProgressWatchdog": {
+      "rust_case": "upstream_lifecycle::no_progress_watchdog_reopens",
+      "reason": "upstream stream state-machine check"
+    },
+    "internal/adapter/devin/devin_test.go::ResponseStreamNoProgressWatchdogAfterContent": {
+      "rust_case": "upstream_lifecycle::no_progress_watchdog_reopens",
+      "reason": "upstream stream state-machine check"
+    },
+    "internal/adapter/devin/devin_test.go::ResponseStreamReadsUsageFrameAfterStopReason": {
+      "rust_case": "upstream_lifecycle::tail_grace_finishes_after_stop",
+      "reason": "upstream stream state-machine check"
+    },
+    "internal/adapter/devin/devin_test.go::ResponseStreamReleasesStartOnHoldTimeout": {
+      "rust_case": "upstream_lifecycle::start_hold_releases_pending_start",
+      "reason": "upstream stream state-machine check"
+    },
+    "internal/adapter/devin/devin_test.go::ResponseStreamReopensBeforeContent": {
+      "rust_case": "upstream_lifecycle::midstream_eof_reopens_once",
+      "reason": "upstream stream state-machine check"
+    },
+    "internal/adapter/devin/devin_test.go::ResponseStreamStartsBeforeFirstContent": {
+      "rust_case": "upstream_lifecycle::happy_path_events_and_once_only_terminal",
+      "reason": "upstream stream state-machine check"
+    },
+    "internal/adapter/devin/devin_test.go::ResponseStreamStopsOnContextCancel": {
+      "rust_case": "upstream_lifecycle::cancellation_at_every_seam",
+      "reason": "upstream stream state-machine check"
+    },
+    "internal/adapter/devin/devin_test.go::ResponseStreamTailGraceFinishesAfterStopReason": {
+      "rust_case": "upstream_lifecycle::tail_grace_finishes_after_stop",
+      "reason": "upstream stream state-machine check"
+    },
+    "internal/adapter/devin/devin_test.go::ResponseStreamYieldsErrorBeforeStart": {
+      "rust_case": "upstream_lifecycle::connect_semantic_error_no_retry",
+      "reason": "upstream stream state-machine check"
+    },
+    "internal/adapter/devin/devin_test.go::ValidateImagesForModelRejectsGLM": {
+      "rust_case": "catalog_auth::validate_images_uses_catalog_then_heuristic",
+      "reason": "image capability validation check"
+    },
+    "internal/adapter/devin/devin_test.go::ValidateImagesUsesCatalog": {
+      "rust_case": "catalog_auth::validate_images_uses_catalog_then_heuristic",
+      "reason": "image capability validation check"
+    },
+    "internal/adapter/devin/rategate_test.go::RateGateDeadZoneFastFails": {
+      "rust_case": "rate_gate::RateGateDeadZoneFastFails",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/adapter/devin/rategate_test.go::RateGateDeadZoneSleepsToNextWindow": {
+      "rust_case": "rate_gate::RateGateDeadZoneSleepsToNextWindow",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/adapter/devin/rategate_test.go::RateGateDripReleasesProbes": {
+      "rust_case": "rate_gate::RateGateDripReleasesProbes",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/adapter/devin/rategate_test.go::RateGateDripRespectsDeadZone": {
+      "rust_case": "rate_gate::RateGateDripRespectsDeadZone",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/adapter/devin/rategate_test.go::RateGateIgnoresTransportMasquerade": {
+      "rust_case": "rate_gate::RateGateIgnoresTransportMasquerade",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/adapter/devin/rategate_test.go::RateGateLatchFastFails": {
+      "rust_case": "rate_gate::RateGateLatchFastFails",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/adapter/devin/rategate_test.go::RateGateLatchPersistRestore": {
+      "rust_case": "rate_gate::RateGateLatchPersistRestore",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/adapter/devin/rategate_test.go::RateGateLatchRanges": {
+      "rust_case": "rate_gate::RateGateLatchRanges",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/adapter/devin/rategate_test.go::RateGateLatchRejectsUntilReset": {
+      "rust_case": "rate_gate::RateGateLatchRejectsUntilReset",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/adapter/devin/rategate_test.go::RateGateLatchSelective": {
+      "rust_case": "rate_gate::RateGateLatchSelective",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/adapter/devin/rategate_test.go::RateGateSetParamsPreservesLatch": {
+      "rust_case": "rate_gate::RateGateSetParamsPreservesLatch",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/adapter/devin/rategate_test.go::RateGateStateExpiredIgnored": {
+      "rust_case": "rate_gate::RateGateStateExpiredIgnored",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/adapter/devin/rategate_test.go::RateGateUnlatchesOnUpstreamSuccess": {
+      "rust_case": "rate_gate::RateGateUnlatchesOnUpstreamSuccess",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/adapter/devin/rategate_test.go::RateGateWaitCancelRefunds": {
+      "rust_case": "rate_gate::RateGateWaitCancelRefunds",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/adapter/devin/rategate_test.go::RateGateWindowQuotaReject": {
+      "rust_case": "rate_gate::RateGateWindowQuotaReject",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/adapter/devin/rategate_test.go::RateGateWindowRollover": {
+      "rust_case": "rate_gate::RateGateWindowRollover",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/adapter/devin/rategate_test.go::RateGateZeroQuotaUnlimited": {
+      "rust_case": "rate_gate::RateGateZeroQuotaUnlimited",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/adapter/devin/rategate_test.go::RateGateZeroSecondHint": {
+      "rust_case": "rate_gate::RateGateZeroSecondHint",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/adapter/devin/rategate_test.go::RateLimitResetBucketAlignsMinutes": {
+      "rust_case": "rate_gate::RateLimitResetBucketAlignsMinutes",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/adapter/devin/rategate_test.go::RetryAfterParsesMinutes": {
+      "rust_case": "rate_gate::RetryAfterParsesMinutes",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/adapter/devin/replay_test.go::GoldenFramesTextAnswerTurn": {
+      "rust_case": "response_decoder::golden_frames_text_answer_turn",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/adapter/devin/replay_test.go::GoldenFramesThinkingLateSignature": {
+      "rust_case": "response_decoder::golden_frames_thinking_late_signature",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/adapter/devin/replay_test.go::GoldenFramesToolCallTurn": {
+      "rust_case": "response_decoder::golden_frames_tool_call_turn",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/adapter/devin/sanitize_test.go::SanitizeCodexOpensourceDef": {
+      "rust_case": "request_projection::sanitize_texts_match_go_oracle",
+      "reason": "Go-oracle sanitization corpus check"
+    },
+    "internal/adapter/devin/tool_definition_test.go::ConvertToolDefinitionStripsAnnotationsButKeepsSchema": {
+      "rust_case": "request_projection::tool_definitions_match_go_oracle",
+      "reason": "Go-oracle tool schema/description corpus check"
+    },
+    "internal/adapter/devin/tool_definition_test.go::FormatToolDescriptionHandlesChineseAndJSON": {
+      "rust_case": "request_projection::tool_descriptions_match_go_oracle",
+      "reason": "Go-oracle tool schema/description corpus check"
+    },
+    "internal/adapter/devin/tool_definition_test.go::FormatToolDescriptionRenumbersExistingLists": {
+      "rust_case": "request_projection::tool_descriptions_match_go_oracle",
+      "reason": "Go-oracle tool schema/description corpus check"
+    },
+    "internal/adapter/devin/tool_definition_test.go::WithToolDescriptionsNumbersProseAndPreservesCode": {
+      "rust_case": "request_projection::tool_descriptions_match_go_oracle",
+      "reason": "Go-oracle tool schema/description corpus check"
+    },
+    "internal/api/anthropic/messages/request_test.go::DecodeRequestAcceptsStringContent": {
+      "rust_case": "input_protocols::anthropic_decode_request_accepts_string_content",
+      "reason": "protocol-specific exact behavior test"
+    },
+    "internal/api/anthropic/messages/request_test.go::DecodeRequestBuildsConversationContext": {
+      "rust_case": "input_protocols::anthropic_decode_request_builds_conversation_context",
+      "reason": "protocol-specific exact behavior test"
+    },
+    "internal/api/anthropic/messages/request_test.go::DecodeRequestClientTypedTools": {
+      "rust_case": "input_protocols::anthropic_decode_request_client_typed_tools",
+      "reason": "protocol-specific exact behavior test"
+    },
+    "internal/api/anthropic/messages/request_test.go::DecodeRequestDroppedFields": {
+      "rust_case": "input_protocols::anthropic_decode_request_dropped_fields",
+      "reason": "protocol-specific exact behavior test"
+    },
+    "internal/api/anthropic/messages/request_test.go::DecodeRequestMergesAdjacentAssistants": {
+      "rust_case": "input_protocols::anthropic_decode_request_merges_adjacent_assistants",
+      "reason": "protocol-specific exact behavior test"
+    },
+    "internal/api/anthropic/messages/request_test.go::DecodeRequestPositionalToolResults": {
+      "rust_case": "input_protocols::anthropic_decode_request_positional_tool_results",
+      "reason": "protocol-specific exact behavior test"
+    },
+    "internal/api/anthropic/messages/request_test.go::DecodeRequestPreservesMidConversationSystem": {
+      "rust_case": "input_protocols::anthropic_decode_request_preserves_mid_conversation_system",
+      "reason": "protocol-specific exact behavior test"
+    },
+    "internal/api/anthropic/messages/request_test.go::DecodeRequestReplaysThinkingSignature": {
+      "rust_case": "input_protocols::anthropic_decode_request_replays_thinking_signature",
+      "reason": "protocol-specific exact behavior test"
+    },
+    "internal/api/anthropic/messages/request_test.go::DecodeRequestTrailingData": {
+      "rust_case": "input_protocols::anthropic_decode_request_trailing_data",
+      "reason": "protocol-specific exact behavior test"
+    },
+    "internal/api/anthropic/messages/response_test.go::EncodeResponseFinal": {
+      "rust_case": "output_protocols::encode_response_final",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/api/anthropic/messages/response_test.go::StreamEncoderBuffersSignatureFragments": {
+      "rust_case": "output_protocols::stream_encoder_buffers_signature_fragments",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/api/anthropic/messages/response_test.go::StreamEncoderClosesBlocksInIndexOrder": {
+      "rust_case": "output_protocols::stream_encoder_closes_blocks_in_index_order",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/api/anthropic/messages/response_test.go::StreamEncoderEmitsError": {
+      "rust_case": "output_protocols::stream_encoder_emits_error",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/api/anthropic/messages/response_test.go::StreamEncoderEmitsMessageStartAndText": {
+      "rust_case": "output_protocols::stream_encoder_emits_message_start_and_text",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/api/anthropic/messages/response_test.go::StreamEncoderEmitsToolUse": {
+      "rust_case": "output_protocols::stream_encoder_emits_tool_use",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/api/anthropic/messages/response_test.go::StreamEncoderHoldsThinkingForLateSignature": {
+      "rust_case": "output_protocols::stream_encoder_holds_thinking_for_late_signature",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/api/anthropic/messages/response_test.go::StreamEncoderRedactedThinkingDeferredStart": {
+      "rust_case": "output_protocols::stream_encoder_redacted_thinking_deferred_start",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/api/anthropic/messages/response_test.go::StreamEncoderSignatureReadyAtThinkingEnd": {
+      "rust_case": "output_protocols::stream_encoder_signature_ready_at_thinking_end",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/api/common/error_test.go::AnthropicErrorType": {
+      "rust_case": "output_protocols::anthropic_error_type_table",
+      "reason": "fuzzy reviewed binding score=0.88"
+    },
+    "internal/api/common/error_test.go::ErrorCode": {
+      "rust_case": "output_protocols::error_code_table",
+      "reason": "fuzzy reviewed binding score=0.78"
+    },
+    "internal/api/common/error_test.go::HTTPStatus": {
+      "rust_case": "output_protocols::http_status_table",
+      "reason": "fuzzy reviewed binding score=0.80"
+    },
+    "internal/api/common/error_test.go::OpenAIErrorType": {
+      "rust_case": "output_protocols::openai_error_type_table",
+      "reason": "fuzzy reviewed binding score=0.86"
+    },
+    "internal/api/common/toolchoice_test.go::ParseAnthropicToolChoice": {
+      "rust_case": "input_protocols::parse_anthropic_tool_choice",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/api/common/toolchoice_test.go::ParseOpenAIToolChoice": {
+      "rust_case": "input_protocols::parse_openai_tool_choice",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/api/openai/chat/request_test.go::DecodeRequestAcceptsFunctionCallArguments": {
+      "rust_case": "input_protocols::chat_decode_request_accepts_function_call_arguments",
+      "reason": "protocol-specific exact behavior test"
+    },
+    "internal/api/openai/chat/request_test.go::DecodeRequestAcceptsLegacyFunctionDialect": {
+      "rust_case": "input_protocols::chat_decode_request_accepts_legacy_function_dialect",
+      "reason": "protocol-specific exact behavior test"
+    },
+    "internal/api/openai/chat/request_test.go::DecodeRequestAcceptsPlainString": {
+      "rust_case": "input_protocols::chat_decode_request_accepts_plain_string",
+      "reason": "protocol-specific exact behavior test"
+    },
+    "internal/api/openai/chat/request_test.go::DecodeRequestBuildsConversationContext": {
+      "rust_case": "input_protocols::chat_decode_request_builds_conversation_context",
+      "reason": "protocol-specific exact behavior test"
+    },
+    "internal/api/openai/chat/request_test.go::DecodeRequestEmptyContent": {
+      "rust_case": "input_protocols::chat_decode_request_empty_content",
+      "reason": "protocol-specific exact behavior test"
+    },
+    "internal/api/openai/chat/request_test.go::DecodeRequestMergesAdjacentAssistants": {
+      "rust_case": "input_protocols::chat_decode_request_merges_adjacent_assistants",
+      "reason": "protocol-specific exact behavior test"
+    },
+    "internal/api/openai/chat/request_test.go::DecodeRequestSkipsFieldScan": {
+      "rust_case": "input_protocols::chat_decode_request_skips_field_scan",
+      "reason": "protocol-specific exact behavior test"
+    },
+    "internal/api/openai/chat/request_test.go::DecodeRequestTrailingData": {
+      "rust_case": "input_protocols::chat_decode_request_trailing_data",
+      "reason": "protocol-specific exact behavior test"
+    },
+    "internal/api/openai/chat/response_test.go::EncodeResponseFinal": {
+      "rust_case": "output_protocols::encode_response_final",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/api/openai/chat/response_test.go::EncodeResponseFinalWithReasoning": {
+      "rust_case": "output_protocols::encode_response_final_with_reasoning",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/api/openai/chat/response_test.go::MessageToChatKeepsTextWithToolCalls": {
+      "rust_case": "output_protocols::message_to_chat_keeps_text_with_tool_calls",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/api/openai/chat/response_test.go::StreamEncoderEmitsError": {
+      "rust_case": "output_protocols::stream_encoder_emits_error",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/api/openai/chat/response_test.go::StreamEncoderEmitsRoleAndText": {
+      "rust_case": "output_protocols::stream_encoder_emits_role_and_text",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/api/openai/chat/response_test.go::StreamEncoderEmitsThinkingAsReasoningContent": {
+      "rust_case": "output_protocols::stream_encoder_emits_thinking_as_reasoning_content",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/api/openai/chat/response_test.go::StreamEncoderEmitsToolCalls": {
+      "rust_case": "output_protocols::stream_encoder_emits_tool_calls",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/api/openai/chat/response_test.go::StreamEncoderToolCallAfterOtherBlocks": {
+      "rust_case": "output_protocols::stream_encoder_tool_call_after_other_blocks",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/api/openai/responses/request_test.go::DecodeRequestAcceptsCallIDVariants": {
+      "rust_case": "input_protocols::responses_decode_request_accepts_call_id_variants",
+      "reason": "protocol-specific exact behavior test"
+    },
+    "internal/api/openai/responses/request_test.go::DecodeRequestAcceptsChatCompletionsImagePart": {
+      "rust_case": "input_protocols::responses_decode_request_accepts_chat_completions_image_part",
+      "reason": "protocol-specific exact behavior test"
+    },
+    "internal/api/openai/responses/request_test.go::DecodeRequestAcceptsImageURLObject": {
+      "rust_case": "input_protocols::responses_decode_request_accepts_image_url_object",
+      "reason": "protocol-specific exact behavior test"
+    },
+    "internal/api/openai/responses/request_test.go::DecodeRequestAcceptsMessageWithoutType": {
+      "rust_case": "input_protocols::responses_decode_request_accepts_message_without_type",
+      "reason": "protocol-specific exact behavior test"
+    },
+    "internal/api/openai/responses/request_test.go::DecodeRequestAcceptsStringInput": {
+      "rust_case": "input_protocols::responses_decode_request_accepts_string_input",
+      "reason": "protocol-specific exact behavior test"
+    },
+    "internal/api/openai/responses/request_test.go::DecodeRequestAttachesReasoningSummary": {
+      "rust_case": "input_protocols::responses_decode_request_attaches_reasoning_summary",
+      "reason": "protocol-specific exact behavior test"
+    },
+    "internal/api/openai/responses/request_test.go::DecodeRequestBuildsConversationContext": {
+      "rust_case": "input_protocols::responses_decode_request_builds_conversation_context",
+      "reason": "protocol-specific exact behavior test"
+    },
+    "internal/api/openai/responses/request_test.go::DecodeRequestCustomToolCall": {
+      "rust_case": "input_protocols::responses_decode_request_custom_tool_call",
+      "reason": "protocol-specific exact behavior test"
+    },
+    "internal/api/openai/responses/request_test.go::DecodeRequestCustomToolDeclaration": {
+      "rust_case": "input_protocols::responses_decode_request_custom_tool_declaration",
+      "reason": "protocol-specific exact behavior test"
+    },
+    "internal/api/openai/responses/request_test.go::DecodeRequestDropsForeignReasoningPayload": {
+      "rust_case": "input_protocols::responses_decode_request_drops_foreign_reasoning_payload",
+      "reason": "protocol-specific exact behavior test"
+    },
+    "internal/api/openai/responses/request_test.go::DecodeRequestDropsOrphanReasoning": {
+      "rust_case": "input_protocols::responses_decode_request_drops_orphan_reasoning",
+      "reason": "protocol-specific exact behavior test"
+    },
+    "internal/api/openai/responses/request_test.go::DecodeRequestIgnoresUnsupportedExtensions": {
+      "rust_case": "input_protocols::responses_decode_request_ignores_unsupported_extensions",
+      "reason": "protocol-specific exact behavior test"
+    },
+    "internal/api/openai/responses/request_test.go::DecodeRequestKeepsEmptyMessage": {
+      "rust_case": "input_protocols::responses_decode_request_keeps_empty_message",
+      "reason": "protocol-specific exact behavior test"
+    },
+    "internal/api/openai/responses/request_test.go::DecodeRequestMalformedToolOutputParts": {
+      "rust_case": "input_protocols::responses_decode_request_malformed_tool_output_parts",
+      "reason": "protocol-specific exact behavior test"
+    },
+    "internal/api/openai/responses/request_test.go::DecodeRequestMergesAssistantTurnItems": {
+      "rust_case": "input_protocols::responses_decode_request_merges_assistant_turn_items",
+      "reason": "protocol-specific exact behavior test"
+    },
+    "internal/api/openai/responses/request_test.go::DecodeRequestPositionalToolResults": {
+      "rust_case": "input_protocols::responses_decode_request_positional_tool_results",
+      "reason": "protocol-specific exact behavior test"
+    },
+    "internal/api/openai/responses/request_test.go::DecodeRequestPreservesMalformedToolArguments": {
+      "rust_case": "input_protocols::responses_decode_request_preserves_malformed_tool_arguments",
+      "reason": "protocol-specific exact behavior test"
+    },
+    "internal/api/openai/responses/request_test.go::DecodeRequestReplaysOpenAIReasoningSignature": {
+      "rust_case": "input_protocols::responses_decode_request_replays_openai_reasoning_signature",
+      "reason": "protocol-specific exact behavior test"
+    },
+    "internal/api/openai/responses/request_test.go::DecodeRequestRetainsRawSchema": {
+      "rust_case": "input_protocols::responses_decode_request_retains_raw_schema",
+      "reason": "protocol-specific exact behavior test"
+    },
+    "internal/api/openai/responses/request_test.go::DecodeRequestToleratesOrphanToolOutput": {
+      "rust_case": "input_protocols::responses_decode_request_tolerates_orphan_tool_output",
+      "reason": "protocol-specific exact behavior test"
+    },
+    "internal/api/openai/responses/request_test.go::DecodeRequestToolOutputPartArray": {
+      "rust_case": "input_protocols::responses_decode_request_tool_output_part_array",
+      "reason": "protocol-specific exact behavior test"
+    },
+    "internal/api/openai/responses/request_test.go::DecodeRequestTrailingData": {
+      "rust_case": "input_protocols::responses_decode_request_trailing_data",
+      "reason": "protocol-specific exact behavior test"
+    },
+    "internal/api/openai/responses/response_test.go::ResponseUsageIncludesCachedTokensInInputTotal": {
+      "rust_case": "output_protocols::response_usage_includes_cached_tokens_in_input_total",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/api/openai/responses/response_test.go::StreamEncoderAccumulatesSignatureFragments": {
+      "rust_case": "output_protocols::stream_encoder_accumulates_signature_fragments",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/api/openai/responses/response_test.go::StreamEncoderCustomToolCall": {
+      "rust_case": "output_protocols::stream_encoder_custom_tool_call",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/api/openai/responses/response_test.go::StreamEncoderEncodesFinalTextMessage": {
+      "rust_case": "output_protocols::stream_encoder_encodes_final_text_message",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/api/openai/responses/response_test.go::StreamEncoderEncodesLengthAsIncomplete": {
+      "rust_case": "output_protocols::stream_encoder_encodes_length_as_incomplete",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/api/openai/responses/response_test.go::StreamEncoderEncodesReasoningAndToolItems": {
+      "rust_case": "output_protocols::stream_encoder_encodes_reasoning_and_tool_items",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/api/openai/responses/response_test.go::StreamEncoderEncodesSignatureOnlyReasoning": {
+      "rust_case": "output_protocols::stream_encoder_encodes_signature_only_reasoning",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/api/openai/responses/response_test.go::StreamEncoderHoldsReasoningForLateSignature": {
+      "rust_case": "output_protocols::stream_encoder_holds_reasoning_for_late_signature",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/api/openai/responses/response_test.go::StreamEncoderMessageItemUsesOutputID": {
+      "rust_case": "output_protocols::stream_encoder_message_item_uses_output_id",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/api/openai/responses/response_test.go::StreamEncoderOpenAISignatureRestoresItemID": {
+      "rust_case": "output_protocols::stream_encoder_openai_signature_restores_item_id",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/api/openai/responses/response_test.go::StreamEncoderRejectsDoneWithOpenItem": {
+      "rust_case": "output_protocols::stream_encoder_rejects_done_with_open_item",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/api/openai/responses/response_test.go::StreamEncoderRejectsUnknownEvent": {
+      "rust_case": "output_protocols::stream_encoder_rejects_unknown_event",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/app/app_anthropic_test.go::MessagesHandlerReturnsJSON": {
+      "rust_case": "http_surface::MessagesHandlerReturnsJSON",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/app/app_anthropic_test.go::MessagesHandlerStreamError": {
+      "rust_case": "http_surface::MessagesHandlerStreamError",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/app/app_anthropic_test.go::MessagesHandlerStreamsSSE": {
+      "rust_case": "http_surface::MessagesHandlerStreamsSSE",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/app/app_chat_test.go::ChatCompletionsHandlerReturnsJSON": {
+      "rust_case": "http_surface::ChatCompletionsHandlerReturnsJSON",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/app/app_chat_test.go::ChatCompletionsHandlerStreamError": {
+      "rust_case": "http_surface::ChatCompletionsHandlerStreamError",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/app/app_chat_test.go::ChatCompletionsHandlerStreamsSSE": {
+      "rust_case": "http_surface::ChatCompletionsHandlerStreamsSSE",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/app/app_chat_test.go::ChatCompletionsHandlerStreamsThinking": {
+      "rust_case": "http_surface::ChatCompletionsHandlerStreamsThinking",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/app/app_test.go::ClientDisconnectRecords499": {
+      "rust_case": "http_surface::ClientDisconnectRecords499",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/app/app_test.go::ConcurrencyOverflowReturns429": {
+      "rust_case": "http_surface::ConcurrencyOverflowReturns429",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/app/app_test.go::ConcurrentResponsesDoNotInterleave": {
+      "rust_case": "http_surface::ConcurrentResponsesDoNotInterleave",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/app/app_test.go::DrainTrackerLateAddDuringWait": {
+      "rust_case": "http_surface::DrainTrackerLateAddDuringWait",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/app/app_test.go::DrainTrackerWaitTimeout": {
+      "rust_case": "http_surface::DrainTrackerWaitTimeout",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/app/app_test.go::PrematureEndTurnFlagged": {
+      "rust_case": "http_surface::PrematureEndTurnFlagged",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/app/app_test.go::PrematureEndTurnNotFlaggedForUserInput": {
+      "rust_case": "http_surface::PrematureEndTurnNotFlaggedForUserInput",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/app/app_test.go::ReadFailureRejectedWithoutDir": {
+      "rust_case": "http_surface::ReadFailureRejectedWithoutDir",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/app/app_test.go::RequestIDHeaderAndDebugRef": {
+      "rust_case": "http_surface::RequestIDHeaderAndDebugRef",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/app/app_test.go::RequestTooLargeKeepsDebugDir": {
+      "rust_case": "http_surface::RequestTooLargeKeepsDebugDir",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/app/app_test.go::ResponsesHandlerAcceptsBearerAPIKey": {
+      "rust_case": "http_surface::ResponsesHandlerAcceptsBearerAPIKey",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/app/app_test.go::ResponsesHandlerAcceptsXApiKeyHeader": {
+      "rust_case": "http_surface::ResponsesHandlerAcceptsXApiKeyHeader",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/app/app_test.go::ResponsesHandlerConsumesAllAssistantRounds": {
+      "rust_case": "http_surface::ResponsesHandlerConsumesAllAssistantRounds",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/app/app_test.go::ResponsesHandlerHealthIsUnprotected": {
+      "rust_case": "http_surface::ResponsesHandlerHealthIsUnprotected",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/app/app_test.go::ResponsesHandlerIgnoresLogInitializationFailure": {
+      "rust_case": "http_surface::ResponsesHandlerIgnoresLogInitializationFailure",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/app/app_test.go::ResponsesHandlerMapsRateLimitError": {
+      "rust_case": "http_surface::ResponsesHandlerMapsRateLimitError",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/app/app_test.go::ResponsesHandlerMarksStreamError": {
+      "rust_case": "http_surface::ResponsesHandlerMarksStreamError",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/app/app_test.go::ResponsesHandlerRejectsInvalidAPIKey": {
+      "rust_case": "http_surface::ResponsesHandlerRejectsInvalidAPIKey",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/app/app_test.go::ResponsesHandlerRejectsMissingAPIKey": {
+      "rust_case": "http_surface::ResponsesHandlerRejectsMissingAPIKey",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/app/app_test.go::ResponsesHandlerReturnsJSONForNonStream": {
+      "rust_case": "http_surface::ResponsesHandlerReturnsJSONForNonStream",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/app/app_test.go::ResponsesHandlerStreamsOrderedEvents": {
+      "rust_case": "http_surface::ResponsesHandlerStreamsOrderedEvents",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/app/app_test.go::ResponsesHandlerWritesStageLogs": {
+      "rust_case": "http_surface::ResponsesHandlerWritesStageLogs",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/app/app_test.go::ResponsesHandlerZeroResetHintWritesNoRetryAfter": {
+      "rust_case": "http_surface::ResponsesHandlerZeroResetHintWritesNoRetryAfter",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/app/app_test.go::StreamErrorCarriesDebugRef": {
+      "rust_case": "http_surface::StreamErrorCarriesDebugRef",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/app/app_test.go::StreamImmediateErrorReturnsHTTPStatus": {
+      "rust_case": "http_surface::StreamImmediateErrorReturnsHTTPStatus",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/app/app_test.go::StreamKeepsAliveDuringUpstreamSilence": {
+      "rust_case": "http_surface::StreamKeepsAliveDuringUpstreamSilence",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/app/app_test.go::StreamMidStreamErrorCarriesHTTPStatus": {
+      "rust_case": "http_surface::StreamMidStreamErrorCarriesHTTPStatus",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/app/app_test.go::StreamPromptTooLongDeliversSSE413": {
+      "rust_case": "http_surface::StreamPromptTooLongDeliversSSE413",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/app/app_test.go::StreamRateLimitAnthropicKeepsHTTPStatus": {
+      "rust_case": "http_surface::StreamRateLimitAnthropicKeepsHTTPStatus",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/app/app_test.go::StreamRateLimitDeliversSSE429": {
+      "rust_case": "http_surface::StreamRateLimitDeliversSSE429",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/app/app_websocket_test.go::WebSocketConcurrencySlotIsPerTurn": {
+      "rust_case": "websocket_surface::inference_limit_is_per_turn_not_per_idle_connection",
+      "reason": "WebSocket state-machine equivalent check"
+    },
+    "internal/app/app_websocket_test.go::WebSocketConnectionLimit": {
+      "rust_case": "websocket_surface::first_message_idle_ping_and_write_budgets_match_go",
+      "reason": "WebSocket state-machine equivalent check"
+    },
+    "internal/app/app_websocket_test.go::WebSocketErrorTaxonomy": {
+      "rust_case": "websocket_surface::malformed_messages_are_errors_without_closing_the_socket",
+      "reason": "WebSocket state-machine equivalent check"
+    },
+    "internal/app/app_websocket_test.go::WebSocketFailedResponseKeepsConnection": {
+      "rust_case": "websocket_surface::failed_turn_does_not_advance_previous_response_id",
+      "reason": "WebSocket state-machine equivalent check"
+    },
+    "internal/app/app_websocket_test.go::WebSocketInboundQueueByteLimit": {
+      "rust_case": "websocket_surface::inbound_queue_limit_closes_1009_with_exact_reason",
+      "reason": "WebSocket state-machine equivalent check"
+    },
+    "internal/app/app_websocket_test.go::WebSocketInterruptedTurnReplaysReplacement": {
+      "rust_case": "websocket_surface::interrupted_turn_requires_full_replacement_replay",
+      "reason": "WebSocket state-machine equivalent check"
+    },
+    "internal/app/app_websocket_test.go::WebSocketMultiTurnMerge": {
+      "rust_case": "websocket_surface::streams_two_serial_turns_and_replays_previous_output",
+      "reason": "WebSocket state-machine equivalent check"
+    },
+    "internal/app/app_websocket_test.go::WebSocketNoUpgradeRejected": {
+      "rust_case": "websocket_surface::non_upgrade_get_is_405_with_post_allow",
+      "reason": "WebSocket state-machine equivalent check"
+    },
+    "internal/app/app_websocket_test.go::WebSocketPendingToolCall": {
+      "rust_case": "websocket_surface::pending_tool_call_requires_output_then_replays_it",
+      "reason": "WebSocket state-machine equivalent check"
+    },
+    "internal/app/app_websocket_test.go::WebSocketPreviousResponseMismatch": {
+      "rust_case": "websocket_surface::previous_response_mismatch_is_exact_and_connection_survives",
+      "reason": "WebSocket state-machine equivalent check"
+    },
+    "internal/app/app_websocket_test.go::WebSocketPrewarm": {
+      "rust_case": "websocket_surface::prewarm_is_local_and_its_response_id_can_be_replayed",
+      "reason": "WebSocket state-machine equivalent check"
+    },
+    "internal/config/config_test.go::LoadDisablesDebugLoggingByDefault": {
+      "rust_case": "config_contract::load_disables_debug_logging_by_default",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/config/config_test.go::LoadEnablesDebugLoggingExplicitly": {
+      "rust_case": "config_contract::load_enables_debug_logging_explicitly",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/config/config_test.go::LoadParsesAuthAPIKey": {
+      "rust_case": "config_contract::load_parses_auth_api_key",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/config/config_test.go::LoadParsesListenAddress": {
+      "rust_case": "config_contract::load_parses_listen_address",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/config/config_test.go::LoadRejectsUnknownFields": {
+      "rust_case": "config_contract::load_rejects_unknown_fields",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/config/config_test.go::NormalizeAliases": {
+      "rust_case": "config_contract::normalize_aliases_contract",
+      "reason": "fuzzy reviewed binding score=0.80"
+    },
+    "internal/config/config_test.go::ResolveConfigPath": {
+      "rust_case": "config_contract::resolve_config_path_precedence",
+      "reason": "fuzzy reviewed binding score=0.77"
+    },
+    "internal/config/config_test.go::ResolveStateDir": {
+      "rust_case": "config_contract::resolve_state_dir_precedence",
+      "reason": "fuzzy reviewed binding score=0.75"
+    },
+    "internal/dashboard/handler_test.go::BearerFailureSharesLoginLedger": {
+      "rust_case": "dashboard_api::authentication_cookie_bearer_and_shared_lockout_match_panel_contract",
+      "reason": "dashboard route/domain integration check"
+    },
+    "internal/dashboard/handler_test.go::LoginFailureSweep": {
+      "rust_case": "dashboard_api::authentication_cookie_bearer_and_shared_lockout_match_panel_contract",
+      "reason": "dashboard route/domain integration check"
+    },
+    "internal/dashboard/handler_test.go::PanelExportTruncatedHeader": {
+      "rust_case": "dashboard_api::every_admin_route_and_history_behavior_is_wired",
+      "reason": "dashboard route/domain integration check"
+    },
+    "internal/dashboard/handler_test.go::PanelRequestsEndpoints": {
+      "rust_case": "dashboard_api::every_admin_route_and_history_behavior_is_wired",
+      "reason": "dashboard route/domain integration check"
+    },
+    "internal/dashboard/helpers_test.go::MaskTokenEscapedForms": {
+      "rust_case": "dashboard_api::every_admin_route_and_history_behavior_is_wired",
+      "reason": "dashboard route/domain integration check"
+    },
+    "internal/dashboard/merge_test.go::MergeChatChunks": {
+      "rust_case": "dashboard_api::every_admin_route_and_history_behavior_is_wired",
+      "reason": "dashboard route/domain integration check"
+    },
+    "internal/dashboard/merge_test.go::MergeResponsesAndAnthropic": {
+      "rust_case": "dashboard_api::every_admin_route_and_history_behavior_is_wired",
+      "reason": "dashboard route/domain integration check"
+    },
+    "internal/dashboard/quota_test.go::ForecastBurnRate": {
+      "rust_case": "dashboard_api::seat_top_up_root_plan_info_and_quota_projection_match_go",
+      "reason": "dashboard route/domain integration check"
+    },
+    "internal/dashboard/quota_test.go::ForecastSurvivesUntilReset": {
+      "rust_case": "dashboard_api::seat_top_up_root_plan_info_and_quota_projection_match_go",
+      "reason": "dashboard route/domain integration check"
+    },
+    "internal/dashboard/quota_test.go::ForecastTooFewPoints": {
+      "rust_case": "dashboard_api::seat_top_up_root_plan_info_and_quota_projection_match_go",
+      "reason": "dashboard route/domain integration check"
+    },
+    "internal/dashboard/quota_test.go::QuotaFileRoundTrip": {
+      "rust_case": "dashboard_api::seat_top_up_root_plan_info_and_quota_projection_match_go",
+      "reason": "dashboard route/domain integration check"
+    },
+    "internal/dashboard/quota_test.go::QuotaPointGraceAndTopUpFields": {
+      "rust_case": "dashboard_api::seat_top_up_root_plan_info_and_quota_projection_match_go",
+      "reason": "dashboard route/domain integration check"
+    },
+    "internal/debuglog/index_test.go::IndexFileCapTruncates": {
+      "rust_case": "debuglog_compat::IndexFileCapTruncates",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/debuglog/recorder_test.go::ActiveRequestsSnapshot": {
+      "rust_case": "debuglog_compat::ActiveRequestsSnapshot",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/debuglog/recorder_test.go::CleanerRemovesExpiredDirs": {
+      "rust_case": "debuglog_compat::CleanerRemovesExpiredDirs",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/debuglog/recorder_test.go::DroppedCounterOnClosedQueue": {
+      "rust_case": "debuglog_compat::DroppedCounterOnClosedQueue",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/debuglog/recorder_test.go::DroppedCounterOnFullQueue": {
+      "rust_case": "debuglog_compat::DroppedCounterOnFullQueue",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/debuglog/recorder_test.go::IOErrorsCountedOncePerKind": {
+      "rust_case": "debuglog_compat::IOErrorsCountedOncePerKind",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/debuglog/recorder_test.go::IndexWrittenOnComplete": {
+      "rust_case": "debuglog_compat::IndexWrittenOnComplete",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/debuglog/recorder_test.go::ManagerAllocatesCollisionSuffix": {
+      "rust_case": "debuglog_compat::ManagerAllocatesCollisionSuffix",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/debuglog/recorder_test.go::ReaderListDetailAndFiles": {
+      "rust_case": "debuglog_compat::ReaderListDetailAndFiles",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/debuglog/recorder_test.go::ReaderRejectsTraversal": {
+      "rust_case": "debuglog_compat::ReaderRejectsTraversal",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/debuglog/recorder_test.go::RecorderWritesRedactedStagesAndAttachments": {
+      "rust_case": "debuglog_compat::RecorderWritesRedactedStagesAndAttachments",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/debuglog/recorder_test.go::SameSecondSuffixBeyondPattern": {
+      "rust_case": "debuglog_compat::SameSecondSuffixBeyondPattern",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/debuglog/recorder_test.go::SanitizeEscapedAndHyphenatedKeys": {
+      "rust_case": "debuglog_compat::SanitizeEscapedAndHyphenatedKeys",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/debuglog/recorder_test.go::WriteErrorKeepsFirstCause": {
+      "rust_case": "debuglog_compat::WriteErrorKeepsFirstCause",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/debuglog/usage_test.go::AbortActiveRequest": {
+      "rust_case": "debuglog_compat::AbortActiveRequest",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/debuglog/usage_test.go::ErrorOwnerAndSLA": {
+      "rust_case": "debuglog_compat::ErrorOwnerAndSLA",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/debuglog/usage_test.go::IndexSnapshottedGate": {
+      "rust_case": "debuglog_compat::IndexSnapshottedGate",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/debuglog/usage_test.go::LayeredRetention": {
+      "rust_case": "debuglog_compat::LayeredRetention",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/debuglog/usage_test.go::RequestFilters": {
+      "rust_case": "debuglog_compat::RequestFilters",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/debuglog/usage_test.go::RetentionAgesByDirName": {
+      "rust_case": "debuglog_compat::RetentionAgesByDirName",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/debuglog/usage_test.go::RetryAttemptsInIndex": {
+      "rust_case": "debuglog_compat::RetryAttemptsInIndex",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/debuglog/usage_test.go::SetEnabledHotToggle": {
+      "rust_case": "debuglog_compat::SetEnabledHotToggle",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/debuglog/usage_test.go::UsageAggregatorCounts": {
+      "rust_case": "debuglog_compat::UsageAggregatorCounts",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/debuglog/usage_test.go::UsageMinBucketWraparound": {
+      "rust_case": "debuglog_compat::UsageMinBucketWraparound",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/debuglog/usage_test.go::UsagePercentiles": {
+      "rust_case": "debuglog_compat::UsagePercentiles",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/debuglog/usage_test.go::UsageRateLimitSampling": {
+      "rust_case": "debuglog_compat::UsageRateLimitSampling",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/debuglog/usage_test.go::UsageReplayCountsOnce": {
+      "rust_case": "debuglog_compat::UsageReplayCountsOnce",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/debuglog/usage_test.go::UsageReplayOnRestart": {
+      "rust_case": "debuglog_compat::UsageReplayOnRestart",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/llm/failure_test.go::ClassifyConnectError": {
+      "rust_case": "input_protocols::classify_connect_error",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/llm/failure_test.go::ClassifyTextCodePrefix": {
+      "rust_case": "input_protocols::classify_text_code_prefix",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/llm/failure_test.go::ClassifyTypedFailure": {
+      "rust_case": "input_protocols::classify_typed_failure",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/llm/failure_test.go::RateLimitResetZero": {
+      "rust_case": "input_protocols::rate_limit_reset_zero",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/llm/failure_test.go::RetryAfterSeconds": {
+      "rust_case": "input_protocols::retry_after_seconds",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/llm/failure_test.go::UpstreamFault": {
+      "rust_case": "input_protocols::upstream_fault",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/llm/failure_test.go::UpstreamTraceID": {
+      "rust_case": "input_protocols::upstream_trace_id",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/llm/request_test.go::DemoteOrphanToolResults": {
+      "rust_case": "input_protocols::demote_orphan_tool_results",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/llm/request_test.go::MergeAdjacentAssistantTurns": {
+      "rust_case": "input_protocols::merge_adjacent_assistant_turns",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/llm/request_test.go::RequestMessagesRejectsInvalidToolArguments": {
+      "rust_case": "input_protocols::request_messages_rejects_invalid_tool_arguments",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/llm/request_test.go::RequestMessagesSupportsProviderIndependentHistory": {
+      "rust_case": "input_protocols::request_messages_supports_provider_independent_history",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/llm/response_test.go::ResponseEventAllowsEmptyToolCallDelta": {
+      "rust_case": "input_protocols::response_event_allows_empty_tool_call_delta",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/llm/response_test.go::ResponseEventProtocolCarriesPartialUsageAndFinalMessage": {
+      "rust_case": "input_protocols::response_event_protocol_carries_partial_usage_and_final_message",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/llm/response_test.go::ResponseEventRejectsDoneWithoutFinalMessage": {
+      "rust_case": "input_protocols::response_event_rejects_done_without_final_message",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/llm/response_test.go::ResponseEventRejectsToolCallDeltaWithoutID": {
+      "rust_case": "input_protocols::response_event_rejects_tool_call_delta_without_id",
+      "reason": "normalized exact behavior test"
+    },
+    "internal/obs/metrics_test.go::DiagnosticBoundsAndRedacts": {
+      "rust_case": "diagnostics::diagnostics_expose_instrumented_tasks_waits_and_spans",
+      "reason": "runtime diagnostics behavior check"
+    },
+    "internal/obs/metrics_test.go::MetricsLifecycle": {
+      "rust_case": "diagnostics::lifecycle_rates_reject_ring_and_process_values_are_truthful",
+      "reason": "runtime diagnostics behavior check"
+    },
+    "internal/obs/metrics_test.go::ProcessMetrics": {
+      "rust_case": "diagnostics::lifecycle_rates_reject_ring_and_process_values_are_truthful",
+      "reason": "runtime diagnostics behavior check"
+    },
+    "internal/obs/metrics_test.go::RatesDerived": {
+      "rust_case": "diagnostics::lifecycle_rates_reject_ring_and_process_values_are_truthful",
+      "reason": "runtime diagnostics behavior check"
+    },
+    "internal/obs/metrics_test.go::TrendBuckets": {
+      "rust_case": "diagnostics::trend_bucket_rollover_uses_the_injected_clock",
+      "reason": "runtime diagnostics behavior check"
+    },
+    "internal/upstream/upstream_test.go::BasicAuthTransportFuncRefreshesPerRequest": {
+      "rust_case": "transport_interop::per_attempt_token_refresh_and_bearer_passthrough",
+      "reason": "per-attempt authorization transport check"
+    },
+    "internal/upstream/upstream_test.go::BasicAuthTransportPreservesExistingAuthorization": {
+      "rust_case": "transport_interop::per_attempt_token_refresh_and_bearer_passthrough",
+      "reason": "per-attempt authorization transport check"
+    },
+    "internal/upstream/upstream_test.go::BasicAuthTransportSuppressesUserAgent": {
+      "rust_case": "transport_interop::per_attempt_token_refresh_and_bearer_passthrough",
+      "reason": "per-attempt authorization transport check"
+    }
+  }
+}

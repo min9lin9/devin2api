@@ -1,0 +1,35 @@
+{
+  "api": "anthropic",
+  "client": {
+    "ip": "10.0.0.2",
+    "key_hash": "khash001"
+  },
+  "duration_ms": 2339314,
+  "finished_at": "2026-09-19T15:39:01.314651994Z",
+  "method": "POST",
+  "model": "swe-2-max",
+  "path": "/v1/messages",
+  "provider": "devin",
+  "request_ready_ms": 2339314,
+  "requested_model": "swe-2",
+  "result": "failed",
+  "retry_attempts": [
+    {
+      "attempt": 2,
+      "cause": "unauthenticated: token reloaded",
+      "elapsed_ms": 2339314
+    }
+  ],
+  "started_at": "2026-09-19T15:00:02Z",
+  "status_code": 502,
+  "stream": true,
+  "upstream_sent_ms": 2339314,
+  "usage": {
+    "cache_read": 0,
+    "cache_write": 0,
+    "input": 20,
+    "output": 0,
+    "reasoning": 0,
+    "total": 20
+  }
+}

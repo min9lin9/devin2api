@@ -1,0 +1,2384 @@
+{
+  "requests": {
+    "assistant_no_text_omits_prompt": {
+      "repairs": {},
+      "request": {
+        "cascadeId": "27ae41e4-649b-434c-a495-991b7852b855",
+        "chatMessagePrompts": [
+          {
+            "messageId": "\u003crand\u003e",
+            "promptCacheOptions": {
+              "type": "ExaChatPb_CacheControlType_CACHE_CONTROL_TYPE_EPHEMERAL"
+            },
+            "signature": "s",
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_SYSTEM",
+            "thinking": "only thinking",
+            "thinkingRedacted": false
+          }
+        ],
+        "chatModelUid": "model",
+        "configuration": {
+          "maxNewlines": 400,
+          "maxTokens": 128000,
+          "numCompletions": 1,
+          "temperature": 1,
+          "topK": 40,
+          "topP": 0.95
+        },
+        "executionId": "\u003crand\u003e",
+        "metadata": {
+          "apiKey": "token",
+          "extensionName": "chisel",
+          "extensionVersion": "3000.2.17",
+          "f": "\u003crand\u003e",
+          "ideName": "chisel",
+          "ideVersion": "3000.2.17",
+          "locale": "en",
+          "os": "mac"
+        },
+        "plannerMode": "ExaCodeiumCommonPb_ConversationalPlannerMode_CONVERSATIONAL_PLANNER_MODE_DEFAULT",
+        "prompt": "",
+        "requestType": "CHAT_MESSAGE_REQUEST_TYPE_CASCADE",
+        "systemPromptCacheOptions": {
+          "type": "ExaChatPb_CacheControlType_CACHE_CONTROL_TYPE_EPHEMERAL"
+        },
+        "trajectoryReference": {
+          "stepIndex": "\u003cstep\u003e",
+          "stepType": "ExaCortexPb_CortexStepType_CORTEX_STEP_TYPE_USER_INPUT",
+          "trajectoryId": "e3b0c442-98fc-4c14-9afb-f4c8996fb924",
+          "trajectoryType": "ExaCortexPb_CortexTrajectoryType_CORTEX_TRAJECTORY_TYPE_CASCADE"
+        }
+      }
+    },
+    "custom_apply_patch_tool": {
+      "repairs": {
+        "sanitize_hits": {
+          "a7-freeform": 1,
+          "a7-json-wrap": 1,
+          "codex-opensource-def": 1
+        }
+      },
+      "request": {
+        "cascadeId": "5c49d570-9322-4e43-94de-de9a7a707831",
+        "chatMessagePrompts": [
+          {
+            "messageId": "\u003crand\u003e",
+            "prompt": "patch it",
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_USER"
+          },
+          {
+            "messageId": "\u003crand\u003e",
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_SYSTEM",
+            "toolCalls": [
+              {
+                "id": "p1",
+                "invalidJsonStr": "*** Begin Patch\n*** Update File: f.py\n@@\n-x\n+y\n*** End Patch",
+                "isCustomToolCall": true,
+                "name": "apply_patch"
+              }
+            ]
+          },
+          {
+            "messageId": "\u003crand\u003e",
+            "prompt": "applied",
+            "promptCacheOptions": {
+              "type": "ExaChatPb_CacheControlType_CACHE_CONTROL_TYPE_EPHEMERAL"
+            },
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_TOOL",
+            "toolCallId": "p1",
+            "toolResultIsError": false
+          }
+        ],
+        "chatModelUid": "model",
+        "configuration": {
+          "maxNewlines": 400,
+          "maxTokens": 128000,
+          "numCompletions": 1,
+          "temperature": 1,
+          "topK": 40,
+          "topP": 0.95
+        },
+        "executionId": "\u003crand\u003e",
+        "metadata": {
+          "apiKey": "token",
+          "extensionName": "chisel",
+          "extensionVersion": "3000.2.17",
+          "f": "\u003crand\u003e",
+          "ideName": "chisel",
+          "ideVersion": "3000.2.17",
+          "locale": "en",
+          "os": "mac"
+        },
+        "plannerMode": "ExaCodeiumCommonPb_ConversationalPlannerMode_CONVERSATIONAL_PLANNER_MODE_DEFAULT",
+        "prompt": "Codex is the open-source coding interface.\n\n# tools descriptions\n\u003ctool name=\"apply_patch\"\u003e\n1. Apply a patch.\n2. provide the patch as plain text.\n3. free-form input.\n\u003c/tool\u003e",
+        "requestType": "CHAT_MESSAGE_REQUEST_TYPE_CASCADE",
+        "systemPromptCacheOptions": {
+          "type": "ExaChatPb_CacheControlType_CACHE_CONTROL_TYPE_EPHEMERAL"
+        },
+        "tools": [
+          {
+            "description": "apply_patch",
+            "jsonSchemaString": "{\"properties\":{\"input\":{\"type\":\"string\"}},\"required\":[\"input\"],\"type\":\"object\"}",
+            "name": "apply_patch"
+          }
+        ],
+        "trajectoryReference": {
+          "stepIndex": "\u003cstep\u003e",
+          "stepType": "ExaCortexPb_CortexStepType_CORTEX_STEP_TYPE_USER_INPUT",
+          "trajectoryId": "56b854c7-cc36-4a42-9f26-c68bc0880548",
+          "trajectoryType": "ExaCortexPb_CortexTrajectoryType_CORTEX_TRAJECTORY_TYPE_CASCADE"
+        }
+      }
+    },
+    "custom_tool_call": {
+      "repairs": {},
+      "request": {
+        "cascadeId": "27ae41e4-649b-434c-a495-991b7852b855",
+        "chatMessagePrompts": [
+          {
+            "messageId": "\u003crand\u003e",
+            "promptCacheOptions": {
+              "type": "ExaChatPb_CacheControlType_CACHE_CONTROL_TYPE_EPHEMERAL"
+            },
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_SYSTEM",
+            "toolCalls": [
+              {
+                "id": "c1",
+                "invalidJsonStr": "*** Begin Patch\n*** Update File: a.py\n@@\n+hello\n*** End Patch",
+                "isCustomToolCall": true,
+                "name": "apply_patch"
+              }
+            ]
+          }
+        ],
+        "chatModelUid": "model",
+        "configuration": {
+          "maxNewlines": 400,
+          "maxTokens": 128000,
+          "numCompletions": 1,
+          "temperature": 1,
+          "topK": 40,
+          "topP": 0.95
+        },
+        "executionId": "\u003crand\u003e",
+        "metadata": {
+          "apiKey": "token",
+          "extensionName": "chisel",
+          "extensionVersion": "3000.2.17",
+          "f": "\u003crand\u003e",
+          "ideName": "chisel",
+          "ideVersion": "3000.2.17",
+          "locale": "en",
+          "os": "mac"
+        },
+        "plannerMode": "ExaCodeiumCommonPb_ConversationalPlannerMode_CONVERSATIONAL_PLANNER_MODE_DEFAULT",
+        "prompt": "",
+        "requestType": "CHAT_MESSAGE_REQUEST_TYPE_CASCADE",
+        "systemPromptCacheOptions": {
+          "type": "ExaChatPb_CacheControlType_CACHE_CONTROL_TYPE_EPHEMERAL"
+        },
+        "trajectoryReference": {
+          "stepIndex": "\u003cstep\u003e",
+          "stepType": "ExaCortexPb_CortexStepType_CORTEX_STEP_TYPE_USER_INPUT",
+          "trajectoryId": "e3b0c442-98fc-4c14-9afb-f4c8996fb924",
+          "trajectoryType": "ExaCortexPb_CortexTrajectoryType_CORTEX_TRAJECTORY_TYPE_CASCADE"
+        }
+      }
+    },
+    "default_sampling": {
+      "repairs": {},
+      "request": {
+        "cascadeId": "b68caf34-98f1-40e8-abb4-d6d3ad452ddf",
+        "chatMessagePrompts": [
+          {
+            "messageId": "\u003crand\u003e",
+            "prompt": "hi",
+            "promptCacheOptions": {
+              "type": "ExaChatPb_CacheControlType_CACHE_CONTROL_TYPE_EPHEMERAL"
+            },
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_USER"
+          }
+        ],
+        "chatModelUid": "model",
+        "configuration": {
+          "maxNewlines": 400,
+          "maxTokens": 128000,
+          "numCompletions": 1,
+          "temperature": 1,
+          "topK": 40,
+          "topP": 0.95
+        },
+        "executionId": "\u003crand\u003e",
+        "metadata": {
+          "apiKey": "token",
+          "extensionName": "chisel",
+          "extensionVersion": "3000.2.17",
+          "f": "\u003crand\u003e",
+          "ideName": "chisel",
+          "ideVersion": "3000.2.17",
+          "locale": "en",
+          "os": "mac"
+        },
+        "plannerMode": "ExaCodeiumCommonPb_ConversationalPlannerMode_CONVERSATIONAL_PLANNER_MODE_DEFAULT",
+        "prompt": "system",
+        "requestType": "CHAT_MESSAGE_REQUEST_TYPE_CASCADE",
+        "systemPromptCacheOptions": {
+          "type": "ExaChatPb_CacheControlType_CACHE_CONTROL_TYPE_EPHEMERAL"
+        },
+        "trajectoryReference": {
+          "stepIndex": "\u003cstep\u003e",
+          "stepType": "ExaCortexPb_CortexStepType_CORTEX_STEP_TYPE_USER_INPUT",
+          "trajectoryId": "a7f0d887-6533-49bb-a5c2-37dd1f83701c",
+          "trajectoryType": "ExaCortexPb_CortexTrajectoryType_CORTEX_TRAJECTORY_TYPE_CASCADE"
+        }
+      }
+    },
+    "disable_parallel": {
+      "repairs": {},
+      "request": {
+        "cascadeId": "c2f701cc-5e31-4b7b-b0ef-5e1c04b0ec58",
+        "chatMessagePrompts": [
+          {
+            "messageId": "\u003crand\u003e",
+            "prompt": "hi",
+            "promptCacheOptions": {
+              "type": "ExaChatPb_CacheControlType_CACHE_CONTROL_TYPE_EPHEMERAL"
+            },
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_USER"
+          }
+        ],
+        "chatModelUid": "model",
+        "configuration": {
+          "maxNewlines": 400,
+          "maxTokens": 128000,
+          "numCompletions": 1,
+          "temperature": 1,
+          "topK": 40,
+          "topP": 0.95
+        },
+        "disableParallelToolCalls": true,
+        "executionId": "\u003crand\u003e",
+        "metadata": {
+          "apiKey": "token",
+          "extensionName": "chisel",
+          "extensionVersion": "3000.2.17",
+          "f": "\u003crand\u003e",
+          "ideName": "chisel",
+          "ideVersion": "3000.2.17",
+          "locale": "en",
+          "os": "mac"
+        },
+        "plannerMode": "ExaCodeiumCommonPb_ConversationalPlannerMode_CONVERSATIONAL_PLANNER_MODE_DEFAULT",
+        "prompt": "",
+        "requestType": "CHAT_MESSAGE_REQUEST_TYPE_CASCADE",
+        "systemPromptCacheOptions": {
+          "type": "ExaChatPb_CacheControlType_CACHE_CONTROL_TYPE_EPHEMERAL"
+        },
+        "trajectoryReference": {
+          "stepIndex": "\u003cstep\u003e",
+          "stepType": "ExaCortexPb_CortexStepType_CORTEX_STEP_TYPE_USER_INPUT",
+          "trajectoryId": "e6908025-cd50-4e38-8fee-cfeaedb70ba2",
+          "trajectoryType": "ExaCortexPb_CortexTrajectoryType_CORTEX_TRAJECTORY_TYPE_CASCADE"
+        }
+      }
+    },
+    "duplicate_call_ids": {
+      "repairs": {
+        "reordered_prompts": 2
+      },
+      "request": {
+        "cascadeId": "39d5e756-67f1-48e0-a65b-f12f2ddf06c2",
+        "chatMessagePrompts": [
+          {
+            "messageId": "\u003crand\u003e",
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_SYSTEM",
+            "toolCalls": [
+              {
+                "argumentsJson": "{}",
+                "id": "dup",
+                "name": "x"
+              }
+            ]
+          },
+          {
+            "messageId": "\u003crand\u003e",
+            "prompt": "r",
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_TOOL",
+            "toolCallId": "dup",
+            "toolResultIsError": false
+          },
+          {
+            "messageId": "\u003crand\u003e",
+            "promptCacheOptions": {
+              "type": "ExaChatPb_CacheControlType_CACHE_CONTROL_TYPE_EPHEMERAL"
+            },
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_SYSTEM",
+            "toolCalls": [
+              {
+                "argumentsJson": "{}",
+                "id": "dup",
+                "name": "x"
+              }
+            ]
+          }
+        ],
+        "chatModelUid": "model",
+        "configuration": {
+          "maxNewlines": 400,
+          "maxTokens": 128000,
+          "numCompletions": 1,
+          "temperature": 1,
+          "topK": 40,
+          "topP": 0.95
+        },
+        "executionId": "\u003crand\u003e",
+        "metadata": {
+          "apiKey": "token",
+          "extensionName": "chisel",
+          "extensionVersion": "3000.2.17",
+          "f": "\u003crand\u003e",
+          "ideName": "chisel",
+          "ideVersion": "3000.2.17",
+          "locale": "en",
+          "os": "mac"
+        },
+        "plannerMode": "ExaCodeiumCommonPb_ConversationalPlannerMode_CONVERSATIONAL_PLANNER_MODE_DEFAULT",
+        "prompt": "",
+        "requestType": "CHAT_MESSAGE_REQUEST_TYPE_CASCADE",
+        "systemPromptCacheOptions": {
+          "type": "ExaChatPb_CacheControlType_CACHE_CONTROL_TYPE_EPHEMERAL"
+        },
+        "trajectoryReference": {
+          "stepIndex": "\u003cstep\u003e",
+          "stepType": "ExaCortexPb_CortexStepType_CORTEX_STEP_TYPE_USER_INPUT",
+          "trajectoryId": "6a999702-3a65-4539-9510-5d37bf8f950a",
+          "trajectoryType": "ExaCortexPb_CortexTrajectoryType_CORTEX_TRAJECTORY_TYPE_CASCADE"
+        }
+      }
+    },
+    "duplicate_results": {
+      "repairs": {},
+      "request": {
+        "cascadeId": "1f482328-a090-414c-821d-72983f8eca53",
+        "chatMessagePrompts": [
+          {
+            "messageId": "\u003crand\u003e",
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_SYSTEM",
+            "toolCalls": [
+              {
+                "argumentsJson": "{}",
+                "id": "dup",
+                "name": "x"
+              }
+            ]
+          },
+          {
+            "messageId": "\u003crand\u003e",
+            "prompt": "r1",
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_TOOL",
+            "toolCallId": "dup",
+            "toolResultIsError": false
+          },
+          {
+            "messageId": "\u003crand\u003e",
+            "prompt": "r2",
+            "promptCacheOptions": {
+              "type": "ExaChatPb_CacheControlType_CACHE_CONTROL_TYPE_EPHEMERAL"
+            },
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_TOOL",
+            "toolCallId": "dup",
+            "toolResultIsError": false
+          }
+        ],
+        "chatModelUid": "model",
+        "configuration": {
+          "maxNewlines": 400,
+          "maxTokens": 128000,
+          "numCompletions": 1,
+          "temperature": 1,
+          "topK": 40,
+          "topP": 0.95
+        },
+        "executionId": "\u003crand\u003e",
+        "metadata": {
+          "apiKey": "token",
+          "extensionName": "chisel",
+          "extensionVersion": "3000.2.17",
+          "f": "\u003crand\u003e",
+          "ideName": "chisel",
+          "ideVersion": "3000.2.17",
+          "locale": "en",
+          "os": "mac"
+        },
+        "plannerMode": "ExaCodeiumCommonPb_ConversationalPlannerMode_CONVERSATIONAL_PLANNER_MODE_DEFAULT",
+        "prompt": "",
+        "requestType": "CHAT_MESSAGE_REQUEST_TYPE_CASCADE",
+        "systemPromptCacheOptions": {
+          "type": "ExaChatPb_CacheControlType_CACHE_CONTROL_TYPE_EPHEMERAL"
+        },
+        "trajectoryReference": {
+          "stepIndex": "\u003cstep\u003e",
+          "stepType": "ExaCortexPb_CortexStepType_CORTEX_STEP_TYPE_USER_INPUT",
+          "trajectoryId": "7060ccbc-0d46-43cb-ae33-1249868c135f",
+          "trajectoryType": "ExaCortexPb_CortexTrajectoryType_CORTEX_TRAJECTORY_TYPE_CASCADE"
+        }
+      }
+    },
+    "empty_assistant_dropped": {
+      "repairs": {
+        "dropped_empty_assistant": 2
+      },
+      "request": {
+        "cascadeId": "c2f701cc-5e31-4b7b-b0ef-5e1c04b0ec58",
+        "chatMessagePrompts": [
+          {
+            "messageId": "\u003crand\u003e",
+            "prompt": "hi",
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_USER"
+          },
+          {
+            "messageId": "\u003crand\u003e",
+            "prompt": "again",
+            "promptCacheOptions": {
+              "type": "ExaChatPb_CacheControlType_CACHE_CONTROL_TYPE_EPHEMERAL"
+            },
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_USER"
+          }
+        ],
+        "chatModelUid": "model",
+        "configuration": {
+          "maxNewlines": 400,
+          "maxTokens": 128000,
+          "numCompletions": 1,
+          "temperature": 1,
+          "topK": 40,
+          "topP": 0.95
+        },
+        "executionId": "\u003crand\u003e",
+        "metadata": {
+          "apiKey": "token",
+          "extensionName": "chisel",
+          "extensionVersion": "3000.2.17",
+          "f": "\u003crand\u003e",
+          "ideName": "chisel",
+          "ideVersion": "3000.2.17",
+          "locale": "en",
+          "os": "mac"
+        },
+        "plannerMode": "ExaCodeiumCommonPb_ConversationalPlannerMode_CONVERSATIONAL_PLANNER_MODE_DEFAULT",
+        "prompt": "",
+        "requestType": "CHAT_MESSAGE_REQUEST_TYPE_CASCADE",
+        "systemPromptCacheOptions": {
+          "type": "ExaChatPb_CacheControlType_CACHE_CONTROL_TYPE_EPHEMERAL"
+        },
+        "trajectoryReference": {
+          "stepIndex": "\u003cstep\u003e",
+          "stepType": "ExaCortexPb_CortexStepType_CORTEX_STEP_TYPE_USER_INPUT",
+          "trajectoryId": "e6908025-cd50-4e38-8fee-cfeaedb70ba2",
+          "trajectoryType": "ExaCortexPb_CortexTrajectoryType_CORTEX_TRAJECTORY_TYPE_CASCADE"
+        }
+      }
+    },
+    "empty_tool_descriptions": {
+      "repairs": {},
+      "request": {
+        "cascadeId": "af5fda04-3f32-4aaf-893a-763f10e42a12",
+        "chatMessagePrompts": [
+          {
+            "messageId": "\u003crand\u003e",
+            "prompt": "hi",
+            "promptCacheOptions": {
+              "type": "ExaChatPb_CacheControlType_CACHE_CONTROL_TYPE_EPHEMERAL"
+            },
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_USER"
+          }
+        ],
+        "chatModelUid": "model",
+        "configuration": {
+          "maxNewlines": 400,
+          "maxTokens": 128000,
+          "numCompletions": 1,
+          "temperature": 1,
+          "topK": 40,
+          "topP": 0.95
+        },
+        "executionId": "\u003crand\u003e",
+        "metadata": {
+          "apiKey": "token",
+          "extensionName": "chisel",
+          "extensionVersion": "3000.2.17",
+          "f": "\u003crand\u003e",
+          "ideName": "chisel",
+          "ideVersion": "3000.2.17",
+          "locale": "en",
+          "os": "mac"
+        },
+        "plannerMode": "ExaCodeiumCommonPb_ConversationalPlannerMode_CONVERSATIONAL_PLANNER_MODE_DEFAULT",
+        "prompt": "system\n\n# tools descriptions\n\u003ctool name=\"read\"\u003e\n1. read a file\n\u003c/tool\u003e",
+        "requestType": "CHAT_MESSAGE_REQUEST_TYPE_CASCADE",
+        "systemPromptCacheOptions": {
+          "type": "ExaChatPb_CacheControlType_CACHE_CONTROL_TYPE_EPHEMERAL"
+        },
+        "tools": [
+          {
+            "description": "empty",
+            "jsonSchemaString": "{\"type\":\"object\"}",
+            "name": "empty"
+          },
+          {
+            "description": "read",
+            "jsonSchemaString": "{\"type\":\"object\"}",
+            "name": "read"
+          }
+        ],
+        "trajectoryReference": {
+          "stepIndex": "\u003cstep\u003e",
+          "stepType": "ExaCortexPb_CortexStepType_CORTEX_STEP_TYPE_USER_INPUT",
+          "trajectoryId": "7033b2a5-7caf-44e7-b380-6ab3da893d52",
+          "trajectoryType": "ExaCortexPb_CortexTrajectoryType_CORTEX_TRAJECTORY_TYPE_CASCADE"
+        }
+      }
+    },
+    "empty_tool_result_text": {
+      "repairs": {},
+      "request": {
+        "cascadeId": "27ae41e4-649b-434c-a495-991b7852b855",
+        "chatMessagePrompts": [
+          {
+            "messageId": "\u003crand\u003e",
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_SYSTEM",
+            "toolCalls": [
+              {
+                "argumentsJson": "{}",
+                "id": "c1",
+                "name": "exec"
+              }
+            ]
+          },
+          {
+            "messageId": "\u003crand\u003e",
+            "prompt": "[tool result]",
+            "promptCacheOptions": {
+              "type": "ExaChatPb_CacheControlType_CACHE_CONTROL_TYPE_EPHEMERAL"
+            },
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_TOOL",
+            "toolCallId": "c1",
+            "toolResultIsError": false
+          }
+        ],
+        "chatModelUid": "model",
+        "configuration": {
+          "maxNewlines": 400,
+          "maxTokens": 128000,
+          "numCompletions": 1,
+          "temperature": 1,
+          "topK": 40,
+          "topP": 0.95
+        },
+        "executionId": "\u003crand\u003e",
+        "metadata": {
+          "apiKey": "token",
+          "extensionName": "chisel",
+          "extensionVersion": "3000.2.17",
+          "f": "\u003crand\u003e",
+          "ideName": "chisel",
+          "ideVersion": "3000.2.17",
+          "locale": "en",
+          "os": "mac"
+        },
+        "plannerMode": "ExaCodeiumCommonPb_ConversationalPlannerMode_CONVERSATIONAL_PLANNER_MODE_DEFAULT",
+        "prompt": "",
+        "requestType": "CHAT_MESSAGE_REQUEST_TYPE_CASCADE",
+        "systemPromptCacheOptions": {
+          "type": "ExaChatPb_CacheControlType_CACHE_CONTROL_TYPE_EPHEMERAL"
+        },
+        "trajectoryReference": {
+          "stepIndex": "\u003cstep\u003e",
+          "stepType": "ExaCortexPb_CortexStepType_CORTEX_STEP_TYPE_USER_INPUT",
+          "trajectoryId": "e3b0c442-98fc-4c14-9afb-f4c8996fb924",
+          "trajectoryType": "ExaCortexPb_CortexTrajectoryType_CORTEX_TRAJECTORY_TYPE_CASCADE"
+        }
+      }
+    },
+    "historical_images": {
+      "repairs": {
+        "omitted_history_images": 1
+      },
+      "request": {
+        "cascadeId": "5072e9d2-1246-4c0e-8fc6-7ca19ef235be",
+        "chatMessagePrompts": [
+          {
+            "messageId": "\u003crand\u003e",
+            "prompt": "see this\n[Image omitted from history]",
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_USER"
+          },
+          {
+            "messageId": "\u003crand\u003e",
+            "prompt": "ok",
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_SYSTEM"
+          },
+          {
+            "images": [
+              {
+                "base64Data": "BBBB",
+                "mimeType": "image/jpeg"
+              }
+            ],
+            "messageId": "\u003crand\u003e",
+            "prompt": "and this",
+            "promptCacheOptions": {
+              "type": "ExaChatPb_CacheControlType_CACHE_CONTROL_TYPE_EPHEMERAL"
+            },
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_USER"
+          }
+        ],
+        "chatModelUid": "model",
+        "configuration": {
+          "maxNewlines": 400,
+          "maxTokens": 128000,
+          "numCompletions": 1,
+          "temperature": 1,
+          "topK": 40,
+          "topP": 0.95
+        },
+        "executionId": "\u003crand\u003e",
+        "metadata": {
+          "apiKey": "token",
+          "extensionName": "chisel",
+          "extensionVersion": "3000.2.17",
+          "f": "\u003crand\u003e",
+          "ideName": "chisel",
+          "ideVersion": "3000.2.17",
+          "locale": "en",
+          "os": "mac"
+        },
+        "plannerMode": "ExaCodeiumCommonPb_ConversationalPlannerMode_CONVERSATIONAL_PLANNER_MODE_DEFAULT",
+        "prompt": "",
+        "requestType": "CHAT_MESSAGE_REQUEST_TYPE_CASCADE",
+        "systemPromptCacheOptions": {
+          "type": "ExaChatPb_CacheControlType_CACHE_CONTROL_TYPE_EPHEMERAL"
+        },
+        "trajectoryReference": {
+          "stepIndex": "\u003cstep\u003e",
+          "stepType": "ExaCortexPb_CortexStepType_CORTEX_STEP_TYPE_USER_INPUT",
+          "trajectoryId": "90599997-824d-476c-95e8-d6c6b35a54b4",
+          "trajectoryType": "ExaCortexPb_CortexTrajectoryType_CORTEX_TRAJECTORY_TYPE_CASCADE"
+        }
+      }
+    },
+    "history_tool_name_charset": {
+      "repairs": {},
+      "request": {
+        "cascadeId": "1f482328-a090-414c-821d-72983f8eca53",
+        "chatMessagePrompts": [
+          {
+            "messageId": "\u003crand\u003e",
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_SYSTEM",
+            "toolCalls": [
+              {
+                "argumentsJson": "{}",
+                "id": "c1",
+                "name": "mcp::server.tool"
+              },
+              {
+                "argumentsJson": "{}",
+                "id": "c2",
+                "name": "工具.x"
+              }
+            ]
+          },
+          {
+            "messageId": "\u003crand\u003e",
+            "prompt": "r1",
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_TOOL",
+            "toolCallId": "c1",
+            "toolResultIsError": false
+          },
+          {
+            "messageId": "\u003crand\u003e",
+            "prompt": "r2",
+            "promptCacheOptions": {
+              "type": "ExaChatPb_CacheControlType_CACHE_CONTROL_TYPE_EPHEMERAL"
+            },
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_TOOL",
+            "toolCallId": "c2",
+            "toolResultIsError": false
+          }
+        ],
+        "chatModelUid": "model",
+        "configuration": {
+          "maxNewlines": 400,
+          "maxTokens": 128000,
+          "numCompletions": 1,
+          "temperature": 1,
+          "topK": 40,
+          "topP": 0.95
+        },
+        "executionId": "\u003crand\u003e",
+        "metadata": {
+          "apiKey": "token",
+          "extensionName": "chisel",
+          "extensionVersion": "3000.2.17",
+          "f": "\u003crand\u003e",
+          "ideName": "chisel",
+          "ideVersion": "3000.2.17",
+          "locale": "en",
+          "os": "mac"
+        },
+        "plannerMode": "ExaCodeiumCommonPb_ConversationalPlannerMode_CONVERSATIONAL_PLANNER_MODE_DEFAULT",
+        "prompt": "",
+        "requestType": "CHAT_MESSAGE_REQUEST_TYPE_CASCADE",
+        "systemPromptCacheOptions": {
+          "type": "ExaChatPb_CacheControlType_CACHE_CONTROL_TYPE_EPHEMERAL"
+        },
+        "trajectoryReference": {
+          "stepIndex": "\u003cstep\u003e",
+          "stepType": "ExaCortexPb_CortexStepType_CORTEX_STEP_TYPE_USER_INPUT",
+          "trajectoryId": "7060ccbc-0d46-43cb-ae33-1249868c135f",
+          "trajectoryType": "ExaCortexPb_CortexTrajectoryType_CORTEX_TRAJECTORY_TYPE_CASCADE"
+        }
+      }
+    },
+    "image_default_mime": {
+      "repairs": {},
+      "request": {
+        "cascadeId": "27ae41e4-649b-434c-a495-991b7852b855",
+        "chatMessagePrompts": [
+          {
+            "images": [
+              {
+                "base64Data": "CCCC",
+                "mimeType": "image/png"
+              }
+            ],
+            "messageId": "\u003crand\u003e",
+            "prompt": "",
+            "promptCacheOptions": {
+              "type": "ExaChatPb_CacheControlType_CACHE_CONTROL_TYPE_EPHEMERAL"
+            },
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_USER"
+          }
+        ],
+        "chatModelUid": "model",
+        "configuration": {
+          "maxNewlines": 400,
+          "maxTokens": 128000,
+          "numCompletions": 1,
+          "temperature": 1,
+          "topK": 40,
+          "topP": 0.95
+        },
+        "executionId": "\u003crand\u003e",
+        "metadata": {
+          "apiKey": "token",
+          "extensionName": "chisel",
+          "extensionVersion": "3000.2.17",
+          "f": "\u003crand\u003e",
+          "ideName": "chisel",
+          "ideVersion": "3000.2.17",
+          "locale": "en",
+          "os": "mac"
+        },
+        "plannerMode": "ExaCodeiumCommonPb_ConversationalPlannerMode_CONVERSATIONAL_PLANNER_MODE_DEFAULT",
+        "prompt": "",
+        "requestType": "CHAT_MESSAGE_REQUEST_TYPE_CASCADE",
+        "systemPromptCacheOptions": {
+          "type": "ExaChatPb_CacheControlType_CACHE_CONTROL_TYPE_EPHEMERAL"
+        },
+        "trajectoryReference": {
+          "stepIndex": "\u003cstep\u003e",
+          "stepType": "ExaCortexPb_CortexStepType_CORTEX_STEP_TYPE_USER_INPUT",
+          "trajectoryId": "e3b0c442-98fc-4c14-9afb-f4c8996fb924",
+          "trajectoryType": "ExaCortexPb_CortexTrajectoryType_CORTEX_TRAJECTORY_TYPE_CASCADE"
+        }
+      }
+    },
+    "long_transcript": {
+      "repairs": {},
+      "request": {
+        "cascadeId": "a8f4a9c5-83b7-486c-a434-502619c72669",
+        "chatMessagePrompts": [
+          {
+            "messageId": "\u003crand\u003e",
+            "prompt": "turn 1",
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_USER"
+          },
+          {
+            "messageId": "\u003crand\u003e",
+            "prompt": "answer 1",
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_SYSTEM"
+          },
+          {
+            "messageId": "\u003crand\u003e",
+            "prompt": "turn 2",
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_USER"
+          },
+          {
+            "messageId": "\u003crand\u003e",
+            "prompt": "answer 2",
+            "signature": "s1",
+            "signatureType": "sealed",
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_SYSTEM",
+            "thinking": "reasoning",
+            "thinkingRedacted": false,
+            "toolCalls": [
+              {
+                "argumentsJson": "{\"p\":1}",
+                "id": "t1",
+                "name": "read"
+              }
+            ]
+          },
+          {
+            "messageId": "\u003crand\u003e",
+            "prompt": "r1",
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_TOOL",
+            "toolCallId": "t1",
+            "toolResultIsError": false
+          },
+          {
+            "messageId": "\u003crand\u003e",
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_SYSTEM",
+            "toolCalls": [
+              {
+                "argumentsJson": "{\"p\":2}",
+                "id": "t2",
+                "name": "write"
+              },
+              {
+                "argumentsJson": "{\"p\":3}",
+                "id": "t3",
+                "name": "exec"
+              }
+            ]
+          },
+          {
+            "messageId": "\u003crand\u003e",
+            "prompt": "r2",
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_TOOL",
+            "toolCallId": "t2",
+            "toolResultIsError": false
+          },
+          {
+            "messageId": "\u003crand\u003e",
+            "prompt": "r3",
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_TOOL",
+            "toolCallId": "t3",
+            "toolResultIsError": false
+          },
+          {
+            "messageId": "\u003crand\u003e",
+            "prompt": "turn 3",
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_USER"
+          },
+          {
+            "messageId": "\u003crand\u003e",
+            "prompt": "answer 3",
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_SYSTEM"
+          },
+          {
+            "messageId": "\u003crand\u003e",
+            "prompt": "final",
+            "promptCacheOptions": {
+              "type": "ExaChatPb_CacheControlType_CACHE_CONTROL_TYPE_EPHEMERAL"
+            },
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_USER"
+          }
+        ],
+        "chatModelUid": "model",
+        "configuration": {
+          "maxNewlines": 400,
+          "maxTokens": 128000,
+          "numCompletions": 1,
+          "temperature": 1,
+          "topK": 40,
+          "topP": 0.95
+        },
+        "executionId": "\u003crand\u003e",
+        "metadata": {
+          "apiKey": "token",
+          "extensionName": "chisel",
+          "extensionVersion": "3000.2.17",
+          "f": "\u003crand\u003e",
+          "ideName": "chisel",
+          "ideVersion": "3000.2.17",
+          "locale": "en",
+          "os": "mac"
+        },
+        "plannerMode": "ExaCodeiumCommonPb_ConversationalPlannerMode_CONVERSATIONAL_PLANNER_MODE_DEFAULT",
+        "prompt": "You are a coding assistant.\n\n# tools descriptions\n\u003ctool name=\"read\"\u003e\n1. read\n\u003c/tool\u003e\n\u003ctool name=\"write\"\u003e\n1. write\n\u003c/tool\u003e\n\u003ctool name=\"exec\"\u003e\n1. exec\n\u003c/tool\u003e",
+        "requestType": "CHAT_MESSAGE_REQUEST_TYPE_CASCADE",
+        "systemPromptCacheOptions": {
+          "type": "ExaChatPb_CacheControlType_CACHE_CONTROL_TYPE_EPHEMERAL"
+        },
+        "tools": [
+          {
+            "description": "read",
+            "jsonSchemaString": "{\"type\":\"object\"}",
+            "name": "read"
+          },
+          {
+            "description": "write",
+            "jsonSchemaString": "{\"type\":\"object\"}",
+            "name": "write"
+          },
+          {
+            "description": "exec",
+            "jsonSchemaString": "{\"type\":\"object\"}",
+            "name": "exec"
+          }
+        ],
+        "trajectoryReference": {
+          "stepIndex": "\u003cstep\u003e",
+          "stepType": "ExaCortexPb_CortexStepType_CORTEX_STEP_TYPE_USER_INPUT",
+          "trajectoryId": "180a7a0e-5090-48ac-ae11-f17ef55dbc4b",
+          "trajectoryType": "ExaCortexPb_CortexTrajectoryType_CORTEX_TRAJECTORY_TYPE_CASCADE"
+        }
+      }
+    },
+    "loop_messages": {
+      "repairs": {},
+      "request": {
+        "cascadeId": "fc03cb83-56c9-4ddd-8ca4-7712732b106f",
+        "chatMessagePrompts": [
+          {
+            "messageId": "\u003crand\u003e",
+            "prompt": "hello",
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_USER"
+          },
+          {
+            "messageId": "\u003crand\u003e",
+            "signature": "sig",
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_SYSTEM",
+            "thinking": "think",
+            "thinkingRedacted": false,
+            "toolCalls": [
+              {
+                "argumentsJson": "{\"command\":\"ls\"}",
+                "id": "call-1",
+                "name": "exec"
+              }
+            ]
+          },
+          {
+            "messageId": "\u003crand\u003e",
+            "prompt": "failed",
+            "promptCacheOptions": {
+              "type": "ExaChatPb_CacheControlType_CACHE_CONTROL_TYPE_EPHEMERAL"
+            },
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_TOOL",
+            "toolCallId": "call-1",
+            "toolResultIsError": true
+          }
+        ],
+        "chatModelUid": "model",
+        "configuration": {
+          "maxNewlines": 400,
+          "maxTokens": 128000,
+          "numCompletions": 1,
+          "temperature": 1,
+          "topK": 40,
+          "topP": 0.95
+        },
+        "executionId": "\u003crand\u003e",
+        "metadata": {
+          "apiKey": "token",
+          "extensionName": "chisel",
+          "extensionVersion": "3000.2.17",
+          "f": "\u003crand\u003e",
+          "ideName": "chisel",
+          "ideVersion": "3000.2.17",
+          "locale": "en",
+          "os": "mac"
+        },
+        "plannerMode": "ExaCodeiumCommonPb_ConversationalPlannerMode_CONVERSATIONAL_PLANNER_MODE_DEFAULT",
+        "prompt": "system\n\n# tools descriptions\n\u003ctool name=\"exec\"\u003e\n1. run\n\u003c/tool\u003e\n\u003ctool name=\"read\"\u003e\n1. read file\n\u003c/tool\u003e",
+        "requestType": "CHAT_MESSAGE_REQUEST_TYPE_CASCADE",
+        "systemPromptCacheOptions": {
+          "type": "ExaChatPb_CacheControlType_CACHE_CONTROL_TYPE_EPHEMERAL"
+        },
+        "tools": [
+          {
+            "description": "exec",
+            "jsonSchemaString": "{\"type\":\"object\"}",
+            "name": "exec"
+          },
+          {
+            "description": "read",
+            "jsonSchemaString": "{\"properties\":{\"path\":{\"type\":\"string\"}},\"type\":\"object\"}",
+            "name": "read"
+          }
+        ],
+        "trajectoryReference": {
+          "stepIndex": "\u003cstep\u003e",
+          "stepType": "ExaCortexPb_CortexStepType_CORTEX_STEP_TYPE_USER_INPUT",
+          "trajectoryId": "cc19ee79-045d-4462-91de-2d1122b57cb4",
+          "trajectoryType": "ExaCortexPb_CortexTrajectoryType_CORTEX_TRAJECTORY_TYPE_CASCADE"
+        }
+      }
+    },
+    "model_assignment_jwt": {
+      "repairs": {},
+      "request": {
+        "cascadeId": "c2f701cc-5e31-4b7b-b0ef-5e1c04b0ec58",
+        "chatMessagePrompts": [
+          {
+            "messageId": "\u003crand\u003e",
+            "prompt": "hi",
+            "promptCacheOptions": {
+              "type": "ExaChatPb_CacheControlType_CACHE_CONTROL_TYPE_EPHEMERAL"
+            },
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_USER"
+          }
+        ],
+        "chatModelUid": "model",
+        "configuration": {
+          "maxNewlines": 400,
+          "maxTokens": 128000,
+          "numCompletions": 1,
+          "temperature": 1,
+          "topK": 40,
+          "topP": 0.95
+        },
+        "executionId": "\u003crand\u003e",
+        "metadata": {
+          "apiKey": "token",
+          "extensionName": "chisel",
+          "extensionVersion": "3000.2.17",
+          "f": "\u003crand\u003e",
+          "ideName": "chisel",
+          "ideVersion": "3000.2.17",
+          "locale": "en",
+          "os": "mac"
+        },
+        "modelAssignmentJwt": "jwt-token-123",
+        "plannerMode": "ExaCodeiumCommonPb_ConversationalPlannerMode_CONVERSATIONAL_PLANNER_MODE_DEFAULT",
+        "prompt": "",
+        "requestType": "CHAT_MESSAGE_REQUEST_TYPE_CASCADE",
+        "systemPromptCacheOptions": {
+          "type": "ExaChatPb_CacheControlType_CACHE_CONTROL_TYPE_EPHEMERAL"
+        },
+        "trajectoryReference": {
+          "stepIndex": "\u003cstep\u003e",
+          "stepType": "ExaCortexPb_CortexStepType_CORTEX_STEP_TYPE_USER_INPUT",
+          "trajectoryId": "e6908025-cd50-4e38-8fee-cfeaedb70ba2",
+          "trajectoryType": "ExaCortexPb_CortexTrajectoryType_CORTEX_TRAJECTORY_TYPE_CASCADE"
+        }
+      }
+    },
+    "named_tool_choice_missing": {
+      "error": "invalid_argument: tool_choice names tool \"missing_tool\" which is not in the tools list"
+    },
+    "no_tools_prompt_unchanged": {
+      "repairs": {},
+      "request": {
+        "cascadeId": "fc03cb83-56c9-4ddd-8ca4-7712732b106f",
+        "chatMessagePrompts": [
+          {
+            "messageId": "\u003crand\u003e",
+            "prompt": "hello",
+            "promptCacheOptions": {
+              "type": "ExaChatPb_CacheControlType_CACHE_CONTROL_TYPE_EPHEMERAL"
+            },
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_USER"
+          }
+        ],
+        "chatModelUid": "model",
+        "configuration": {
+          "maxNewlines": 400,
+          "maxTokens": 128000,
+          "numCompletions": 1,
+          "temperature": 1,
+          "topK": 40,
+          "topP": 0.95
+        },
+        "executionId": "\u003crand\u003e",
+        "metadata": {
+          "apiKey": "token",
+          "extensionName": "chisel",
+          "extensionVersion": "3000.2.17",
+          "f": "\u003crand\u003e",
+          "ideName": "chisel",
+          "ideVersion": "3000.2.17",
+          "locale": "en",
+          "os": "mac"
+        },
+        "plannerMode": "ExaCodeiumCommonPb_ConversationalPlannerMode_CONVERSATIONAL_PLANNER_MODE_DEFAULT",
+        "prompt": "system",
+        "requestType": "CHAT_MESSAGE_REQUEST_TYPE_CASCADE",
+        "systemPromptCacheOptions": {
+          "type": "ExaChatPb_CacheControlType_CACHE_CONTROL_TYPE_EPHEMERAL"
+        },
+        "trajectoryReference": {
+          "stepIndex": "\u003cstep\u003e",
+          "stepType": "ExaCortexPb_CortexStepType_CORTEX_STEP_TYPE_USER_INPUT",
+          "trajectoryId": "cc19ee79-045d-4462-91de-2d1122b57cb4",
+          "trajectoryType": "ExaCortexPb_CortexTrajectoryType_CORTEX_TRAJECTORY_TYPE_CASCADE"
+        }
+      }
+    },
+    "orphan_result_demoted": {
+      "repairs": {},
+      "request": {
+        "cascadeId": "c2f701cc-5e31-4b7b-b0ef-5e1c04b0ec58",
+        "chatMessagePrompts": [
+          {
+            "messageId": "\u003crand\u003e",
+            "prompt": "hi",
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_USER"
+          },
+          {
+            "messageId": "\u003crand\u003e",
+            "prompt": "[tool result, original call lost]\norphan",
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_USER"
+          },
+          {
+            "messageId": "\u003crand\u003e",
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_SYSTEM",
+            "toolCalls": [
+              {
+                "argumentsJson": "{\"path\":\"a\"}",
+                "id": "call-1",
+                "name": "read"
+              }
+            ]
+          },
+          {
+            "messageId": "\u003crand\u003e",
+            "prompt": "a-body",
+            "promptCacheOptions": {
+              "type": "ExaChatPb_CacheControlType_CACHE_CONTROL_TYPE_EPHEMERAL"
+            },
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_TOOL",
+            "toolCallId": "call-1",
+            "toolResultIsError": false
+          }
+        ],
+        "chatModelUid": "model",
+        "configuration": {
+          "maxNewlines": 400,
+          "maxTokens": 128000,
+          "numCompletions": 1,
+          "temperature": 1,
+          "topK": 40,
+          "topP": 0.95
+        },
+        "executionId": "\u003crand\u003e",
+        "metadata": {
+          "apiKey": "token",
+          "extensionName": "chisel",
+          "extensionVersion": "3000.2.17",
+          "f": "\u003crand\u003e",
+          "ideName": "chisel",
+          "ideVersion": "3000.2.17",
+          "locale": "en",
+          "os": "mac"
+        },
+        "plannerMode": "ExaCodeiumCommonPb_ConversationalPlannerMode_CONVERSATIONAL_PLANNER_MODE_DEFAULT",
+        "prompt": "",
+        "requestType": "CHAT_MESSAGE_REQUEST_TYPE_CASCADE",
+        "systemPromptCacheOptions": {
+          "type": "ExaChatPb_CacheControlType_CACHE_CONTROL_TYPE_EPHEMERAL"
+        },
+        "trajectoryReference": {
+          "stepIndex": "\u003cstep\u003e",
+          "stepType": "ExaCortexPb_CortexStepType_CORTEX_STEP_TYPE_USER_INPUT",
+          "trajectoryId": "e6908025-cd50-4e38-8fee-cfeaedb70ba2",
+          "trajectoryType": "ExaCortexPb_CortexTrajectoryType_CORTEX_TRAJECTORY_TYPE_CASCADE"
+        }
+      }
+    },
+    "orphan_result_no_demote": {
+      "repairs": {},
+      "request": {
+        "cascadeId": "c2f701cc-5e31-4b7b-b0ef-5e1c04b0ec58",
+        "chatMessagePrompts": [
+          {
+            "messageId": "\u003crand\u003e",
+            "prompt": "hi",
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_USER"
+          },
+          {
+            "messageId": "\u003crand\u003e",
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_SYSTEM",
+            "toolCalls": [
+              {
+                "argumentsJson": "{\"path\":\"a\"}",
+                "id": "call-1",
+                "name": "read"
+              }
+            ]
+          },
+          {
+            "messageId": "\u003crand\u003e",
+            "prompt": "a-body",
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_TOOL",
+            "toolCallId": "call-1",
+            "toolResultIsError": false
+          },
+          {
+            "messageId": "\u003crand\u003e",
+            "prompt": "orphan",
+            "promptCacheOptions": {
+              "type": "ExaChatPb_CacheControlType_CACHE_CONTROL_TYPE_EPHEMERAL"
+            },
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_TOOL",
+            "toolCallId": "call-lost",
+            "toolResultIsError": false
+          }
+        ],
+        "chatModelUid": "model",
+        "configuration": {
+          "maxNewlines": 400,
+          "maxTokens": 128000,
+          "numCompletions": 1,
+          "temperature": 1,
+          "topK": 40,
+          "topP": 0.95
+        },
+        "executionId": "\u003crand\u003e",
+        "metadata": {
+          "apiKey": "token",
+          "extensionName": "chisel",
+          "extensionVersion": "3000.2.17",
+          "f": "\u003crand\u003e",
+          "ideName": "chisel",
+          "ideVersion": "3000.2.17",
+          "locale": "en",
+          "os": "mac"
+        },
+        "plannerMode": "ExaCodeiumCommonPb_ConversationalPlannerMode_CONVERSATIONAL_PLANNER_MODE_DEFAULT",
+        "prompt": "",
+        "requestType": "CHAT_MESSAGE_REQUEST_TYPE_CASCADE",
+        "systemPromptCacheOptions": {
+          "type": "ExaChatPb_CacheControlType_CACHE_CONTROL_TYPE_EPHEMERAL"
+        },
+        "trajectoryReference": {
+          "stepIndex": "\u003cstep\u003e",
+          "stepType": "ExaCortexPb_CortexStepType_CORTEX_STEP_TYPE_USER_INPUT",
+          "trajectoryId": "e6908025-cd50-4e38-8fee-cfeaedb70ba2",
+          "trajectoryType": "ExaCortexPb_CortexTrajectoryType_CORTEX_TRAJECTORY_TYPE_CASCADE"
+        }
+      }
+    },
+    "parallel_tool_calls": {
+      "repairs": {},
+      "request": {
+        "cascadeId": "84637107-e981-4b0f-9339-c7a436135488",
+        "chatMessagePrompts": [
+          {
+            "messageId": "\u003crand\u003e",
+            "prompt": "check both",
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_USER"
+          },
+          {
+            "messageId": "\u003crand\u003e",
+            "prompt": "Reading both files.",
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_SYSTEM",
+            "toolCalls": [
+              {
+                "argumentsJson": "{\"path\":\"a\"}",
+                "id": "call-a",
+                "name": "read"
+              },
+              {
+                "argumentsJson": "{\"path\":\"b\"}",
+                "id": "call-b",
+                "name": "read"
+              }
+            ]
+          },
+          {
+            "messageId": "\u003crand\u003e",
+            "prompt": "a-body",
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_TOOL",
+            "toolCallId": "call-a",
+            "toolResultIsError": false
+          },
+          {
+            "messageId": "\u003crand\u003e",
+            "prompt": "b-body",
+            "promptCacheOptions": {
+              "type": "ExaChatPb_CacheControlType_CACHE_CONTROL_TYPE_EPHEMERAL"
+            },
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_TOOL",
+            "toolCallId": "call-b",
+            "toolResultIsError": false
+          }
+        ],
+        "chatModelUid": "model",
+        "configuration": {
+          "maxNewlines": 400,
+          "maxTokens": 128000,
+          "numCompletions": 1,
+          "temperature": 1,
+          "topK": 40,
+          "topP": 0.95
+        },
+        "executionId": "\u003crand\u003e",
+        "metadata": {
+          "apiKey": "token",
+          "extensionName": "chisel",
+          "extensionVersion": "3000.2.17",
+          "f": "\u003crand\u003e",
+          "ideName": "chisel",
+          "ideVersion": "3000.2.17",
+          "locale": "en",
+          "os": "mac"
+        },
+        "plannerMode": "ExaCodeiumCommonPb_ConversationalPlannerMode_CONVERSATIONAL_PLANNER_MODE_DEFAULT",
+        "prompt": "",
+        "requestType": "CHAT_MESSAGE_REQUEST_TYPE_CASCADE",
+        "systemPromptCacheOptions": {
+          "type": "ExaChatPb_CacheControlType_CACHE_CONTROL_TYPE_EPHEMERAL"
+        },
+        "trajectoryReference": {
+          "stepIndex": "\u003cstep\u003e",
+          "stepType": "ExaCortexPb_CortexStepType_CORTEX_STEP_TYPE_USER_INPUT",
+          "trajectoryId": "7222f855-c19e-4598-87ac-6a2a053a931c",
+          "trajectoryType": "ExaCortexPb_CortexTrajectoryType_CORTEX_TRAJECTORY_TYPE_CASCADE"
+        }
+      }
+    },
+    "reasoning_replay": {
+      "repairs": {},
+      "request": {
+        "cascadeId": "f0c89d21-73bc-495a-8853-b7a897ad5295",
+        "chatMessagePrompts": [
+          {
+            "messageId": "\u003crand\u003e",
+            "prompt": "read a.txt",
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_USER"
+          },
+          {
+            "messageId": "\u003crand\u003e",
+            "outputId": "msg_1",
+            "prompt": "checking",
+            "signature": "sealed.v1.abc",
+            "signatureType": "sealed",
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_SYSTEM",
+            "thinking": "need to read the file",
+            "thinkingRedacted": false,
+            "toolCalls": [
+              {
+                "argumentsJson": "{\"path\":\"a.txt\"}",
+                "id": "read_file_0",
+                "name": "read_file"
+              }
+            ]
+          },
+          {
+            "messageId": "\u003crand\u003e",
+            "prompt": "file body",
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_TOOL",
+            "toolCallId": "read_file_0",
+            "toolResultIsError": false
+          },
+          {
+            "messageId": "\u003crand\u003e",
+            "prompt": "what did you find?",
+            "promptCacheOptions": {
+              "type": "ExaChatPb_CacheControlType_CACHE_CONTROL_TYPE_EPHEMERAL"
+            },
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_USER"
+          }
+        ],
+        "chatModelUid": "model",
+        "configuration": {
+          "maxNewlines": 400,
+          "maxTokens": 128000,
+          "numCompletions": 1,
+          "temperature": 1,
+          "topK": 40,
+          "topP": 0.95
+        },
+        "executionId": "\u003crand\u003e",
+        "metadata": {
+          "apiKey": "token",
+          "extensionName": "chisel",
+          "extensionVersion": "3000.2.17",
+          "f": "\u003crand\u003e",
+          "ideName": "chisel",
+          "ideVersion": "3000.2.17",
+          "locale": "en",
+          "os": "mac"
+        },
+        "plannerMode": "ExaCodeiumCommonPb_ConversationalPlannerMode_CONVERSATIONAL_PLANNER_MODE_DEFAULT",
+        "prompt": "",
+        "requestType": "CHAT_MESSAGE_REQUEST_TYPE_CASCADE",
+        "systemPromptCacheOptions": {
+          "type": "ExaChatPb_CacheControlType_CACHE_CONTROL_TYPE_EPHEMERAL"
+        },
+        "trajectoryReference": {
+          "stepIndex": "\u003cstep\u003e",
+          "stepType": "ExaCortexPb_CortexStepType_CORTEX_STEP_TYPE_USER_INPUT",
+          "trajectoryId": "9fbb961d-ef48-4483-aa9a-c75f80f81685",
+          "trajectoryType": "ExaCortexPb_CortexTrajectoryType_CORTEX_TRAJECTORY_TYPE_CASCADE"
+        }
+      }
+    },
+    "repairs_full": {
+      "repairs": {
+        "reordered_prompts": 2,
+        "dropped_empty_assistant": 1,
+        "omitted_history_images": 1,
+        "sanitize_hits": {
+          "a1-cc-full": 1
+        }
+      },
+      "request": {
+        "cascadeId": "6dacf16d-0c89-4f64-8c8c-e589b7f276bf",
+        "chatMessagePrompts": [
+          {
+            "messageId": "\u003crand\u003e",
+            "prompt": "earlier turn with a screenshot\n[Image omitted from history]",
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_USER"
+          },
+          {
+            "messageId": "\u003crand\u003e",
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_SYSTEM",
+            "toolCalls": [
+              {
+                "argumentsJson": "{\"path\":\"a\"}",
+                "id": "call-1",
+                "name": "read"
+              }
+            ]
+          },
+          {
+            "messageId": "\u003crand\u003e",
+            "prompt": "a-body",
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_TOOL",
+            "toolCallId": "call-1",
+            "toolResultIsError": false
+          },
+          {
+            "messageId": "\u003crand\u003e",
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_SYSTEM",
+            "toolCalls": [
+              {
+                "argumentsJson": "{\"path\":\"b\"}",
+                "id": "call-2",
+                "name": "read"
+              }
+            ]
+          },
+          {
+            "messageId": "\u003crand\u003e",
+            "prompt": "b-body",
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_TOOL",
+            "toolCallId": "call-2",
+            "toolResultIsError": false
+          },
+          {
+            "messageId": "\u003crand\u003e",
+            "prompt": "[tool result, original call lost]\norphan",
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_USER"
+          },
+          {
+            "messageId": "\u003crand\u003e",
+            "prompt": "next step",
+            "promptCacheOptions": {
+              "type": "ExaChatPb_CacheControlType_CACHE_CONTROL_TYPE_EPHEMERAL"
+            },
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_USER"
+          }
+        ],
+        "chatModelUid": "model",
+        "configuration": {
+          "maxNewlines": 400,
+          "maxTokens": 128000,
+          "numCompletions": 1,
+          "temperature": 1,
+          "topK": 40,
+          "topP": 0.95
+        },
+        "executionId": "\u003crand\u003e",
+        "metadata": {
+          "apiKey": "token",
+          "extensionName": "chisel",
+          "extensionVersion": "3000.2.17",
+          "f": "\u003crand\u003e",
+          "ideName": "chisel",
+          "ideVersion": "3000.2.17",
+          "locale": "en",
+          "os": "mac"
+        },
+        "plannerMode": "ExaCodeiumCommonPb_ConversationalPlannerMode_CONVERSATIONAL_PLANNER_MODE_DEFAULT",
+        "prompt": "You are an AI coding assistant.",
+        "requestType": "CHAT_MESSAGE_REQUEST_TYPE_CASCADE",
+        "systemPromptCacheOptions": {
+          "type": "ExaChatPb_CacheControlType_CACHE_CONTROL_TYPE_EPHEMERAL"
+        },
+        "trajectoryReference": {
+          "stepIndex": "\u003cstep\u003e",
+          "stepType": "ExaCortexPb_CortexStepType_CORTEX_STEP_TYPE_USER_INPUT",
+          "trajectoryId": "0c68425c-d28f-47b9-80a3-f8e54727a80f",
+          "trajectoryType": "ExaCortexPb_CortexTrajectoryType_CORTEX_TRAJECTORY_TYPE_CASCADE"
+        }
+      }
+    },
+    "same_turn_images": {
+      "repairs": {},
+      "request": {
+        "cascadeId": "a2270557-503e-4130-a73d-693e5d945073",
+        "chatMessagePrompts": [
+          {
+            "messageId": "\u003crand\u003e",
+            "prompt": "ok",
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_SYSTEM"
+          },
+          {
+            "images": [
+              {
+                "base64Data": "AAAA",
+                "mimeType": "image/png"
+              }
+            ],
+            "messageId": "\u003crand\u003e",
+            "prompt": "see this",
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_USER"
+          },
+          {
+            "messageId": "\u003crand\u003e",
+            "prompt": "file content",
+            "promptCacheOptions": {
+              "type": "ExaChatPb_CacheControlType_CACHE_CONTROL_TYPE_EPHEMERAL"
+            },
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_TOOL",
+            "toolCallId": "tc1",
+            "toolResultIsError": false
+          }
+        ],
+        "chatModelUid": "model",
+        "configuration": {
+          "maxNewlines": 400,
+          "maxTokens": 128000,
+          "numCompletions": 1,
+          "temperature": 1,
+          "topK": 40,
+          "topP": 0.95
+        },
+        "executionId": "\u003crand\u003e",
+        "metadata": {
+          "apiKey": "token",
+          "extensionName": "chisel",
+          "extensionVersion": "3000.2.17",
+          "f": "\u003crand\u003e",
+          "ideName": "chisel",
+          "ideVersion": "3000.2.17",
+          "locale": "en",
+          "os": "mac"
+        },
+        "plannerMode": "ExaCodeiumCommonPb_ConversationalPlannerMode_CONVERSATIONAL_PLANNER_MODE_DEFAULT",
+        "prompt": "",
+        "requestType": "CHAT_MESSAGE_REQUEST_TYPE_CASCADE",
+        "systemPromptCacheOptions": {
+          "type": "ExaChatPb_CacheControlType_CACHE_CONTROL_TYPE_EPHEMERAL"
+        },
+        "trajectoryReference": {
+          "stepIndex": "\u003cstep\u003e",
+          "stepType": "ExaCortexPb_CortexStepType_CORTEX_STEP_TYPE_USER_INPUT",
+          "trajectoryId": "ba10a00b-624c-4f5c-a7d4-9982fbf6f333",
+          "trajectoryType": "ExaCortexPb_CortexTrajectoryType_CORTEX_TRAJECTORY_TYPE_CASCADE"
+        }
+      }
+    },
+    "sampling_params": {
+      "repairs": {},
+      "request": {
+        "cascadeId": "b68caf34-98f1-40e8-abb4-d6d3ad452ddf",
+        "chatMessagePrompts": [
+          {
+            "messageId": "\u003crand\u003e",
+            "prompt": "hi",
+            "promptCacheOptions": {
+              "type": "ExaChatPb_CacheControlType_CACHE_CONTROL_TYPE_EPHEMERAL"
+            },
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_USER"
+          }
+        ],
+        "chatModelUid": "model",
+        "configuration": {
+          "maxNewlines": 400,
+          "maxTokens": 4096,
+          "numCompletions": 1,
+          "seed": 42,
+          "stopPatterns": [
+            "STOP"
+          ],
+          "temperature": 0.2,
+          "topK": 10,
+          "topP": 0.8
+        },
+        "executionId": "\u003crand\u003e",
+        "metadata": {
+          "apiKey": "token",
+          "extensionName": "chisel",
+          "extensionVersion": "3000.2.17",
+          "f": "\u003crand\u003e",
+          "ideName": "chisel",
+          "ideVersion": "3000.2.17",
+          "locale": "en",
+          "os": "mac"
+        },
+        "plannerMode": "ExaCodeiumCommonPb_ConversationalPlannerMode_CONVERSATIONAL_PLANNER_MODE_DEFAULT",
+        "prompt": "system",
+        "requestType": "CHAT_MESSAGE_REQUEST_TYPE_CASCADE",
+        "systemPromptCacheOptions": {
+          "type": "ExaChatPb_CacheControlType_CACHE_CONTROL_TYPE_EPHEMERAL"
+        },
+        "trajectoryReference": {
+          "stepIndex": "\u003cstep\u003e",
+          "stepType": "ExaCortexPb_CortexStepType_CORTEX_STEP_TYPE_USER_INPUT",
+          "trajectoryId": "a7f0d887-6533-49bb-a5c2-37dd1f83701c",
+          "trajectoryType": "ExaCortexPb_CortexTrajectoryType_CORTEX_TRAJECTORY_TYPE_CASCADE"
+        }
+      }
+    },
+    "signature_metadata": {
+      "repairs": {},
+      "request": {
+        "cascadeId": "c2f701cc-5e31-4b7b-b0ef-5e1c04b0ec58",
+        "chatMessagePrompts": [
+          {
+            "messageId": "\u003crand\u003e",
+            "prompt": "hi",
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_USER"
+          },
+          {
+            "messageId": "\u003crand\u003e",
+            "outputId": "msg_42",
+            "prompt": "answer",
+            "promptCacheOptions": {
+              "type": "ExaChatPb_CacheControlType_CACHE_CONTROL_TYPE_EPHEMERAL"
+            },
+            "signature": "sig",
+            "signatureType": "anthropic",
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_SYSTEM",
+            "thinking": "t",
+            "thinkingRedacted": false
+          }
+        ],
+        "chatModelUid": "model",
+        "configuration": {
+          "maxNewlines": 400,
+          "maxTokens": 128000,
+          "numCompletions": 1,
+          "temperature": 1,
+          "topK": 40,
+          "topP": 0.95
+        },
+        "executionId": "\u003crand\u003e",
+        "metadata": {
+          "apiKey": "token",
+          "extensionName": "chisel",
+          "extensionVersion": "3000.2.17",
+          "f": "\u003crand\u003e",
+          "ideName": "chisel",
+          "ideVersion": "3000.2.17",
+          "locale": "en",
+          "os": "mac"
+        },
+        "plannerMode": "ExaCodeiumCommonPb_ConversationalPlannerMode_CONVERSATIONAL_PLANNER_MODE_DEFAULT",
+        "prompt": "",
+        "requestType": "CHAT_MESSAGE_REQUEST_TYPE_CASCADE",
+        "systemPromptCacheOptions": {
+          "type": "ExaChatPb_CacheControlType_CACHE_CONTROL_TYPE_EPHEMERAL"
+        },
+        "trajectoryReference": {
+          "stepIndex": "\u003cstep\u003e",
+          "stepType": "ExaCortexPb_CortexStepType_CORTEX_STEP_TYPE_USER_INPUT",
+          "trajectoryId": "e6908025-cd50-4e38-8fee-cfeaedb70ba2",
+          "trajectoryType": "ExaCortexPb_CortexTrajectoryType_CORTEX_TRAJECTORY_TYPE_CASCADE"
+        }
+      }
+    },
+    "thinking_blocks": {
+      "repairs": {},
+      "request": {
+        "cascadeId": "959c68f6-d2f2-4b52-a0af-54d2f87db827",
+        "chatMessagePrompts": [
+          {
+            "messageId": "\u003crand\u003e",
+            "prompt": "hello",
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_USER"
+          },
+          {
+            "messageId": "\u003crand\u003e",
+            "prompt": "answer",
+            "signature": "sig-2",
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_SYSTEM",
+            "thinking": "part-1\npart-2",
+            "thinkingRedacted": false
+          },
+          {
+            "messageId": "\u003crand\u003e",
+            "prompt": "again",
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_USER"
+          },
+          {
+            "messageId": "\u003crand\u003e",
+            "promptCacheOptions": {
+              "type": "ExaChatPb_CacheControlType_CACHE_CONTROL_TYPE_EPHEMERAL"
+            },
+            "signature": "sealed-x",
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_SYSTEM",
+            "thinkingRedacted": true,
+            "toolCalls": [
+              {
+                "argumentsJson": "{}",
+                "id": "call-1",
+                "name": "exec"
+              }
+            ]
+          }
+        ],
+        "chatModelUid": "model",
+        "configuration": {
+          "maxNewlines": 400,
+          "maxTokens": 128000,
+          "numCompletions": 1,
+          "temperature": 1,
+          "topK": 40,
+          "topP": 0.95
+        },
+        "executionId": "\u003crand\u003e",
+        "metadata": {
+          "apiKey": "token",
+          "extensionName": "chisel",
+          "extensionVersion": "3000.2.17",
+          "f": "\u003crand\u003e",
+          "ideName": "chisel",
+          "ideVersion": "3000.2.17",
+          "locale": "en",
+          "os": "mac"
+        },
+        "plannerMode": "ExaCodeiumCommonPb_ConversationalPlannerMode_CONVERSATIONAL_PLANNER_MODE_DEFAULT",
+        "prompt": "",
+        "requestType": "CHAT_MESSAGE_REQUEST_TYPE_CASCADE",
+        "systemPromptCacheOptions": {
+          "type": "ExaChatPb_CacheControlType_CACHE_CONTROL_TYPE_EPHEMERAL"
+        },
+        "trajectoryReference": {
+          "stepIndex": "\u003cstep\u003e",
+          "stepType": "ExaCortexPb_CortexStepType_CORTEX_STEP_TYPE_USER_INPUT",
+          "trajectoryId": "8a2a5c9b-7688-47de-9a95-52c38a044c66",
+          "trajectoryType": "ExaCortexPb_CortexTrajectoryType_CORTEX_TRAJECTORY_TYPE_CASCADE"
+        }
+      }
+    },
+    "tool_choice_auto": {
+      "repairs": {},
+      "request": {
+        "cascadeId": "c2f701cc-5e31-4b7b-b0ef-5e1c04b0ec58",
+        "chatMessagePrompts": [
+          {
+            "messageId": "\u003crand\u003e",
+            "prompt": "hi",
+            "promptCacheOptions": {
+              "type": "ExaChatPb_CacheControlType_CACHE_CONTROL_TYPE_EPHEMERAL"
+            },
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_USER"
+          }
+        ],
+        "chatModelUid": "model",
+        "configuration": {
+          "maxNewlines": 400,
+          "maxTokens": 128000,
+          "numCompletions": 1,
+          "temperature": 1,
+          "topK": 40,
+          "topP": 0.95
+        },
+        "executionId": "\u003crand\u003e",
+        "metadata": {
+          "apiKey": "token",
+          "extensionName": "chisel",
+          "extensionVersion": "3000.2.17",
+          "f": "\u003crand\u003e",
+          "ideName": "chisel",
+          "ideVersion": "3000.2.17",
+          "locale": "en",
+          "os": "mac"
+        },
+        "plannerMode": "ExaCodeiumCommonPb_ConversationalPlannerMode_CONVERSATIONAL_PLANNER_MODE_DEFAULT",
+        "prompt": "",
+        "requestType": "CHAT_MESSAGE_REQUEST_TYPE_CASCADE",
+        "systemPromptCacheOptions": {
+          "type": "ExaChatPb_CacheControlType_CACHE_CONTROL_TYPE_EPHEMERAL"
+        },
+        "trajectoryReference": {
+          "stepIndex": "\u003cstep\u003e",
+          "stepType": "ExaCortexPb_CortexStepType_CORTEX_STEP_TYPE_USER_INPUT",
+          "trajectoryId": "e6908025-cd50-4e38-8fee-cfeaedb70ba2",
+          "trajectoryType": "ExaCortexPb_CortexTrajectoryType_CORTEX_TRAJECTORY_TYPE_CASCADE"
+        }
+      }
+    },
+    "tool_choice_named": {
+      "repairs": {},
+      "request": {
+        "cascadeId": "c2f701cc-5e31-4b7b-b0ef-5e1c04b0ec58",
+        "chatMessagePrompts": [
+          {
+            "messageId": "\u003crand\u003e",
+            "prompt": "hi",
+            "promptCacheOptions": {
+              "type": "ExaChatPb_CacheControlType_CACHE_CONTROL_TYPE_EPHEMERAL"
+            },
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_USER"
+          }
+        ],
+        "chatModelUid": "model",
+        "configuration": {
+          "maxNewlines": 400,
+          "maxTokens": 128000,
+          "numCompletions": 1,
+          "temperature": 1,
+          "topK": 40,
+          "topP": 0.95
+        },
+        "executionId": "\u003crand\u003e",
+        "metadata": {
+          "apiKey": "token",
+          "extensionName": "chisel",
+          "extensionVersion": "3000.2.17",
+          "f": "\u003crand\u003e",
+          "ideName": "chisel",
+          "ideVersion": "3000.2.17",
+          "locale": "en",
+          "os": "mac"
+        },
+        "plannerMode": "ExaCodeiumCommonPb_ConversationalPlannerMode_CONVERSATIONAL_PLANNER_MODE_DEFAULT",
+        "prompt": "",
+        "requestType": "CHAT_MESSAGE_REQUEST_TYPE_CASCADE",
+        "systemPromptCacheOptions": {
+          "type": "ExaChatPb_CacheControlType_CACHE_CONTROL_TYPE_EPHEMERAL"
+        },
+        "toolChoice": {
+          "toolName": "read_file"
+        },
+        "tools": [
+          {
+            "description": "read_file",
+            "jsonSchemaString": "{\"type\":\"object\"}",
+            "name": "read_file"
+          }
+        ],
+        "trajectoryReference": {
+          "stepIndex": "\u003cstep\u003e",
+          "stepType": "ExaCortexPb_CortexStepType_CORTEX_STEP_TYPE_USER_INPUT",
+          "trajectoryId": "e6908025-cd50-4e38-8fee-cfeaedb70ba2",
+          "trajectoryType": "ExaCortexPb_CortexTrajectoryType_CORTEX_TRAJECTORY_TYPE_CASCADE"
+        }
+      }
+    },
+    "tool_choice_none": {
+      "repairs": {},
+      "request": {
+        "cascadeId": "c2f701cc-5e31-4b7b-b0ef-5e1c04b0ec58",
+        "chatMessagePrompts": [
+          {
+            "messageId": "\u003crand\u003e",
+            "prompt": "hi",
+            "promptCacheOptions": {
+              "type": "ExaChatPb_CacheControlType_CACHE_CONTROL_TYPE_EPHEMERAL"
+            },
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_USER"
+          }
+        ],
+        "chatModelUid": "model",
+        "configuration": {
+          "maxNewlines": 400,
+          "maxTokens": 128000,
+          "numCompletions": 1,
+          "temperature": 1,
+          "topK": 40,
+          "topP": 0.95
+        },
+        "executionId": "\u003crand\u003e",
+        "metadata": {
+          "apiKey": "token",
+          "extensionName": "chisel",
+          "extensionVersion": "3000.2.17",
+          "f": "\u003crand\u003e",
+          "ideName": "chisel",
+          "ideVersion": "3000.2.17",
+          "locale": "en",
+          "os": "mac"
+        },
+        "plannerMode": "ExaCodeiumCommonPb_ConversationalPlannerMode_CONVERSATIONAL_PLANNER_MODE_DEFAULT",
+        "prompt": "",
+        "requestType": "CHAT_MESSAGE_REQUEST_TYPE_CASCADE",
+        "systemPromptCacheOptions": {
+          "type": "ExaChatPb_CacheControlType_CACHE_CONTROL_TYPE_EPHEMERAL"
+        },
+        "toolChoice": {
+          "optionName": "none"
+        },
+        "trajectoryReference": {
+          "stepIndex": "\u003cstep\u003e",
+          "stepType": "ExaCortexPb_CortexStepType_CORTEX_STEP_TYPE_USER_INPUT",
+          "trajectoryId": "e6908025-cd50-4e38-8fee-cfeaedb70ba2",
+          "trajectoryType": "ExaCortexPb_CortexTrajectoryType_CORTEX_TRAJECTORY_TYPE_CASCADE"
+        }
+      }
+    },
+    "tool_choice_required": {
+      "repairs": {},
+      "request": {
+        "cascadeId": "c2f701cc-5e31-4b7b-b0ef-5e1c04b0ec58",
+        "chatMessagePrompts": [
+          {
+            "messageId": "\u003crand\u003e",
+            "prompt": "hi",
+            "promptCacheOptions": {
+              "type": "ExaChatPb_CacheControlType_CACHE_CONTROL_TYPE_EPHEMERAL"
+            },
+            "source": "ExaCodeiumCommonPb_ChatMessageSource_CHAT_MESSAGE_SOURCE_USER"
+          }
+        ],
+        "chatModelUid": "model",
+        "configuration": {
+          "maxNewlines": 400,
+          "maxTokens": 128000,
+          "numCompletions": 1,
+          "temperature": 1,
+          "topK": 40,
+          "topP": 0.95
+        },
+        "executionId": "\u003crand\u003e",
+        "metadata": {
+          "apiKey": "token",
+          "extensionName": "chisel",
+          "extensionVersion": "3000.2.17",
+          "f": "\u003crand\u003e",
+          "ideName": "chisel",
+          "ideVersion": "3000.2.17",
+          "locale": "en",
+          "os": "mac"
+        },
+        "plannerMode": "ExaCodeiumCommonPb_ConversationalPlannerMode_CONVERSATIONAL_PLANNER_MODE_DEFAULT",
+        "prompt": "",
+        "requestType": "CHAT_MESSAGE_REQUEST_TYPE_CASCADE",
+        "systemPromptCacheOptions": {
+          "type": "ExaChatPb_CacheControlType_CACHE_CONTROL_TYPE_EPHEMERAL"
+        },
+        "toolChoice": {
+          "optionName": "required"
+        },
+        "trajectoryReference": {
+          "stepIndex": "\u003cstep\u003e",
+          "stepType": "ExaCortexPb_CortexStepType_CORTEX_STEP_TYPE_USER_INPUT",
+          "trajectoryId": "e6908025-cd50-4e38-8fee-cfeaedb70ba2",
+          "trajectoryType": "ExaCortexPb_CortexTrajectoryType_CORTEX_TRAJECTORY_TYPE_CASCADE"
+        }
+      }
+    }
+  },
+  "sanitize_texts": {
+    "a1_cc_full": {
+      "hits": {
+        "a1-cc-full": 1
+      },
+      "text": "You are an AI coding assistant."
+    },
+    "a1_cc_noun": {
+      "hits": {
+        "a1-cc-noun": 1
+      },
+      "text": "This is an AI coding assistant. Use it well."
+    },
+    "a1_curly_apos": {
+      "hits": {
+        "a1-cc-full": 1
+      },
+      "text": "You are an AI coding assistant."
+    },
+    "a2_sdk_full": {
+      "hits": {
+        "a2-sdk-full": 1
+      },
+      "text": "You are an AI coding assistant."
+    },
+    "a2_sdk_noun": {
+      "hits": {
+        "a2-sdk-noun": 1
+      },
+      "text": "Running as an AI coding assistant. Now work."
+    },
+    "a3_billing": {
+      "hits": {
+        "a3-billing": 1
+      },
+      "text": "line one\nline three"
+    },
+    "a4_brand_span": {
+      "hits": {
+        "a4-brand-span": 1
+      },
+      "text": "This coding assistant runs in a terminal."
+    },
+    "a4_catalogue": {
+      "hits": {
+        "a4-catalogue": 1
+      },
+      "text": ""
+    },
+    "a4_catalogue_line": {
+      "hits": {
+        "a4-catalogue-line": 1
+      },
+      "text": "next"
+    },
+    "a4_cli_line": {
+      "hits": {
+        "a4-cli-line": 1
+      },
+      "text": "This coding assistant runs in a terminal.\n"
+    },
+    "a4_fastmode": {
+      "hits": {
+        "a4-fastmode": 1
+      },
+      "text": "intro\noutro"
+    },
+    "a4_modelid": {
+      "hits": {
+        "a4-modelid": 1
+      },
+      "text": ""
+    },
+    "a4_poweredby": {
+      "hits": {
+        "a4-poweredby": 1
+      },
+      "text": "keep"
+    },
+    "a5_cline_boast": {
+      "hits": {
+        "a5-cline-boast": 1
+      },
+      "text": "You are Cline, a software engineer."
+    },
+    "a6_grok2_care": {
+      "hits": {
+        "a6-grok2-care": 1
+      },
+      "text": "pre  post"
+    },
+    "a6_grok_full": {
+      "hits": {
+        "a6-grok-full": 1
+      },
+      "text": "You are an AI coding assistant."
+    },
+    "a6_grok_noun": {
+      "hits": {
+        "a6-grok-noun": 1
+      },
+      "text": "acting as an AI coding assistant. continue"
+    },
+    "a7_freeform_message": {
+      "hits": {},
+      "text": "The input is FREEFORM text."
+    },
+    "a7_freeform_prompt": {
+      "hits": {
+        "a7-freeform": 1
+      },
+      "text": "The input is free-form text."
+    },
+    "a7_json_wrap": {
+      "hits": {
+        "a7-json-wrap": 1
+      },
+      "text": "provide the patch as plain text."
+    },
+    "b_dualluse": {
+      "hits": {
+        "b-dualluse": 1
+      },
+      "text": "Dual-use security tooling (e.g. C2 frameworks, credential testing, exploit development) needs explicit authorization context such as pentesting engagements, CTF competitions, security research, or defensive use cases."
+    },
+    "b_security": {
+      "hits": {
+        "b-security": 1
+      },
+      "text": "Decline requests that facilitate clearly malicious or harmful activity, and otherwise help the user with their software engineering task."
+    },
+    "b_security_line": {
+      "hits": {
+        "b-security-line": 1
+      },
+      "text": "Decline requests that facilitate clearly malicious or harmful activity, and otherwise help the user with their software engineering task."
+    },
+    "cc_agent_tool": {
+      "hits": {
+        "cc-agent-tool": 1
+      },
+      "text": "Use the Agent tool with specialized agents when the task matches the agent's description. Delegation is useful for parallelizing independent queries and for keeping the main context window free of excessive results, but avoid using it when not needed, and do not repeat work already delegated to a subagent."
+    },
+    "cc_autocompact": {
+      "hits": {
+        "cc-autocompact": 1
+      },
+      "text": "Earlier messages may be automatically summarized as the conversation grows long, so the conversation is not bounded by the context window."
+    },
+    "cc_blast_radius": {
+      "hits": {
+        "cc-blast-radius": 1
+      },
+      "text": "Carefully consider the reversibility and impact of actions."
+    },
+    "cc_claudemd": {
+      "hits": {
+        "cc-claudemd": 1
+      },
+      "text": "Anything already documented in project instruction files."
+    },
+    "cc_claudemd_2": {
+      "hits": {
+        "cc-claudemd-2": 1
+      },
+      "text": "durable instructions like project instruction files exist"
+    },
+    "cc_colon_toolcall": {
+      "hits": {
+        "cc-colon-toolcall": 1
+      },
+      "text": "Never put a colon before a tool call; write text like \"Let me read the file.\" ending with a period instead of a colon before the call."
+    },
+    "cc_feedback": {
+      "hits": {
+        "cc-feedback": 1
+      },
+      "text": "To give feedback, users should report issues to the maintainers of this CLI."
+    },
+    "cc_help_line": {
+      "hits": {
+        "cc-help-line": 1
+      },
+      "text": "/help: Get help with using this CLI"
+    },
+    "cc_memory_must": {
+      "hits": {
+        "cc-memory-must": 1
+      },
+      "text": "Always consult memory when the user explicitly asks you to check, recall, or remember."
+    },
+    "cc_subagent_emojis": {
+      "hits": {
+        "cc-subagent-emojis": 1
+      },
+      "text": "Keep communication with the user clear and free of emojis."
+    },
+    "clean_message": {
+      "hits": {},
+      "text": "User wrote FREEFORM in their code and Claude Code in a comment."
+    },
+    "clean_text": {
+      "hits": {},
+      "text": "A perfectly ordinary system prompt with no fingerprints."
+    },
+    "codex_ansi_escapes": {
+      "hits": {
+        "codex-ansi-escapes": 1
+      },
+      "text": "Never output ANSI escape codes directly — the CLI renderer applies them."
+    },
+    "codex_opensource_def": {
+      "hits": {
+        "codex-opensource-def": 1
+      },
+      "text": "Within this context, Codex is the open-source coding interface (not the old Codex language model built by OpenAI)."
+    },
+    "codex_opensource_partial": {
+      "hits": {},
+      "text": "Codex refers to the open-source"
+    },
+    "codex_permissions": {
+      "hits": {
+        "codex-permissions": 1
+      },
+      "text": "pre  post"
+    },
+    "codex_plan_statuses": {
+      "hits": {
+        "codex-plan-statuses": 1
+      },
+      "text": "Do not batch-complete multiple items after the fact. Before ending the turn, leave all items completed or explicitly canceled/deferred."
+    }
+  },
+  "schemas": {
+    "array_top": {
+      "schema": "[{\"type\":\"string\"}]"
+    },
+    "bare_map_with_x_key": {
+      "schema": "{}"
+    },
+    "bare_property_map": {
+      "schema": "{\"properties\":{\"line\":{\"type\":\"integer\"},\"path\":{\"type\":\"string\"}},\"type\":\"object\"}"
+    },
+    "deep_nesting": {
+      "error": "json: unsupported value: encountered a cycle via map[string]interface {}"
+    },
+    "definitions_stripped": {
+      "schema": "{\"properties\":{\"x\":{\"type\":\"string\"}},\"type\":\"object\"}"
+    },
+    "empty_object": {
+      "schema": "{}"
+    },
+    "html_chars": {
+      "schema": "{\"properties\":{\"q\":{\"const\":\"\\u003ca\\u003e\\u0026\\\"b\\\"\\u003c/a\\u003e\"}},\"type\":\"object\"}"
+    },
+    "invalid_json": {
+      "error": "unexpected end of JSON input"
+    },
+    "literal_enum_ref": {
+      "schema": "{\"properties\":{\"x\":{\"enum\":[{\"$ref\":\"#/not-a-schema\"}]}},\"type\":\"object\"}"
+    },
+    "numbers_and_strings": {
+      "schema": "{\"properties\":{\"a\":{\"maximum\":1000000,\"minimum\":1e-7,\"multipleOf\":0.5}},\"type\":\"object\"}"
+    },
+    "ref_cycle": {
+      "error": "json: unsupported value: encountered a cycle via map[string]interface {}"
+    },
+    "ref_escape": {
+      "schema": "{\"properties\":{\"x\":{\"type\":\"string\"}},\"type\":\"object\"}"
+    },
+    "ref_external": {
+      "schema": "{\"properties\":{\"x\":{\"$ref\":\"https://example.com/schema.json\",\"minLength\":2}},\"type\":\"object\"}"
+    },
+    "ref_inline": {
+      "schema": "{\"properties\":{\"a\":{\"properties\":{\"id\":{\"type\":\"integer\"}},\"type\":\"object\"},\"b\":{\"properties\":{\"id\":{\"type\":\"integer\"}},\"type\":\"object\"}},\"type\":\"object\"}"
+    },
+    "ref_unresolvable": {
+      "schema": "{\"properties\":{\"x\":{\"minLength\":2}},\"type\":\"object\"}"
+    },
+    "strip_annotations": {
+      "schema": "{\"additionalProperties\":false,\"properties\":{\"description\":{\"type\":\"string\"},\"metadata\":{\"default\":{\"description\":\"literal business value\"},\"type\":\"object\"},\"mode\":{\"default\":\"fast\",\"enum\":[\"fast\",\"deep\"],\"type\":\"string\"},\"title\":{\"type\":\"string\"}},\"required\":[\"description\",\"title\"],\"type\":\"object\"}"
+    }
+  },
+  "session_ids": {
+    "keyless_empty": [
+      "e3b0c442-98fc-4c14-9afb-f4c8996fb924",
+      "27ae41e4-649b-434c-a495-991b7852b855"
+    ],
+    "keyless_first_text_skips_empty": [
+      "846c02ed-0e88-4a27-ae28-321af38b2674",
+      "5f4b8d62-6bca-4340-83f9-2205e7308322"
+    ],
+    "keyless_long_system": [
+      "789db1ce-9672-4d0d-81d1-0f13d47f29b4",
+      "e7a9685f-e238-456c-abd3-9a0c02503454"
+    ],
+    "keyless_long_text": [
+      "259b3e18-6e00-48b6-a774-3464e5e3b8eb",
+      "ba780d83-7114-4214-91fb-cfdf2c1c5172"
+    ],
+    "keyless_no_text": [
+      "518b67e6-5253-4c5f-a7e2-5d6b2c3b4ef6",
+      "224e7d90-da20-4196-bdd4-7eb082b26a19"
+    ],
+    "keyless_other": [
+      "04bfa4db-8eda-4310-9f20-8731bdd43348",
+      "e20c5611-c50a-4692-903b-7191a9ca25f4"
+    ],
+    "keyless_simple": [
+      "123ea20f-1d61-44ca-a102-ff2bc63266a3",
+      "37709f83-f902-4f34-9b3c-804850112f0a"
+    ],
+    "session_key": [
+      "c6c289e4-9e9c-45b2-9458-60387b73bcb1",
+      "8df43fb0-9a1e-4a4a-9713-c76c88bb541b"
+    ]
+  },
+  "step_index": [
+    1,
+    2,
+    3
+  ],
+  "tool_definitions": {
+    "array_top": {
+      "description": "tool_array_top",
+      "name": "tool_array_top",
+      "schema": "[{\"type\":\"string\"}]"
+    },
+    "bare_map_with_x_key": {
+      "description": "tool_bare_map_with_x_key",
+      "name": "tool_bare_map_with_x_key",
+      "schema": "{}"
+    },
+    "bare_property_map": {
+      "description": "tool_bare_property_map",
+      "name": "tool_bare_property_map",
+      "schema": "{\"properties\":{\"line\":{\"type\":\"integer\"},\"path\":{\"type\":\"string\"}},\"type\":\"object\"}"
+    },
+    "deep_nesting": {
+      "error": "normalize Devin tool \"tool_deep_nesting\" schema: json: unsupported value: encountered a cycle via map[string]interface {}"
+    },
+    "definitions_stripped": {
+      "description": "tool_definitions_stripped",
+      "name": "tool_definitions_stripped",
+      "schema": "{\"properties\":{\"x\":{\"type\":\"string\"}},\"type\":\"object\"}"
+    },
+    "empty_object": {
+      "description": "tool_empty_object",
+      "name": "tool_empty_object",
+      "schema": "{}"
+    },
+    "html_chars": {
+      "description": "tool_html_chars",
+      "name": "tool_html_chars",
+      "schema": "{\"properties\":{\"q\":{\"const\":\"\\u003ca\\u003e\\u0026\\\"b\\\"\\u003c/a\\u003e\"}},\"type\":\"object\"}"
+    },
+    "literal_enum_ref": {
+      "description": "tool_literal_enum_ref",
+      "name": "tool_literal_enum_ref",
+      "schema": "{\"properties\":{\"x\":{\"enum\":[{\"$ref\":\"#/not-a-schema\"}]}},\"type\":\"object\"}"
+    },
+    "numbers_and_strings": {
+      "description": "tool_numbers_and_strings",
+      "name": "tool_numbers_and_strings",
+      "schema": "{\"properties\":{\"a\":{\"maximum\":1000000,\"minimum\":1e-7,\"multipleOf\":0.5}},\"type\":\"object\"}"
+    },
+    "ref_cycle": {
+      "error": "normalize Devin tool \"tool_ref_cycle\" schema: json: unsupported value: encountered a cycle via map[string]interface {}"
+    },
+    "ref_escape": {
+      "description": "tool_ref_escape",
+      "name": "tool_ref_escape",
+      "schema": "{\"properties\":{\"x\":{\"type\":\"string\"}},\"type\":\"object\"}"
+    },
+    "ref_external": {
+      "description": "tool_ref_external",
+      "name": "tool_ref_external",
+      "schema": "{\"properties\":{\"x\":{\"$ref\":\"https://example.com/schema.json\",\"minLength\":2}},\"type\":\"object\"}"
+    },
+    "ref_inline": {
+      "description": "tool_ref_inline",
+      "name": "tool_ref_inline",
+      "schema": "{\"properties\":{\"a\":{\"properties\":{\"id\":{\"type\":\"integer\"}},\"type\":\"object\"},\"b\":{\"properties\":{\"id\":{\"type\":\"integer\"}},\"type\":\"object\"}},\"type\":\"object\"}"
+    },
+    "ref_unresolvable": {
+      "description": "tool_ref_unresolvable",
+      "name": "tool_ref_unresolvable",
+      "schema": "{\"properties\":{\"x\":{\"minLength\":2}},\"type\":\"object\"}"
+    },
+    "strip_annotations": {
+      "description": "tool_strip_annotations",
+      "name": "tool_strip_annotations",
+      "schema": "{\"additionalProperties\":false,\"properties\":{\"description\":{\"type\":\"string\"},\"metadata\":{\"default\":{\"description\":\"literal business value\"},\"type\":\"object\"},\"mode\":{\"default\":\"fast\",\"enum\":[\"fast\",\"deep\"],\"type\":\"string\"},\"title\":{\"type\":\"string\"}},\"required\":[\"description\",\"title\"],\"type\":\"object\"}"
+    }
+  },
+  "tool_descriptions": {
+    "abbreviations": "# tools descriptions\n\u003ctool name=\"t\"\u003e\n1. Use e.g. files or i.e. paths.\n2. Also etc. items vs. others.\n3. Done.\n\u003c/tool\u003e",
+    "chinese_and_json": "# tools descriptions\n\u003ctool name=\"read\"\u003e\n1. 读取文件。\n2. 支持图片。\n\n{\"example\":\"Keep. Together.\"}\n\u003c/tool\u003e",
+    "existing_prompt": "base prompt\n\n# tools descriptions\n\u003ctool name=\"a\"\u003e\n1. Does A.\n\u003c/tool\u003e\n\u003ctool name=\"c\"\u003e\n1. Does C.\n2. And more.\n\u003c/tool\u003e",
+    "prose_and_code": "# tools descriptions\n\u003ctool name=\"read\u0026amp;inspect\"\u003e\n1. Read the contents of a file.\n2. Supports text files and images (jpg, png).\n\n```json\n{\"path\":\"a\u0026amp;b.txt\"}\n```\n\u003c/tool\u003e",
+    "renumber_lists": "# tools descriptions\n\u003ctool name=\"use\"\u003e\n1. Usage:\n2. Read a file.\n3. Supports images.\n\u003c/tool\u003e",
+    "xml_escaping": "# tools descriptions\n\u003ctool name=\"a\u0026lt;b\u0026#34;q\u0026#39;\u0026#x9;\"\u003e\n1. Escapes \u0026lt;\u0026gt;\u0026amp;\"' and keeps \"quotes\" in text.\n\u003c/tool\u003e"
+  }
+}

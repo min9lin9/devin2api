@@ -1,0 +1,513 @@
+{
+  "requests": [
+    {
+      "name": "loop_messages",
+      "system_prompt": "system",
+      "messages": [
+        {"role": "user", "content": [{"type": "text", "text": "hello"}]},
+        {"role": "assistant", "content": [
+          {"type": "thinking", "thinking": "think", "signature": "sig"},
+          {"type": "tool_call", "id": "call-1", "name": "exec", "arguments": "{\"command\":\"ls\"}"}
+        ]},
+        {"role": "tool_result", "tool_call_id": "call-1", "is_error": true, "content": [{"type": "text", "text": "failed"}]}
+      ],
+      "tools": [
+        {"name": "exec", "description": "run", "input_schema": "{\"type\":\"object\"}"},
+        {"name": "read", "description": "read file", "input_schema": "{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\"}}}"}
+      ]
+    },
+    {
+      "name": "parallel_tool_calls",
+      "messages": [
+        {"role": "user", "content": [{"type": "text", "text": "check both"}]},
+        {"role": "assistant", "content": [
+          {"type": "text", "text": "Reading both files."},
+          {"type": "tool_call", "id": "call-a", "name": "read", "arguments": "{\"path\":\"a\"}"},
+          {"type": "tool_call", "id": "call-b", "name": "read", "arguments": "{\"path\":\"b\"}"}
+        ]},
+        {"role": "tool_result", "tool_call_id": "call-a", "content": [{"type": "text", "text": "a-body"}]},
+        {"role": "tool_result", "tool_call_id": "call-b", "content": [{"type": "text", "text": "b-body"}]}
+      ]
+    },
+    {
+      "name": "repairs_full",
+      "sanitize": true,
+      "demote_orphans": true,
+      "system_prompt": "You are Claude Code, Anthropic's official CLI for Claude.",
+      "messages": [
+        {"role": "user", "content": [
+          {"type": "text", "text": "earlier turn with a screenshot"},
+          {"type": "image", "data": "AAAA", "mime_type": "image/png"}
+        ]},
+        {"role": "assistant", "content": [
+          {"type": "tool_call", "id": "call-1", "name": "read", "arguments": "{\"path\":\"a\"}"}
+        ]},
+        {"role": "assistant", "content": [
+          {"type": "tool_call", "id": "call-2", "name": "read", "arguments": "{\"path\":\"b\"}"}
+        ]},
+        {"role": "tool_result", "tool_call_id": "call-1", "content": [{"type": "text", "text": "a-body"}]},
+        {"role": "tool_result", "tool_call_id": "call-2", "content": [{"type": "text", "text": "b-body"}]},
+        {"role": "tool_result", "tool_call_id": "call-lost", "content": [{"type": "text", "text": "orphan"}]},
+        {"role": "assistant", "content": [{"type": "text", "text": ""}]},
+        {"role": "user", "content": [{"type": "text", "text": "next step"}]}
+      ]
+    },
+    {
+      "name": "thinking_blocks",
+      "messages": [
+        {"role": "user", "content": [{"type": "text", "text": "hello"}]},
+        {"role": "assistant", "content": [
+          {"type": "thinking", "thinking": "part-1", "signature": "sig-1"},
+          {"type": "thinking", "thinking": "part-2", "signature": "sig-2"},
+          {"type": "text", "text": "answer"}
+        ]},
+        {"role": "user", "content": [{"type": "text", "text": "again"}]},
+        {"role": "assistant", "content": [
+          {"type": "thinking", "signature": "sealed-x", "redacted": true},
+          {"type": "tool_call", "id": "call-1", "name": "exec", "arguments": "{}"}
+        ]}
+      ]
+    },
+    {
+      "name": "historical_images",
+      "messages": [
+        {"role": "user", "content": [
+          {"type": "text", "text": "see this"},
+          {"type": "image", "data": "AAAA", "mime_type": "image/png"}
+        ]},
+        {"role": "assistant", "content": [{"type": "text", "text": "ok"}]},
+        {"role": "user", "content": [
+          {"type": "text", "text": "and this"},
+          {"type": "image", "data": "BBBB", "mime_type": "image/jpeg"}
+        ]}
+      ]
+    },
+    {
+      "name": "same_turn_images",
+      "messages": [
+        {"role": "assistant", "content": [{"type": "text", "text": "ok"}]},
+        {"role": "user", "content": [
+          {"type": "text", "text": "see this"},
+          {"type": "image", "data": "data:image/png;base64,AAAA", "mime_type": "image/png"}
+        ]},
+        {"role": "tool_result", "tool_call_id": "tc1", "content": [{"type": "text", "text": "file content"}]}
+      ]
+    },
+    {
+      "name": "image_default_mime",
+      "messages": [
+        {"role": "user", "content": [
+          {"type": "image", "data": "CCCC", "mime_type": ""}
+        ]}
+      ]
+    },
+    {
+      "name": "no_tools_prompt_unchanged",
+      "system_prompt": "system",
+      "messages": [
+        {"role": "user", "content": [{"type": "text", "text": "hello"}]}
+      ]
+    },
+    {
+      "name": "empty_tool_descriptions",
+      "system_prompt": "system\n",
+      "tools": [
+        {"name": "empty", "input_schema": "{\"type\":\"object\"}"},
+        {"name": "read", "description": "  read a file  ", "input_schema": "{\"type\":\"object\"}"}
+      ],
+      "messages": [
+        {"role": "user", "content": [{"type": "text", "text": "hi"}]}
+      ]
+    },
+    {
+      "name": "sampling_params",
+      "system_prompt": "system",
+      "max_tokens": 4096,
+      "temperature": 0.2,
+      "top_p": 0.8,
+      "top_k": 10,
+      "seed": 42,
+      "stop_sequences": ["STOP"],
+      "messages": [
+        {"role": "user", "content": [{"type": "text", "text": "hi"}]}
+      ]
+    },
+    {
+      "name": "default_sampling",
+      "system_prompt": "system",
+      "messages": [
+        {"role": "user", "content": [{"type": "text", "text": "hi"}]}
+      ]
+    },
+    {
+      "name": "tool_choice_required",
+      "tool_choice": {"mode": "required"},
+      "messages": [
+        {"role": "user", "content": [{"type": "text", "text": "hi"}]}
+      ]
+    },
+    {
+      "name": "tool_choice_none",
+      "tool_choice": {"mode": "none"},
+      "tools": [
+        {"name": "read", "description": "read a file", "input_schema": "{\"type\":\"object\"}"}
+      ],
+      "messages": [
+        {"role": "user", "content": [{"type": "text", "text": "hi"}]}
+      ]
+    },
+    {
+      "name": "tool_choice_named",
+      "tool_choice": {"mode": "named", "tool_name": "read_file"},
+      "tools": [
+        {"name": "read_file", "input_schema": "{\"type\":\"object\"}"}
+      ],
+      "messages": [
+        {"role": "user", "content": [{"type": "text", "text": "hi"}]}
+      ]
+    },
+    {
+      "name": "tool_choice_auto",
+      "tool_choice": {"mode": "auto"},
+      "messages": [
+        {"role": "user", "content": [{"type": "text", "text": "hi"}]}
+      ]
+    },
+    {
+      "name": "disable_parallel",
+      "disable_parallel_tool_calls": true,
+      "messages": [
+        {"role": "user", "content": [{"type": "text", "text": "hi"}]}
+      ]
+    },
+    {
+      "name": "signature_metadata",
+      "messages": [
+        {"role": "user", "content": [{"type": "text", "text": "hi"}]},
+        {"role": "assistant", "output_id": "msg_42", "content": [
+          {"type": "thinking", "thinking": "t", "signature": "sig", "signature_type": "anthropic"},
+          {"type": "text", "text": "answer"}
+        ]}
+      ]
+    },
+    {
+      "name": "custom_tool_call",
+      "messages": [
+        {"role": "assistant", "content": [
+          {"type": "tool_call", "id": "c1", "name": "apply_patch", "arguments": "*** Begin Patch\n*** Update File: a.py\n@@\n+hello\n*** End Patch", "custom": true}
+        ]}
+      ]
+    },
+    {
+      "name": "named_tool_choice_missing",
+      "tool_choice": {"mode": "named", "tool_name": "missing_tool"},
+      "tools": [
+        {"name": "read_file", "input_schema": "{\"type\":\"object\"}"}
+      ],
+      "messages": [
+        {"role": "user", "content": [{"type": "text", "text": "hi"}]}
+      ]
+    },
+    {
+      "name": "orphan_result_no_demote",
+      "messages": [
+        {"role": "user", "content": [{"type": "text", "text": "hi"}]},
+        {"role": "assistant", "content": [
+          {"type": "tool_call", "id": "call-1", "name": "read", "arguments": "{\"path\":\"a\"}"}
+        ]},
+        {"role": "tool_result", "tool_call_id": "call-1", "content": [{"type": "text", "text": "a-body"}]},
+        {"role": "tool_result", "tool_call_id": "call-lost", "content": [{"type": "text", "text": "orphan"}]}
+      ]
+    },
+    {
+      "name": "orphan_result_demoted",
+      "demote_orphans": true,
+      "messages": [
+        {"role": "user", "content": [{"type": "text", "text": "hi"}]},
+        {"role": "tool_result", "tool_call_id": "call-lost", "content": [{"type": "text", "text": "orphan"}]},
+        {"role": "assistant", "content": [
+          {"type": "tool_call", "id": "call-1", "name": "read", "arguments": "{\"path\":\"a\"}"}
+        ]},
+        {"role": "tool_result", "tool_call_id": "call-1", "content": [{"type": "text", "text": "a-body"}]}
+      ]
+    },
+    {
+      "name": "duplicate_call_ids",
+      "messages": [
+        {"role": "assistant", "content": [
+          {"type": "tool_call", "id": "dup", "name": "x", "arguments": "{}"}
+        ]},
+        {"role": "assistant", "content": [
+          {"type": "tool_call", "id": "dup", "name": "x", "arguments": "{}"}
+        ]},
+        {"role": "tool_result", "tool_call_id": "dup", "content": [{"type": "text", "text": "r"}]}
+      ]
+    },
+    {
+      "name": "duplicate_results",
+      "messages": [
+        {"role": "assistant", "content": [
+          {"type": "tool_call", "id": "dup", "name": "x", "arguments": "{}"}
+        ]},
+        {"role": "tool_result", "tool_call_id": "dup", "content": [{"type": "text", "text": "r1"}]},
+        {"role": "tool_result", "tool_call_id": "dup", "content": [{"type": "text", "text": "r2"}]}
+      ]
+    },
+    {
+      "name": "empty_tool_result_text",
+      "messages": [
+        {"role": "assistant", "content": [
+          {"type": "tool_call", "id": "c1", "name": "exec", "arguments": "{}"}
+        ]},
+        {"role": "tool_result", "tool_call_id": "c1", "content": []}
+      ]
+    },
+    {
+      "name": "long_transcript",
+      "system_prompt": "You are a coding assistant.",
+      "session_key": "sess-long",
+      "messages": [
+        {"role": "user", "content": [{"type": "text", "text": "turn 1"}]},
+        {"role": "assistant", "content": [{"type": "text", "text": "answer 1"}]},
+        {"role": "user", "content": [{"type": "text", "text": "turn 2"}]},
+        {"role": "assistant", "content": [
+          {"type": "thinking", "thinking": "reasoning", "signature": "s1", "signature_type": "sealed"},
+          {"type": "text", "text": "answer 2"},
+          {"type": "tool_call", "id": "t1", "name": "read", "arguments": "{\"p\":1}"}
+        ]},
+        {"role": "tool_result", "tool_call_id": "t1", "content": [{"type": "text", "text": "r1"}]},
+        {"role": "assistant", "content": [
+          {"type": "tool_call", "id": "t2", "name": "write", "arguments": "{\"p\":2}"},
+          {"type": "tool_call", "id": "t3", "name": "exec", "arguments": "{\"p\":3}"}
+        ]},
+        {"role": "tool_result", "tool_call_id": "t2", "content": [{"type": "text", "text": "r2"}]},
+        {"role": "tool_result", "tool_call_id": "t3", "content": [{"type": "text", "text": "r3"}]},
+        {"role": "user", "content": [{"type": "text", "text": "turn 3"}]},
+        {"role": "assistant", "content": [{"type": "text", "text": "answer 3"}]},
+        {"role": "user", "content": [{"type": "text", "text": "final"}]}
+      ],
+      "tools": [
+        {"name": "read", "description": "read", "input_schema": "{\"type\":\"object\"}"},
+        {"name": "write", "description": "write", "input_schema": "{\"type\":\"object\"}"},
+        {"name": "exec", "description": "exec", "input_schema": "{\"type\":\"object\"}"}
+      ]
+    },
+    {
+      "name": "reasoning_replay",
+      "messages": [
+        {"role": "user", "content": [{"type": "text", "text": "read a.txt"}]},
+        {"role": "assistant", "output_id": "msg_1", "content": [
+          {"type": "thinking", "thinking": "need to read the file", "signature": "sealed.v1.abc", "signature_type": "sealed"},
+          {"type": "text", "text": "checking"},
+          {"type": "tool_call", "id": "read_file_0", "name": "read_file", "arguments": "{\"path\":\"a.txt\"}"}
+        ]},
+        {"role": "tool_result", "tool_call_id": "read_file_0", "content": [{"type": "text", "text": "file body"}]},
+        {"role": "user", "content": [{"type": "text", "text": "what did you find?"}]}
+      ]
+    },
+    {
+      "name": "custom_apply_patch_tool",
+      "system_prompt": "Codex refers to the open-source agentic coding interface.",
+      "sanitize": true,
+      "tools": [
+        {"name": "apply_patch", "description": "Apply a patch. do not wrap the patch in JSON. FREEFORM input.", "input_schema": "{\"type\":\"object\",\"properties\":{\"input\":{\"type\":\"string\"}},\"required\":[\"input\"]}", "custom": true}
+      ],
+      "messages": [
+        {"role": "user", "content": [{"type": "text", "text": "patch it"}]},
+        {"role": "assistant", "content": [
+          {"type": "tool_call", "id": "p1", "name": "apply_patch", "arguments": "*** Begin Patch\n*** Update File: f.py\n@@\n-x\n+y\n*** End Patch", "custom": true}
+        ]},
+        {"role": "tool_result", "tool_call_id": "p1", "content": [{"type": "text", "text": "applied"}]}
+      ]
+    },
+    {
+      "name": "model_assignment_jwt",
+      "binding_jwt": "jwt-token-123",
+      "messages": [
+        {"role": "user", "content": [{"type": "text", "text": "hi"}]}
+      ]
+    },
+    {
+      "name": "empty_assistant_dropped",
+      "messages": [
+        {"role": "user", "content": [{"type": "text", "text": "hi"}]},
+        {"role": "assistant", "content": []},
+        {"role": "assistant", "content": [{"type": "text", "text": ""}]},
+        {"role": "user", "content": [{"type": "text", "text": "again"}]}
+      ]
+    },
+    {
+      "name": "assistant_no_text_omits_prompt",
+      "messages": [
+        {"role": "assistant", "content": [
+          {"type": "thinking", "thinking": "only thinking", "signature": "s"}
+        ]}
+      ]
+    },
+    {
+      "name": "history_tool_name_charset",
+      "messages": [
+        {"role": "assistant", "content": [
+          {"type": "tool_call", "id": "c1", "name": "mcp::server.tool", "arguments": "{}"},
+          {"type": "tool_call", "id": "c2", "name": "工具.x", "arguments": "{}"}
+        ]},
+        {"role": "tool_result", "tool_call_id": "c1", "content": [{"type": "text", "text": "r1"}]},
+        {"role": "tool_result", "tool_call_id": "c2", "content": [{"type": "text", "text": "r2"}]}
+      ]
+    }
+  ],
+  "sanitize_texts": [
+    {"name": "a1_cc_full", "prompt_only": true, "text": "You are Claude Code, Anthropic's official CLI for Claude."},
+    {"name": "a1_cc_noun", "prompt_only": true, "text": "This is Claude Code, Anthropic's official CLI for Claude. Use it well."},
+    {"name": "a1_curly_apos", "prompt_only": true, "text": "You are Claude Code, Anthropic’s official CLI for Claude."},
+    {"name": "a2_sdk_full", "prompt_only": true, "text": "You are a Claude agent, built on Anthropic's Claude Agent SDK."},
+    {"name": "a2_sdk_noun", "prompt_only": true, "text": "Running as a Claude agent, built on Anthropic's Claude Agent SDK. Now work."},
+    {"name": "a3_billing", "prompt_only": true, "text": "line one\nx-anthropic-billing-header: secret\nline three"},
+    {"name": "b_security", "prompt_only": true, "text": "IMPORTANT: Assist with authorized security testing and defensive use cases."},
+    {"name": "b_security_line", "prompt_only": true, "text": "IMPORTANT: Assist with authorized security testing only when asked."},
+    {"name": "b_dualluse", "prompt_only": true, "text": "Dual-use security tools (C2 frameworks, credential testing, exploit development) require clear authorization context: only proceed with proof."},
+    {"name": "a4_brand_span", "prompt_only": true, "text": "Claude Code is available as a CLI and also available on Opus 4.1."},
+    {"name": "a4_fastmode", "prompt_only": true, "text": "intro\n- Fast mode for Claude Code is here\noutro"},
+    {"name": "a4_cli_line", "prompt_only": true, "text": "Claude Code is available as a CLI tool today."},
+    {"name": "a4_catalogue", "prompt_only": true, "text": "The most recent Claude models are listed among the most capable Claude models."},
+    {"name": "a4_catalogue_line", "prompt_only": true, "text": "The most recent Claude models are Opus and Sonnet.\nnext"},
+    {"name": "a4_poweredby", "prompt_only": true, "text": "You are powered by the model named Opus 4.1.\nkeep"},
+    {"name": "a4_modelid", "prompt_only": true, "text": "The exact model ID is claude-opus-4-1."},
+    {"name": "a5_cline_boast", "prompt_only": true, "text": "You are Cline, a highly skilled software engineer with extensive knowledge in many programming languages, frameworks, design patterns, and best practices."},
+    {"name": "a6_grok_full", "prompt_only": true, "text": "You are Grok 4 released by xAI."},
+    {"name": "a6_grok_noun", "prompt_only": true, "text": "acting as Grok 4 released by xAI. continue"},
+    {"name": "a6_grok2_care", "prompt_only": true, "text": "pre <executing_actions_with_care>do stuff</executing_actions_with_care> post"},
+    {"name": "a7_freeform_prompt", "prompt_only": true, "text": "The input is FREEFORM text."},
+    {"name": "a7_freeform_message", "prompt_only": false, "text": "The input is FREEFORM text."},
+    {"name": "a7_json_wrap", "prompt_only": true, "text": "do not wrap the patch in JSON."},
+    {"name": "cc_colon_toolcall", "prompt_only": true, "text": "Do not use a colon before tool calls. Always end text with a period."},
+    {"name": "cc_autocompact", "prompt_only": true, "text": "The system will automatically compress prior messages in your conversation as it approaches context limits. This is normal."},
+    {"name": "cc_help_line", "prompt_only": true, "text": "/help: Get help with using Claude Code"},
+    {"name": "cc_agent_tool", "prompt_only": true, "text": "Use the Agent tool with specialized agents when the task at hand matches the agent's description. More text."},
+    {"name": "cc_claudemd", "prompt_only": true, "text": "Anything already documented in CLAUDE.md files."},
+    {"name": "cc_memory_must", "prompt_only": true, "text": "You MUST access memory when the user explicitly asks you to check, recall, or remember."},
+    {"name": "cc_feedback", "prompt_only": true, "text": "To give feedback, users should report the issue at https://github.com/anthropics/claude-code/issues now"},
+    {"name": "cc_blast_radius", "prompt_only": true, "text": "Carefully consider the reversibility and blast radius of actions."},
+    {"name": "cc_claudemd_2", "prompt_only": true, "text": "durable instructions like CLAUDE.md files exist"},
+    {"name": "cc_subagent_emojis", "prompt_only": true, "text": "For clear communication with the user the assistant MUST avoid using emojis."},
+    {"name": "codex_opensource_def", "prompt_only": true, "text": "Within this context, Codex refers to the open-source agentic coding interface (not the old Codex language model built by OpenAI)."},
+    {"name": "codex_opensource_partial", "prompt_only": true, "text": "Codex refers to the open-source"},
+    {"name": "codex_plan_statuses", "prompt_only": true, "text": "Do not batch-complete multiple items after the fact. Finish with all items completed or explicitly canceled/deferred before ending the turn."},
+    {"name": "codex_ansi_escapes", "prompt_only": true, "text": "Don't output ANSI escape codes directly — the CLI renderer applies them."},
+    {"name": "codex_permissions", "prompt_only": true, "text": "pre <permissions instructions>do things</permissions instructions> post"},
+    {"name": "clean_text", "prompt_only": true, "text": "A perfectly ordinary system prompt with no fingerprints."},
+    {"name": "clean_message", "prompt_only": false, "text": "User wrote FREEFORM in their code and Claude Code in a comment."}
+  ],
+  "tool_descriptions": [
+    {
+      "name": "prose_and_code",
+      "system_prompt": "",
+      "tools": [
+        {"name": "read&inspect", "description": "Read the contents of a file. Supports text files and images (jpg, png).\n\n```json\n{\"path\":\"a&b.txt\"}\n```"}
+      ]
+    },
+    {
+      "name": "chinese_and_json",
+      "system_prompt": "",
+      "tools": [
+        {"name": "read", "description": "读取文件。支持图片。\n\n{\"example\":\"Keep. Together.\"}"}
+      ]
+    },
+    {
+      "name": "renumber_lists",
+      "system_prompt": "",
+      "tools": [
+        {"name": "use", "description": "Usage:\n1. Read a file.\n- Supports images."}
+      ]
+    },
+    {
+      "name": "existing_prompt",
+      "system_prompt": "base prompt\n",
+      "tools": [
+        {"name": "a", "description": "Does A."},
+        {"name": "b", "description": ""},
+        {"name": "c", "description": "Does C. And more."}
+      ]
+    },
+    {
+      "name": "abbreviations",
+      "system_prompt": "",
+      "tools": [
+        {"name": "t", "description": "Use e.g. files or i.e. paths. Also etc. items vs. others. Done."}
+      ]
+    },
+    {
+      "name": "xml_escaping",
+      "system_prompt": "",
+      "tools": [
+        {"name": "a<b\"q'\t", "description": "Escapes <>&\"' and keeps \"quotes\" in text."}
+      ]
+    }
+  ],
+  "schemas": [
+    {
+      "name": "strip_annotations",
+      "schema": "{\"type\":\"object\",\"title\":\"top title annotation\",\"description\":\"top annotation\",\"x-description\":\"extension annotation\",\"properties\":{\"description\":{\"type\":\"string\",\"description\":\"business field annotation\"},\"title\":{\"type\":\"string\",\"title\":\"business field title annotation\"},\"mode\":{\"type\":\"string\",\"enum\":[\"fast\",\"deep\"],\"default\":\"fast\"},\"metadata\":{\"type\":\"object\",\"default\":{\"description\":\"literal business value\"}}},\"required\":[\"description\",\"title\"],\"additionalProperties\":false}"
+    },
+    {
+      "name": "ref_inline",
+      "schema": "{\"$defs\":{\"item\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"integer\"}}}},\"type\":\"object\",\"properties\":{\"a\":{\"$ref\":\"#/$defs/item\"},\"b\":{\"$ref\":\"#/$defs/item\",\"description\":\"sibling\"}}}"
+    },
+    {
+      "name": "ref_cycle",
+      "schema": "{\"type\":\"object\",\"properties\":{\"self\":{\"$ref\":\"#\"},\"other\":{\"type\":\"string\"}}}"
+    },
+    {
+      "name": "ref_unresolvable",
+      "schema": "{\"type\":\"object\",\"properties\":{\"x\":{\"$ref\":\"#/missing/path\",\"minLength\":2}}}"
+    },
+    {
+      "name": "ref_external",
+      "schema": "{\"type\":\"object\",\"properties\":{\"x\":{\"$ref\":\"https://example.com/schema.json\",\"minLength\":2}}}"
+    },
+    {
+      "name": "ref_escape",
+      "schema": "{\"$defs\":{\"a/b~c\":{\"type\":\"string\"}},\"type\":\"object\",\"properties\":{\"x\":{\"$ref\":\"#/$defs/a~1b~0c\"}}}"
+    },
+    {
+      "name": "bare_property_map",
+      "schema": "{\"path\":{\"type\":\"string\"},\"line\":{\"type\":\"integer\"}}"
+    },
+    {
+      "name": "bare_map_with_x_key",
+      "schema": "{\"x-custom\":{\"type\":\"string\"}}"
+    },
+    {
+      "name": "definitions_stripped",
+      "schema": "{\"definitions\":{\"a\":{\"type\":\"string\"}},\"$schema\":\"http://json-schema.org/draft-07/schema#\",\"type\":\"object\",\"properties\":{\"x\":{\"$ref\":\"#/definitions/a\"}}}"
+    },
+    {
+      "name": "literal_enum_ref",
+      "schema": "{\"type\":\"object\",\"properties\":{\"x\":{\"enum\":[{\"$ref\":\"#/not-a-schema\"}]}}}"
+    },
+    {
+      "name": "numbers_and_strings",
+      "schema": "{\"type\":\"object\",\"properties\":{\"a\":{\"multipleOf\":0.5,\"maximum\":1000000,\"minimum\":1e-7,\"title\":\"t\"}},\"x-big\":1e21}"
+    },
+    {
+      "name": "html_chars",
+      "schema": "{\"type\":\"object\",\"properties\":{\"q\":{\"const\":\"<a>&\\\"b\\\"</a>\"}}}"
+    },
+    {
+      "name": "deep_nesting",
+      "schema": "{\"type\":\"object\",\"properties\":{\"l1\":{\"type\":\"object\",\"properties\":{\"l2\":{\"type\":\"object\",\"properties\":{\"l3\":{\"$ref\":\"#\"}}}}}}}"
+    },
+    {
+      "name": "empty_object",
+      "schema": "{}"
+    },
+    {
+      "name": "array_top",
+      "schema": "[{\"type\":\"string\"}]"
+    },
+    {
+      "name": "invalid_json",
+      "schema": "{\"type\":\"object\""
+    }
+  ]
+}

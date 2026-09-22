@@ -1,0 +1,8 @@
+# Pinned toolchain for the devin2api Rust port.
+# Installed user-locally via rustup from https://static.rust-lang.org (official).
+# 1.98.1 >= 1.88, the rust-version floor required by connectrpc 0.9.0 and
+# connectrpc-build 0.9.0. See .omo evidence task-1/toolchain.md.
+[toolchain]
+channel = "1.98.1"
+components = ["rustfmt", "clippy"]
+profile = "minimal"

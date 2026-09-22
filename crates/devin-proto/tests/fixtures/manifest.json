@@ -1,0 +1,117 @@
+{
+  "fixtures": [
+    {
+      "name": "chat_mentions_search_packed_enums",
+      "type": "exa.api_server_pb.ExaChatPb_ChatMentionsSearchRequest",
+      "bin": "chat_mentions_search_packed_enums.bin",
+      "json": "chat_mentions_search_packed_enums.json",
+      "deterministic_bytes": true
+    },
+    {
+      "name": "deploy_request_oneof_file_chunk",
+      "type": "exa.api_server_pb.DeployWindsurfJSAppRequest",
+      "bin": "deploy_request_oneof_file_chunk.bin",
+      "json": "deploy_request_oneof_file_chunk.json",
+      "deterministic_bytes": true
+    },
+    {
+      "name": "deploy_request_oneof_metadata",
+      "type": "exa.api_server_pb.DeployWindsurfJSAppRequest",
+      "bin": "deploy_request_oneof_metadata.bin",
+      "json": "deploy_request_oneof_metadata.json",
+      "deterministic_bytes": true
+    },
+    {
+      "name": "extension_range_options_default_absent",
+      "type": "exa.api_server_pb.GoogleProtobuf_ExtensionRangeOptions",
+      "bin": "extension_range_options_default_absent.bin",
+      "json": "extension_range_options_default_absent.json",
+      "deterministic_bytes": true
+    },
+    {
+      "name": "extension_range_options_default_explicit",
+      "type": "exa.api_server_pb.GoogleProtobuf_ExtensionRangeOptions",
+      "bin": "extension_range_options_default_explicit.bin",
+      "json": "extension_range_options_default_explicit.json",
+      "deterministic_bytes": true
+    },
+    {
+      "name": "get_chat_message_request_explicit_defaults",
+      "type": "exa.api_server_pb.GetChatMessageRequest",
+      "bin": "get_chat_message_request_explicit_defaults.bin",
+      "json": "get_chat_message_request_explicit_defaults.json",
+      "deterministic_bytes": true
+    },
+    {
+      "name": "get_chat_message_request_full",
+      "type": "exa.api_server_pb.GetChatMessageRequest",
+      "bin": "get_chat_message_request_full.bin",
+      "json": "get_chat_message_request_full.json",
+      "deterministic_bytes": true
+    },
+    {
+      "name": "get_chat_message_request_minimal",
+      "type": "exa.api_server_pb.GetChatMessageRequest",
+      "bin": "get_chat_message_request_minimal.bin",
+      "json": "get_chat_message_request_minimal.json",
+      "deterministic_bytes": true
+    },
+    {
+      "name": "get_chat_message_response_stream_delta",
+      "type": "exa.api_server_pb.GetChatMessageResponse",
+      "bin": "get_chat_message_response_stream_delta.bin",
+      "json": "get_chat_message_response_stream_delta.json",
+      "deterministic_bytes": true
+    },
+    {
+      "name": "get_chat_message_response_stream_stop",
+      "type": "exa.api_server_pb.GetChatMessageResponse",
+      "bin": "get_chat_message_response_stream_stop.bin",
+      "json": "get_chat_message_response_stream_stop.json",
+      "deterministic_bytes": false
+    },
+    {
+      "name": "get_chat_message_response_stream_thinking",
+      "type": "exa.api_server_pb.GetChatMessageResponse",
+      "bin": "get_chat_message_response_stream_thinking.bin",
+      "json": "get_chat_message_response_stream_thinking.json",
+      "deterministic_bytes": true
+    },
+    {
+      "name": "get_chat_message_response_stream_tool",
+      "type": "exa.api_server_pb.GetChatMessageResponse",
+      "bin": "get_chat_message_response_stream_tool.bin",
+      "json": "get_chat_message_response_stream_tool.json",
+      "deterministic_bytes": true
+    },
+    {
+      "name": "plugin_bundle_map_headers",
+      "type": "exa.api_server_pb.GetAccountManagedPluginBundleResponse",
+      "bin": "plugin_bundle_map_headers.bin",
+      "json": "plugin_bundle_map_headers.json",
+      "deterministic_bytes": false
+    },
+    {
+      "name": "query_result_map",
+      "type": "exa.api_server_pb.QueryResult",
+      "bin": "query_result_map.bin",
+      "json": "query_result_map.json",
+      "deterministic_bytes": false
+    },
+    {
+      "name": "response_unknown_enum_value",
+      "type": "exa.api_server_pb.GetChatMessageResponse",
+      "bin": "response_unknown_enum_value.bin",
+      "json": "response_unknown_enum_value.json",
+      "deterministic_bytes": true
+    },
+    {
+      "name": "response_unknown_wire_tag",
+      "type": "exa.api_server_pb.GetChatMessageResponse",
+      "bin": "response_unknown_wire_tag.bin",
+      "json": "response_unknown_wire_tag.json",
+      "deterministic_bytes": true
+    }
+  ],
+  "generated_by": "tests/fixtures/gen (Go protobuf oracle)"
+}

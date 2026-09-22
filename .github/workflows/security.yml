@@ -1,0 +1,23 @@
+name: Security
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  # Weekly scan: the RustSec advisory DB keeps growing after release, so a
+  # locked dependency can become vulnerable later. Off-peak minute.
+  schedule:
+    - cron: '23 4 * * 1'
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: cargo audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # cargo audit against Cargo.lock (RustSec advisory DB). The action
+      # tracks the pinned lockfile; no repository secrets required.
+      - uses: rustsec/audit-check@v2

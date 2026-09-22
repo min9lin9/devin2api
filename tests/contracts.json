@@ -1,0 +1,3753 @@
+{
+  "schema": 3,
+  "generated_by": "qa manifest (task 2 contracts scanner)",
+  "go_commit": "1dd2bc5a15a672a24c826ffe6c90682e2885a333",
+  "routes": [
+    {
+      "method": "GET",
+      "path": "/healthz",
+      "source": "internal/app/app.go:141",
+      "owner_task": 14
+    },
+    {
+      "method": "GET",
+      "path": "/panel",
+      "source": "internal/dashboard/handler.go:181",
+      "owner_task": 17
+    },
+    {
+      "method": "GET",
+      "path": "/panel/api",
+      "source": "internal/dashboard/handler.go:184",
+      "owner_task": 17
+    },
+    {
+      "method": "GET",
+      "path": "/panel/api/config",
+      "source": "internal/dashboard/handler.go:200",
+      "owner_task": 17
+    },
+    {
+      "method": "POST",
+      "path": "/panel/api/config/reload",
+      "source": "internal/dashboard/handler.go:201",
+      "owner_task": 17
+    },
+    {
+      "method": "POST",
+      "path": "/panel/api/debug/toggle",
+      "source": "internal/dashboard/handler.go:199",
+      "owner_task": 17
+    },
+    {
+      "method": "GET",
+      "path": "/panel/api/logs",
+      "source": "internal/dashboard/handler.go:196",
+      "owner_task": 17
+    },
+    {
+      "method": "GET",
+      "path": "/panel/api/models",
+      "source": "internal/dashboard/handler.go:186",
+      "owner_task": 17
+    },
+    {
+      "method": "GET",
+      "path": "/panel/api/quota",
+      "source": "internal/dashboard/handler.go:197",
+      "owner_task": 17
+    },
+    {
+      "method": "GET",
+      "path": "/panel/api/requests",
+      "source": "internal/dashboard/handler.go:188",
+      "owner_task": 17
+    },
+    {
+      "method": "GET",
+      "path": "/panel/api/requests/active",
+      "source": "internal/dashboard/handler.go:191",
+      "owner_task": 17
+    },
+    {
+      "method": "GET",
+      "path": "/panel/api/requests/export",
+      "source": "internal/dashboard/handler.go:190",
+      "owner_task": 17
+    },
+    {
+      "method": "GET",
+      "path": "/panel/api/requests/matrix",
+      "source": "internal/dashboard/handler.go:189",
+      "owner_task": 17
+    },
+    {
+      "method": "GET",
+      "path": "/panel/api/requests/{dir}",
+      "source": "internal/dashboard/handler.go:192",
+      "owner_task": 17
+    },
+    {
+      "method": "POST",
+      "path": "/panel/api/requests/{dir}/abort",
+      "source": "internal/dashboard/handler.go:195",
+      "owner_task": 17
+    },
+    {
+      "method": "GET",
+      "path": "/panel/api/requests/{dir}/file/*",
+      "source": "internal/dashboard/handler.go:194",
+      "owner_task": 17
+    },
+    {
+      "method": "GET",
+      "path": "/panel/api/requests/{dir}/merged",
+      "source": "internal/dashboard/handler.go:193",
+      "owner_task": 17
+    },
+    {
+      "method": "GET",
+      "path": "/panel/api/stats",
+      "source": "internal/dashboard/handler.go:187",
+      "owner_task": 17
+    },
+    {
+      "method": "GET",
+      "path": "/panel/api/status",
+      "source": "internal/dashboard/handler.go:185",
+      "owner_task": 17
+    },
+    {
+      "method": "GET",
+      "path": "/panel/api/usage",
+      "source": "internal/dashboard/handler.go:198",
+      "owner_task": 17
+    },
+    {
+      "method": "POST",
+      "path": "/panel/login",
+      "source": "internal/dashboard/handler.go:182",
+      "owner_task": 17
+    },
+    {
+      "method": "GET",
+      "path": "/panel/static/*",
+      "source": "internal/dashboard/handler.go:183",
+      "owner_task": 17
+    },
+    {
+      "method": "POST",
+      "path": "/v1/chat/completions",
+      "source": "internal/app/app.go:163",
+      "owner_task": 14
+    },
+    {
+      "method": "POST",
+      "path": "/v1/messages",
+      "source": "internal/app/app.go:164",
+      "owner_task": 14
+    },
+    {
+      "method": "GET",
+      "path": "/v1/models",
+      "source": "internal/app/app.go:156",
+      "owner_task": 14
+    },
+    {
+      "method": "GET",
+      "path": "/v1/models/{model}",
+      "source": "internal/app/app.go:157",
+      "owner_task": 14
+    },
+    {
+      "method": "GET",
+      "path": "/v1/responses",
+      "source": "internal/app/app.go:151",
+      "owner_task": 15
+    },
+    {
+      "method": "POST",
+      "path": "/v1/responses",
+      "source": "internal/app/app.go:162",
+      "owner_task": 14
+    }
+  ],
+  "config_keys": [
+    {
+      "key": "auth.api_key",
+      "source": "internal/config/config.go:123",
+      "owner_task": 4
+    },
+    {
+      "key": "dashboard.password",
+      "source": "internal/config/config.go:117",
+      "owner_task": 4
+    },
+    {
+      "key": "debug.enabled",
+      "source": "internal/config/config.go:94",
+      "owner_task": 4
+    },
+    {
+      "key": "debug.keep_error_dirs",
+      "source": "internal/config/config.go:104",
+      "owner_task": 4
+    },
+    {
+      "key": "debug.max_total_mb",
+      "source": "internal/config/config.go:99",
+      "owner_task": 4
+    },
+    {
+      "key": "debug.payload_hours",
+      "source": "internal/config/config.go:102",
+      "owner_task": 4
+    },
+    {
+      "key": "debug.pprof_listen",
+      "source": "internal/config/config.go:111",
+      "owner_task": 4
+    },
+    {
+      "key": "debug.quota_interval_minutes",
+      "source": "internal/config/config.go:107",
+      "owner_task": 4
+    },
+    {
+      "key": "debug.retention_days",
+      "source": "internal/config/config.go:96",
+      "owner_task": 4
+    },
+    {
+      "key": "devin.aliases",
+      "source": "internal/config/config.go:58",
+      "owner_task": 4
+    },
+    {
+      "key": "devin.base_url",
+      "source": "internal/config/config.go:45",
+      "owner_task": 4
+    },
+    {
+      "key": "devin.client_name",
+      "source": "internal/config/config.go:61",
+      "owner_task": 4
+    },
+    {
+      "key": "devin.client_os",
+      "source": "internal/config/config.go:67",
+      "owner_task": 4
+    },
+    {
+      "key": "devin.client_version",
+      "source": "internal/config/config.go:65",
+      "owner_task": 4
+    },
+    {
+      "key": "devin.force_http1",
+      "source": "internal/config/config.go:55",
+      "owner_task": 4
+    },
+    {
+      "key": "devin.gate_default_latch_seconds",
+      "source": "internal/config/config.go:82",
+      "owner_task": 4
+    },
+    {
+      "key": "devin.gate_drip_interval_seconds",
+      "source": "internal/config/config.go:79",
+      "owner_task": 4
+    },
+    {
+      "key": "devin.gate_max_hold_seconds",
+      "source": "internal/config/config.go:76",
+      "owner_task": 4
+    },
+    {
+      "key": "devin.gate_window_guard_seconds",
+      "source": "internal/config/config.go:88",
+      "owner_task": 4
+    },
+    {
+      "key": "devin.gate_window_offset_seconds",
+      "source": "internal/config/config.go:85",
+      "owner_task": 4
+    },
+    {
+      "key": "devin.max_rpm",
+      "source": "internal/config/config.go:73",
+      "owner_task": 4
+    },
+    {
+      "key": "devin.model",
+      "source": "internal/config/config.go:49",
+      "owner_task": 4
+    },
+    {
+      "key": "devin.proxy",
+      "source": "internal/config/config.go:51",
+      "owner_task": 4
+    },
+    {
+      "key": "devin.token",
+      "source": "internal/config/config.go:47",
+      "owner_task": 4
+    },
+    {
+      "key": "server.listen",
+      "source": "internal/config/config.go:37",
+      "owner_task": 4
+    },
+    {
+      "key": "server.max_concurrency",
+      "source": "internal/config/config.go:39",
+      "owner_task": 4
+    }
+  ],
+  "aux_commands": [
+    {
+      "binary": "devin-2api",
+      "name": "config",
+      "kind": "flag",
+      "detail": "cmd/devin-2api/main.go",
+      "owner_task": 19
+    },
+    {
+      "binary": "devin-2api",
+      "name": "state-dir",
+      "kind": "flag",
+      "detail": "cmd/devin-2api/main.go",
+      "owner_task": 19
+    },
+    {
+      "binary": "devin-2api",
+      "name": "version",
+      "kind": "flag",
+      "detail": "cmd/devin-2api/main.go",
+      "owner_task": 19
+    },
+    {
+      "binary": "loadtest",
+      "name": "body",
+      "kind": "flag",
+      "detail": "cmd/loadtest/main.go",
+      "owner_task": 20
+    },
+    {
+      "binary": "loadtest",
+      "name": "c",
+      "kind": "flag",
+      "detail": "cmd/loadtest/main.go",
+      "owner_task": 20
+    },
+    {
+      "binary": "loadtest",
+      "name": "duration",
+      "kind": "flag",
+      "detail": "cmd/loadtest/main.go",
+      "owner_task": 20
+    },
+    {
+      "binary": "loadtest",
+      "name": "key",
+      "kind": "flag",
+      "detail": "cmd/loadtest/main.go",
+      "owner_task": 20
+    },
+    {
+      "binary": "loadtest",
+      "name": "model",
+      "kind": "flag",
+      "detail": "cmd/loadtest/main.go",
+      "owner_task": 20
+    },
+    {
+      "binary": "loadtest",
+      "name": "n",
+      "kind": "flag",
+      "detail": "cmd/loadtest/main.go",
+      "owner_task": 20
+    },
+    {
+      "binary": "loadtest",
+      "name": "stream",
+      "kind": "flag",
+      "detail": "cmd/loadtest/main.go",
+      "owner_task": 20
+    },
+    {
+      "binary": "loadtest",
+      "name": "url",
+      "kind": "flag",
+      "detail": "cmd/loadtest/main.go",
+      "owner_task": 20
+    },
+    {
+      "binary": "probe",
+      "name": "assign",
+      "kind": "subcommand",
+      "detail": "cmd/probe/main.go commands map",
+      "owner_task": 20
+    },
+    {
+      "binary": "probe",
+      "name": "bigctx",
+      "kind": "subcommand",
+      "detail": "cmd/probe/main.go commands map",
+      "owner_task": 20
+    },
+    {
+      "binary": "probe",
+      "name": "chat",
+      "kind": "subcommand",
+      "detail": "cmd/probe/main.go commands map",
+      "owner_task": 20
+    },
+    {
+      "binary": "probe",
+      "name": "configs",
+      "kind": "subcommand",
+      "detail": "cmd/probe/main.go commands map",
+      "owner_task": 20
+    },
+    {
+      "binary": "probe",
+      "name": "custom-tool-call-flag",
+      "kind": "subcommand",
+      "detail": "probe edge case",
+      "owner_task": 20
+    },
+    {
+      "binary": "probe",
+      "name": "dup-call-id",
+      "kind": "subcommand",
+      "detail": "probe edge case",
+      "owner_task": 20
+    },
+    {
+      "binary": "probe",
+      "name": "dup-message-id",
+      "kind": "subcommand",
+      "detail": "probe edge case",
+      "owner_task": 20
+    },
+    {
+      "binary": "probe",
+      "name": "dup-tool-result",
+      "kind": "subcommand",
+      "detail": "probe edge case",
+      "owner_task": 20
+    },
+    {
+      "binary": "probe",
+      "name": "edge",
+      "kind": "subcommand",
+      "detail": "cmd/probe/main.go commands map",
+      "owner_task": 20
+    },
+    {
+      "binary": "probe",
+      "name": "empty-assistant",
+      "kind": "subcommand",
+      "detail": "probe edge case",
+      "owner_task": 20
+    },
+    {
+      "binary": "probe",
+      "name": "empty-user-prompt",
+      "kind": "subcommand",
+      "detail": "probe edge case",
+      "owner_task": 20
+    },
+    {
+      "binary": "probe",
+      "name": "experiment",
+      "kind": "subcommand",
+      "detail": "probe edge case",
+      "owner_task": 20
+    },
+    {
+      "binary": "probe",
+      "name": "gap-tool-result",
+      "kind": "subcommand",
+      "detail": "probe edge case",
+      "owner_task": 20
+    },
+    {
+      "binary": "probe",
+      "name": "grouped-calls-results",
+      "kind": "subcommand",
+      "detail": "probe edge case",
+      "owner_task": 20
+    },
+    {
+      "binary": "probe",
+      "name": "hist",
+      "kind": "subcommand",
+      "detail": "cmd/probe/main.go commands map",
+      "owner_task": 20
+    },
+    {
+      "binary": "probe",
+      "name": "history-tool-name",
+      "kind": "subcommand",
+      "detail": "probe edge case",
+      "owner_task": 20
+    },
+    {
+      "binary": "probe",
+      "name": "interleaved-calls",
+      "kind": "subcommand",
+      "detail": "probe edge case",
+      "owner_task": 20
+    },
+    {
+      "binary": "probe",
+      "name": "misc",
+      "kind": "subcommand",
+      "detail": "cmd/probe/main.go commands map",
+      "owner_task": 20
+    },
+    {
+      "binary": "probe",
+      "name": "n-tools-limit",
+      "kind": "subcommand",
+      "detail": "probe edge case",
+      "owner_task": 20
+    },
+    {
+      "binary": "probe",
+      "name": "orphan-result-with-id",
+      "kind": "subcommand",
+      "detail": "probe edge case",
+      "owner_task": 20
+    },
+    {
+      "binary": "probe",
+      "name": "orphan-tool-result",
+      "kind": "subcommand",
+      "detail": "probe edge case",
+      "owner_task": 20
+    },
+    {
+      "binary": "probe",
+      "name": "parallel-call-id-frames",
+      "kind": "subcommand",
+      "detail": "probe edge case",
+      "owner_task": 20
+    },
+    {
+      "binary": "probe",
+      "name": "pdf-as-image",
+      "kind": "subcommand",
+      "detail": "probe edge case",
+      "owner_task": 20
+    },
+    {
+      "binary": "probe",
+      "name": "replay",
+      "kind": "subcommand",
+      "detail": "cmd/probe/main.go commands map",
+      "owner_task": 20
+    },
+    {
+      "binary": "probe",
+      "name": "rerun",
+      "kind": "subcommand",
+      "detail": "cmd/probe/main.go commands map",
+      "owner_task": 20
+    },
+    {
+      "binary": "probe",
+      "name": "status",
+      "kind": "subcommand",
+      "detail": "cmd/probe/main.go commands map",
+      "owner_task": 20
+    },
+    {
+      "binary": "probe",
+      "name": "thinking-empty-sig",
+      "kind": "subcommand",
+      "detail": "probe edge case",
+      "owner_task": 20
+    },
+    {
+      "binary": "probe",
+      "name": "thinking-only-assistant",
+      "kind": "subcommand",
+      "detail": "probe edge case",
+      "owner_task": 20
+    },
+    {
+      "binary": "probe",
+      "name": "tool-call-invalid-json-arg",
+      "kind": "subcommand",
+      "detail": "probe edge case",
+      "owner_task": 20
+    },
+    {
+      "binary": "probe",
+      "name": "tool-name",
+      "kind": "subcommand",
+      "detail": "probe edge case",
+      "owner_task": 20
+    },
+    {
+      "binary": "probe",
+      "name": "tool-result-image",
+      "kind": "subcommand",
+      "detail": "probe edge case",
+      "owner_task": 20
+    },
+    {
+      "binary": "probe",
+      "name": "tool-result-mismatch-call",
+      "kind": "subcommand",
+      "detail": "probe edge case",
+      "owner_task": 20
+    },
+    {
+      "binary": "probe",
+      "name": "trailing-assistant",
+      "kind": "subcommand",
+      "detail": "probe edge case",
+      "owner_task": 20
+    },
+    {
+      "binary": "probe",
+      "name": "trailing-call-no-result",
+      "kind": "subcommand",
+      "detail": "probe edge case",
+      "owner_task": 20
+    },
+    {
+      "binary": "probe",
+      "name": "trailing-tool-result",
+      "kind": "subcommand",
+      "detail": "probe edge case",
+      "owner_task": 20
+    },
+    {
+      "binary": "probe",
+      "name": "unknown-source",
+      "kind": "subcommand",
+      "detail": "probe edge case",
+      "owner_task": 20
+    },
+    {
+      "binary": "probe",
+      "name": "user-image-file",
+      "kind": "subcommand",
+      "detail": "probe edge case",
+      "owner_task": 20
+    },
+    {
+      "binary": "probe",
+      "name": "user-image-prompt",
+      "kind": "subcommand",
+      "detail": "probe edge case",
+      "owner_task": 20
+    },
+    {
+      "binary": "protocensus",
+      "name": "census",
+      "kind": "subcommand",
+      "detail": "cmd/protocensus/main.go",
+      "owner_task": 20
+    },
+    {
+      "binary": "protocensus",
+      "name": "diff",
+      "kind": "subcommand",
+      "detail": "cmd/protocensus/main.go",
+      "owner_task": 20
+    },
+    {
+      "binary": "protoextract",
+      "name": "extract",
+      "kind": "positional",
+      "detail": "protoextract <source-binary> <output-directory>",
+      "owner_task": 20
+    },
+    {
+      "binary": "upstreamstub",
+      "name": "delta-bytes",
+      "kind": "flag",
+      "detail": "cmd/upstreamstub/main.go",
+      "owner_task": 20
+    },
+    {
+      "binary": "upstreamstub",
+      "name": "deltas",
+      "kind": "flag",
+      "detail": "cmd/upstreamstub/main.go",
+      "owner_task": 20
+    },
+    {
+      "binary": "upstreamstub",
+      "name": "interval",
+      "kind": "flag",
+      "detail": "cmd/upstreamstub/main.go",
+      "owner_task": 20
+    },
+    {
+      "binary": "upstreamstub",
+      "name": "listen",
+      "kind": "flag",
+      "detail": "cmd/upstreamstub/main.go",
+      "owner_task": 20
+    },
+    {
+      "binary": "upstreamstub",
+      "name": "recover-after",
+      "kind": "flag",
+      "detail": "cmd/upstreamstub/main.go",
+      "owner_task": 20
+    },
+    {
+      "binary": "upstreamstub",
+      "name": "scenario",
+      "kind": "flag",
+      "detail": "cmd/upstreamstub/main.go",
+      "owner_task": 20
+    },
+    {
+      "binary": "upstreamstub",
+      "name": "ttfb",
+      "kind": "flag",
+      "detail": "cmd/upstreamstub/main.go",
+      "owner_task": 20
+    }
+  ],
+  "platform_assets": [
+    {
+      "path": ".github/actions/setup-go/action.yml",
+      "kind": "action",
+      "owner_task": 22
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "kind": "workflow",
+      "owner_task": 22
+    },
+    {
+      "path": ".github/workflows/release.yml",
+      "kind": "workflow",
+      "owner_task": 22
+    },
+    {
+      "path": ".github/workflows/security.yml",
+      "kind": "workflow",
+      "owner_task": 22
+    },
+    {
+      "path": "AGENTS.md",
+      "kind": "doc",
+      "owner_task": 25
+    },
+    {
+      "path": "Dockerfile",
+      "kind": "docker",
+      "owner_task": 21
+    },
+    {
+      "path": "Dockerfile.release",
+      "kind": "docker",
+      "owner_task": 21
+    },
+    {
+      "path": "LICENSE",
+      "kind": "meta",
+      "owner_task": 1
+    },
+    {
+      "path": "README.md",
+      "kind": "doc",
+      "owner_task": 25
+    },
+    {
+      "path": "README.zh-CN.md",
+      "kind": "doc",
+      "owner_task": 25
+    },
+    {
+      "path": "Taskfile.yml",
+      "kind": "meta",
+      "owner_task": 3
+    },
+    {
+      "path": "config.example.yaml",
+      "kind": "config",
+      "owner_task": 4
+    },
+    {
+      "path": "docs/README.md",
+      "kind": "doc",
+      "owner_task": 25
+    },
+    {
+      "path": "docs/client-setup.md",
+      "kind": "doc",
+      "owner_task": 25
+    },
+    {
+      "path": "docs/deployment.md",
+      "kind": "doc",
+      "owner_task": 25
+    },
+    {
+      "path": "docs/harness-verification.md",
+      "kind": "doc",
+      "owner_task": 25
+    },
+    {
+      "path": "docs/images/perf-cpu-flat.png",
+      "kind": "doc",
+      "owner_task": 25
+    },
+    {
+      "path": "docs/images/perf-latency-segments.png",
+      "kind": "doc",
+      "owner_task": 25
+    },
+    {
+      "path": "docs/images/perf-load-percentiles.png",
+      "kind": "doc",
+      "owner_task": 25
+    },
+    {
+      "path": "docs/perf.md",
+      "kind": "doc",
+      "owner_task": 25
+    },
+    {
+      "path": "docs/quota-billing.md",
+      "kind": "doc",
+      "owner_task": 25
+    },
+    {
+      "path": "docs/toolchain.md",
+      "kind": "doc",
+      "owner_task": 25
+    },
+    {
+      "path": "docs/upstream-cache.md",
+      "kind": "doc",
+      "owner_task": 25
+    },
+    {
+      "path": "docs/upstream-compaction.md",
+      "kind": "doc",
+      "owner_task": 25
+    },
+    {
+      "path": "docs/upstream-debug-playbook.md",
+      "kind": "doc",
+      "owner_task": 25
+    },
+    {
+      "path": "docs/upstream-policy-fingerprints.md",
+      "kind": "doc",
+      "owner_task": 25
+    },
+    {
+      "path": "docs/upstream-protocol.md",
+      "kind": "doc",
+      "owner_task": 25
+    },
+    {
+      "path": "docs/upstream-rate-limit.md",
+      "kind": "doc",
+      "owner_task": 25
+    },
+    {
+      "path": "e2e/devin-client/client.go",
+      "kind": "e2e",
+      "owner_task": 20
+    },
+    {
+      "path": "go.mod",
+      "kind": "meta",
+      "owner_task": 1
+    },
+    {
+      "path": "go.sum",
+      "kind": "meta",
+      "owner_task": 1
+    },
+    {
+      "path": "outputs/devin-proto/all-protos.proto",
+      "kind": "schema",
+      "owner_task": 3
+    },
+    {
+      "path": "outputs/devin-proto/descriptors.pb",
+      "kind": "schema",
+      "owner_task": 3
+    },
+    {
+      "path": "outputs/devin-proto/manifest.json",
+      "kind": "schema",
+      "owner_task": 3
+    },
+    {
+      "path": "scripts/bench.sh",
+      "kind": "script",
+      "owner_task": 21
+    },
+    {
+      "path": "scripts/build-echarts.sh",
+      "kind": "script",
+      "owner_task": 21
+    },
+    {
+      "path": "scripts/crossnote-links.sh",
+      "kind": "script",
+      "owner_task": 21
+    },
+    {
+      "path": "scripts/deploy-assets.test.sh",
+      "kind": "script",
+      "owner_task": 21
+    },
+    {
+      "path": "scripts/deploy-linux.sh",
+      "kind": "script",
+      "owner_task": 21
+    },
+    {
+      "path": "scripts/deploy-remote.sh",
+      "kind": "script",
+      "owner_task": 21
+    },
+    {
+      "path": "scripts/deploy-windows.ps1",
+      "kind": "script",
+      "owner_task": 21
+    },
+    {
+      "path": "scripts/deploy.sh",
+      "kind": "script",
+      "owner_task": 21
+    },
+    {
+      "path": "scripts/lib-deploy.sh",
+      "kind": "script",
+      "owner_task": 21
+    },
+    {
+      "path": "scripts/perf-charts.py",
+      "kind": "script",
+      "owner_task": 21
+    },
+    {
+      "path": "scripts/perf-snapshot.sh",
+      "kind": "script",
+      "owner_task": 21
+    },
+    {
+      "path": "scripts/quota/fit.py",
+      "kind": "script",
+      "owner_task": 21
+    },
+    {
+      "path": "scripts/quota/poll.sh",
+      "kind": "script",
+      "owner_task": 21
+    },
+    {
+      "path": "scripts/release-selftest.sh",
+      "kind": "script",
+      "owner_task": 21
+    },
+    {
+      "path": "scripts/release.sh",
+      "kind": "script",
+      "owner_task": 21
+    },
+    {
+      "path": "scripts/rotate-logs.sh",
+      "kind": "script",
+      "owner_task": 21
+    },
+    {
+      "path": "scripts/smoke.sh",
+      "kind": "script",
+      "owner_task": 21
+    }
+  ],
+  "go_test_cases": [
+    {
+      "file": "cmd/devin-2api/main_test.go",
+      "function": "ListenURL",
+      "kind": "test",
+      "rust_case": "lifecycle::listen_url_matches_go",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 19
+    },
+    {
+      "file": "cmd/devin-2api/main_test.go",
+      "function": "RedactConfigSecretsProxyUserinfo",
+      "kind": "test",
+      "rust_case": "config_contract::redacted_view_hides_secrets",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 19
+    },
+    {
+      "file": "cmd/devin-2api/main_test.go",
+      "function": "ReloadClassifiesEveryConfigField",
+      "kind": "test",
+      "rust_case": "lifecycle::reload_is_validate_then_commit_and_updates_auth",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 19
+    },
+    {
+      "file": "cmd/devin-2api/main_test.go",
+      "function": "ReloadRuntimeConfigRejectsEmptyUpstream",
+      "kind": "test",
+      "rust_case": "lifecycle::reload_is_validate_then_commit_and_updates_auth",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 19
+    },
+    {
+      "file": "cmd/devin-2api/main_test.go",
+      "function": "RunReturnsServeError",
+      "kind": "test",
+      "rust_case": "lifecycle::bind_collision_is_recorded_and_recovery_is_idempotent",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 19
+    },
+    {
+      "file": "cmd/protoextract/main_test.go",
+      "function": "FlattenDescriptorsProducesOneCompilableWireCompatibleFile",
+      "kind": "test",
+      "rust_case": "auxiliary_cli::flattened_real_schema_links_and_preserves_streaming_and_comments",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 20
+    },
+    {
+      "file": "cmd/protoextract/main_test.go",
+      "function": "IndividualProtoCanBeReconstructed",
+      "kind": "test",
+      "rust_case": "auxiliary_cli::protoextract_scans_and_census_diff_reports_change",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 20
+    },
+    {
+      "file": "cmd/protoextract/main_test.go",
+      "function": "ManifestReportsMissingDependenciesAndCommentCoverage",
+      "kind": "test",
+      "rust_case": "auxiliary_cli::protoextract_scans_and_census_diff_reports_change",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 20
+    },
+    {
+      "file": "cmd/protoextract/main_test.go",
+      "function": "PrepareFreshOutputDeletesExistingContents",
+      "kind": "test",
+      "rust_case": "auxiliary_cli::protoextract_scans_and_census_diff_reports_change",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 20
+    },
+    {
+      "file": "cmd/protoextract/main_test.go",
+      "function": "ScanFileDescriptorsHandlesProto2CommentsAndDuplicates",
+      "kind": "test",
+      "rust_case": "auxiliary_cli::protoextract_scans_and_census_diff_reports_change",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 20
+    },
+    {
+      "file": "cmd/protoextract/main_test.go",
+      "function": "ValidateDestructiveOutputPathRejectsBroadOrSourceContainingTargets",
+      "kind": "test",
+      "rust_case": "auxiliary_cli::protoextract_scans_and_census_diff_reports_change",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 20
+    },
+    {
+      "file": "internal/adapter/devin/bench_perf_test.go",
+      "function": "BuildRequestLongHistory",
+      "kind": "benchmark",
+      "rust_case": "",
+      "disposition": "intentional_deviation",
+      "reason": "Performance-only Go benchmark; executable paired Rust/Go benchmark coverage is owned by task 24 and is not a functional parity assertion.",
+      "owner_task": 24
+    },
+    {
+      "file": "internal/adapter/devin/bench_perf_test.go",
+      "function": "ConvertTool",
+      "kind": "benchmark",
+      "rust_case": "",
+      "disposition": "intentional_deviation",
+      "reason": "Performance-only Go benchmark; executable paired Rust/Go benchmark coverage is owned by task 24 and is not a functional parity assertion.",
+      "owner_task": 24
+    },
+    {
+      "file": "internal/adapter/devin/bench_perf_test.go",
+      "function": "RecvDeltaStream",
+      "kind": "benchmark",
+      "rust_case": "",
+      "disposition": "intentional_deviation",
+      "reason": "Performance-only Go benchmark; executable paired Rust/Go benchmark coverage is owned by task 24 and is not a functional parity assertion.",
+      "owner_task": 24
+    },
+    {
+      "file": "internal/adapter/devin/bench_perf_test.go",
+      "function": "SanitizeRequest",
+      "kind": "benchmark",
+      "rust_case": "",
+      "disposition": "intentional_deviation",
+      "reason": "Performance-only Go benchmark; executable paired Rust/Go benchmark coverage is owned by task 24 and is not a functional parity assertion.",
+      "owner_task": 24
+    },
+    {
+      "file": "internal/adapter/devin/bench_perf_test.go",
+      "function": "SanitizeText",
+      "kind": "benchmark",
+      "rust_case": "",
+      "disposition": "intentional_deviation",
+      "reason": "Performance-only Go benchmark; executable paired Rust/Go benchmark coverage is owned by task 24 and is not a functional parity assertion.",
+      "owner_task": 24
+    },
+    {
+      "file": "internal/adapter/devin/devin_test.go",
+      "function": "BuildRequestAggregatesThinkingBlocks",
+      "kind": "test",
+      "rust_case": "request_projection::corpus_requests_match_go_oracle",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 11
+    },
+    {
+      "file": "internal/adapter/devin/devin_test.go",
+      "function": "BuildRequestAttachesImagesInSameTurn",
+      "kind": "test",
+      "rust_case": "request_projection::corpus_requests_match_go_oracle",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 11
+    },
+    {
+      "file": "internal/adapter/devin/devin_test.go",
+      "function": "BuildRequestCustomToolCallUsesInvalidJSONStr",
+      "kind": "test",
+      "rust_case": "request_projection::corpus_requests_match_go_oracle",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 11
+    },
+    {
+      "file": "internal/adapter/devin/devin_test.go",
+      "function": "BuildRequestDefaultSamplingParams",
+      "kind": "test",
+      "rust_case": "request_projection::corpus_requests_match_go_oracle",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 11
+    },
+    {
+      "file": "internal/adapter/devin/devin_test.go",
+      "function": "BuildRequestForwardsSamplingParams",
+      "kind": "test",
+      "rust_case": "request_projection::corpus_requests_match_go_oracle",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 11
+    },
+    {
+      "file": "internal/adapter/devin/devin_test.go",
+      "function": "BuildRequestIgnoresEmptyToolDescriptions",
+      "kind": "test",
+      "rust_case": "request_projection::corpus_requests_match_go_oracle",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 11
+    },
+    {
+      "file": "internal/adapter/devin/devin_test.go",
+      "function": "BuildRequestMapsLoopMessages",
+      "kind": "test",
+      "rust_case": "request_projection::corpus_requests_match_go_oracle",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 11
+    },
+    {
+      "file": "internal/adapter/devin/devin_test.go",
+      "function": "BuildRequestMergesParallelToolCalls",
+      "kind": "test",
+      "rust_case": "request_projection::corpus_requests_match_go_oracle",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 11
+    },
+    {
+      "file": "internal/adapter/devin/devin_test.go",
+      "function": "BuildRequestOmitsHistoricalImages",
+      "kind": "test",
+      "rust_case": "request_projection::corpus_requests_match_go_oracle",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 11
+    },
+    {
+      "file": "internal/adapter/devin/devin_test.go",
+      "function": "BuildRequestRejectsNamedToolChoiceOutsideTools",
+      "kind": "test",
+      "rust_case": "request_projection::corpus_requests_match_go_oracle",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 11
+    },
+    {
+      "file": "internal/adapter/devin/devin_test.go",
+      "function": "BuildRequestReplaysSignatureMetadata",
+      "kind": "test",
+      "rust_case": "request_projection::corpus_requests_match_go_oracle",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 11
+    },
+    {
+      "file": "internal/adapter/devin/devin_test.go",
+      "function": "BuildRequestReportsRepairs",
+      "kind": "test",
+      "rust_case": "request_projection::corpus_requests_match_go_oracle",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 11
+    },
+    {
+      "file": "internal/adapter/devin/devin_test.go",
+      "function": "BuildRequestToolChoiceMapping",
+      "kind": "test",
+      "rust_case": "request_projection::corpus_requests_match_go_oracle",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 11
+    },
+    {
+      "file": "internal/adapter/devin/devin_test.go",
+      "function": "BuildRequestWithoutToolsKeepsPromptUnchanged",
+      "kind": "test",
+      "rust_case": "request_projection::corpus_requests_match_go_oracle",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 11
+    },
+    {
+      "file": "internal/adapter/devin/devin_test.go",
+      "function": "ConnectErrorPassthrough",
+      "kind": "test",
+      "rust_case": "upstream_lifecycle::connect_semantic_error_no_retry",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 11
+    },
+    {
+      "file": "internal/adapter/devin/devin_test.go",
+      "function": "DecoderToEncoderReplayContract",
+      "kind": "test",
+      "rust_case": "response_decoder::golden_frames_tool_call_turn",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 11
+    },
+    {
+      "file": "internal/adapter/devin/devin_test.go",
+      "function": "DeriveSessionIDSDifferAcrossConversations",
+      "kind": "test",
+      "rust_case": "request_projection::session_ids_match_go_oracle",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 11
+    },
+    {
+      "file": "internal/adapter/devin/devin_test.go",
+      "function": "DeriveSessionIDSSurvivesCompaction",
+      "kind": "test",
+      "rust_case": "request_projection::session_ids_match_go_oracle",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 11
+    },
+    {
+      "file": "internal/adapter/devin/devin_test.go",
+      "function": "DeriveSessionIDsStableForSamePrefix",
+      "kind": "test",
+      "rust_case": "request_projection::session_ids_stable_across_turns",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 11
+    },
+    {
+      "file": "internal/adapter/devin/devin_test.go",
+      "function": "IsTransientConnectError",
+      "kind": "test",
+      "rust_case": "upstream_lifecycle::connect_transient_retry_then_success",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 11
+    },
+    {
+      "file": "internal/adapter/devin/devin_test.go",
+      "function": "ListModelsSingleflight",
+      "kind": "test",
+      "rust_case": "catalog_auth::concurrent_requests_share_one_fetch",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 11
+    },
+    {
+      "file": "internal/adapter/devin/devin_test.go",
+      "function": "ListModelsWaiterCancel",
+      "kind": "test",
+      "rust_case": "catalog_auth::concurrent_refresh_and_cancelled_leader",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 11
+    },
+    {
+      "file": "internal/adapter/devin/devin_test.go",
+      "function": "MapStopReason",
+      "kind": "test",
+      "rust_case": "response_decoder::maps_stop_reason",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 11
+    },
+    {
+      "file": "internal/adapter/devin/devin_test.go",
+      "function": "PairToolCallsWithResultsConsumesDuplicateID",
+      "kind": "test",
+      "rust_case": "request_projection::duplicate_call_ids_pair_positionally",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 11
+    },
+    {
+      "file": "internal/adapter/devin/devin_test.go",
+      "function": "PairToolCallsWithResultsKeepsDuplicateResults",
+      "kind": "test",
+      "rust_case": "request_projection::duplicate_results_all_kept",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 11
+    },
+    {
+      "file": "internal/adapter/devin/devin_test.go",
+      "function": "RecordProtoJSONRedactsMetadata",
+      "kind": "test",
+      "rust_case": "debuglog_compat::RecorderWritesRedactedStagesAndAttachments",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 11
+    },
+    {
+      "file": "internal/adapter/devin/devin_test.go",
+      "function": "ReloadToken",
+      "kind": "test",
+      "rust_case": "catalog_auth::token_source_precedence_and_identity",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 11
+    },
+    {
+      "file": "internal/adapter/devin/devin_test.go",
+      "function": "RepairLeakedXMLArguments",
+      "kind": "test",
+      "rust_case": "request_projection::sanitize_texts_match_go_oracle",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 11
+    },
+    {
+      "file": "internal/adapter/devin/devin_test.go",
+      "function": "ResolveModelAlias",
+      "kind": "test",
+      "rust_case": "catalog_auth::alias_resolution_and_capability_projection",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 11
+    },
+    {
+      "file": "internal/adapter/devin/devin_test.go",
+      "function": "ResponseDecoderAggregatesToolArgumentFragments",
+      "kind": "test",
+      "rust_case": "response_decoder::aggregates_tool_argument_fragments",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 11
+    },
+    {
+      "file": "internal/adapter/devin/devin_test.go",
+      "function": "ResponseDecoderBindsLateToolCallID",
+      "kind": "test",
+      "rust_case": "response_decoder::binds_late_tool_call_id",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 11
+    },
+    {
+      "file": "internal/adapter/devin/devin_test.go",
+      "function": "ResponseDecoderCompletesPartialWithThinking",
+      "kind": "test",
+      "rust_case": "response_decoder::completes_partial_with_thinking",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 11
+    },
+    {
+      "file": "internal/adapter/devin/devin_test.go",
+      "function": "ResponseDecoderConsumesUsageAfterStopReason",
+      "kind": "test",
+      "rust_case": "response_decoder::consumes_usage_after_stop_reason",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 11
+    },
+    {
+      "file": "internal/adapter/devin/devin_test.go",
+      "function": "ResponseDecoderCustomToolCall",
+      "kind": "test",
+      "rust_case": "response_decoder::custom_tool_call_passthrough",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 11
+    },
+    {
+      "file": "internal/adapter/devin/devin_test.go",
+      "function": "ResponseDecoderLateSignatureSynthesizesBlock",
+      "kind": "test",
+      "rust_case": "response_decoder::late_signature_synthesizes_block",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 11
+    },
+    {
+      "file": "internal/adapter/devin/devin_test.go",
+      "function": "ResponseDecoderLocalStopSequence",
+      "kind": "test",
+      "rust_case": "response_decoder::local_stop_sequence",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 11
+    },
+    {
+      "file": "internal/adapter/devin/devin_test.go",
+      "function": "ResponseDecoderMapsOneFrameToOrderedEvents",
+      "kind": "test",
+      "rust_case": "response_decoder::maps_one_frame_to_ordered_events",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 11
+    },
+    {
+      "file": "internal/adapter/devin/devin_test.go",
+      "function": "ResponseDecoderMergesLateSignature",
+      "kind": "test",
+      "rust_case": "response_decoder::merges_late_signature",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 11
+    },
+    {
+      "file": "internal/adapter/devin/devin_test.go",
+      "function": "ResponseDecoderNoStopMatchFlushesTail",
+      "kind": "test",
+      "rust_case": "response_decoder::no_stop_match_flushes_tail",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 11
+    },
+    {
+      "file": "internal/adapter/devin/devin_test.go",
+      "function": "ResponseDecoderRejectsEOFWithoutStopReason",
+      "kind": "test",
+      "rust_case": "response_decoder::eof_without_stop_and_unknown_fields",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 11
+    },
+    {
+      "file": "internal/adapter/devin/devin_test.go",
+      "function": "ResponseDecoderRejectsEmptyNormalEOF",
+      "kind": "test",
+      "rust_case": "response_decoder::eof_without_stop_and_unknown_fields",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 11
+    },
+    {
+      "file": "internal/adapter/devin/devin_test.go",
+      "function": "ResponseDecoderSplitsSecondIdlessCall",
+      "kind": "test",
+      "rust_case": "response_decoder::splits_second_idless_call",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 11
+    },
+    {
+      "file": "internal/adapter/devin/devin_test.go",
+      "function": "ResponseDecoderStopSequenceAcrossDeltas",
+      "kind": "test",
+      "rust_case": "response_decoder::stop_sequence_across_deltas",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 11
+    },
+    {
+      "file": "internal/adapter/devin/devin_test.go",
+      "function": "ResponseDecoderStopSequenceRuneBoundary",
+      "kind": "test",
+      "rust_case": "response_decoder::stop_sequence_rune_boundary",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 11
+    },
+    {
+      "file": "internal/adapter/devin/devin_test.go",
+      "function": "ResponseDecoderStoresSignatureTypeAndOutputID",
+      "kind": "test",
+      "rust_case": "response_decoder::stores_signature_type_and_output_id",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 11
+    },
+    {
+      "file": "internal/adapter/devin/devin_test.go",
+      "function": "ResponseDecoderSynthesizesThinkingForBareSignature",
+      "kind": "test",
+      "rust_case": "response_decoder::synthesizes_thinking_for_bare_signature",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 11
+    },
+    {
+      "file": "internal/adapter/devin/devin_test.go",
+      "function": "ResponseDecoderUnwrapsCustomToolArguments",
+      "kind": "test",
+      "rust_case": "response_decoder::unwraps_custom_tool_arguments",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 11
+    },
+    {
+      "file": "internal/adapter/devin/devin_test.go",
+      "function": "ResponseStreamContinuesEmptyEndTurn",
+      "kind": "test",
+      "rust_case": "upstream_lifecycle::empty_end_turn_continuation",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 11
+    },
+    {
+      "file": "internal/adapter/devin/devin_test.go",
+      "function": "ResponseStreamDoesNotReopenAfterContent",
+      "kind": "test",
+      "rust_case": "upstream_lifecycle::post_content_eof_no_replay",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 11
+    },
+    {
+      "file": "internal/adapter/devin/devin_test.go",
+      "function": "ResponseStreamEmptyEndTurnSurfacesWithoutRetry",
+      "kind": "test",
+      "rust_case": "upstream_lifecycle::empty_end_turn_continuation",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 11
+    },
+    {
+      "file": "internal/adapter/devin/devin_test.go",
+      "function": "ResponseStreamFailsOnUpstreamStall",
+      "kind": "test",
+      "rust_case": "upstream_lifecycle::stall_watchdog_reopens_precontent",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 11
+    },
+    {
+      "file": "internal/adapter/devin/devin_test.go",
+      "function": "ResponseStreamNoProgressWatchdog",
+      "kind": "test",
+      "rust_case": "upstream_lifecycle::no_progress_watchdog_reopens",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 11
+    },
+    {
+      "file": "internal/adapter/devin/devin_test.go",
+      "function": "ResponseStreamNoProgressWatchdogAfterContent",
+      "kind": "test",
+      "rust_case": "upstream_lifecycle::no_progress_watchdog_reopens",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 11
+    },
+    {
+      "file": "internal/adapter/devin/devin_test.go",
+      "function": "ResponseStreamReadsUsageFrameAfterStopReason",
+      "kind": "test",
+      "rust_case": "upstream_lifecycle::tail_grace_finishes_after_stop",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 11
+    },
+    {
+      "file": "internal/adapter/devin/devin_test.go",
+      "function": "ResponseStreamReleasesStartOnHoldTimeout",
+      "kind": "test",
+      "rust_case": "upstream_lifecycle::start_hold_releases_pending_start",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 11
+    },
+    {
+      "file": "internal/adapter/devin/devin_test.go",
+      "function": "ResponseStreamReopensBeforeContent",
+      "kind": "test",
+      "rust_case": "upstream_lifecycle::midstream_eof_reopens_once",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 11
+    },
+    {
+      "file": "internal/adapter/devin/devin_test.go",
+      "function": "ResponseStreamStartsBeforeFirstContent",
+      "kind": "test",
+      "rust_case": "upstream_lifecycle::happy_path_events_and_once_only_terminal",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 11
+    },
+    {
+      "file": "internal/adapter/devin/devin_test.go",
+      "function": "ResponseStreamStopsOnContextCancel",
+      "kind": "test",
+      "rust_case": "upstream_lifecycle::cancellation_at_every_seam",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 11
+    },
+    {
+      "file": "internal/adapter/devin/devin_test.go",
+      "function": "ResponseStreamTailGraceFinishesAfterStopReason",
+      "kind": "test",
+      "rust_case": "upstream_lifecycle::tail_grace_finishes_after_stop",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 11
+    },
+    {
+      "file": "internal/adapter/devin/devin_test.go",
+      "function": "ResponseStreamYieldsErrorBeforeStart",
+      "kind": "test",
+      "rust_case": "upstream_lifecycle::connect_semantic_error_no_retry",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 11
+    },
+    {
+      "file": "internal/adapter/devin/devin_test.go",
+      "function": "ValidateImagesForModelRejectsGLM",
+      "kind": "test",
+      "rust_case": "catalog_auth::validate_images_uses_catalog_then_heuristic",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 11
+    },
+    {
+      "file": "internal/adapter/devin/devin_test.go",
+      "function": "ValidateImagesUsesCatalog",
+      "kind": "test",
+      "rust_case": "catalog_auth::validate_images_uses_catalog_then_heuristic",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 11
+    },
+    {
+      "file": "internal/adapter/devin/rategate_test.go",
+      "function": "RateGateDeadZoneFastFails",
+      "kind": "test",
+      "rust_case": "rate_gate::RateGateDeadZoneFastFails",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 10
+    },
+    {
+      "file": "internal/adapter/devin/rategate_test.go",
+      "function": "RateGateDeadZoneSleepsToNextWindow",
+      "kind": "test",
+      "rust_case": "rate_gate::RateGateDeadZoneSleepsToNextWindow",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 10
+    },
+    {
+      "file": "internal/adapter/devin/rategate_test.go",
+      "function": "RateGateDripReleasesProbes",
+      "kind": "test",
+      "rust_case": "rate_gate::RateGateDripReleasesProbes",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 10
+    },
+    {
+      "file": "internal/adapter/devin/rategate_test.go",
+      "function": "RateGateDripRespectsDeadZone",
+      "kind": "test",
+      "rust_case": "rate_gate::RateGateDripRespectsDeadZone",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 10
+    },
+    {
+      "file": "internal/adapter/devin/rategate_test.go",
+      "function": "RateGateIgnoresTransportMasquerade",
+      "kind": "test",
+      "rust_case": "rate_gate::RateGateIgnoresTransportMasquerade",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 10
+    },
+    {
+      "file": "internal/adapter/devin/rategate_test.go",
+      "function": "RateGateLatchFastFails",
+      "kind": "test",
+      "rust_case": "rate_gate::RateGateLatchFastFails",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 10
+    },
+    {
+      "file": "internal/adapter/devin/rategate_test.go",
+      "function": "RateGateLatchPersistRestore",
+      "kind": "test",
+      "rust_case": "rate_gate::RateGateLatchPersistRestore",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 10
+    },
+    {
+      "file": "internal/adapter/devin/rategate_test.go",
+      "function": "RateGateLatchRanges",
+      "kind": "test",
+      "rust_case": "rate_gate::RateGateLatchRanges",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 10
+    },
+    {
+      "file": "internal/adapter/devin/rategate_test.go",
+      "function": "RateGateLatchRejectsUntilReset",
+      "kind": "test",
+      "rust_case": "rate_gate::RateGateLatchRejectsUntilReset",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 10
+    },
+    {
+      "file": "internal/adapter/devin/rategate_test.go",
+      "function": "RateGateLatchSelective",
+      "kind": "test",
+      "rust_case": "rate_gate::RateGateLatchSelective",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 10
+    },
+    {
+      "file": "internal/adapter/devin/rategate_test.go",
+      "function": "RateGateSetParamsPreservesLatch",
+      "kind": "test",
+      "rust_case": "rate_gate::RateGateSetParamsPreservesLatch",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 10
+    },
+    {
+      "file": "internal/adapter/devin/rategate_test.go",
+      "function": "RateGateStateExpiredIgnored",
+      "kind": "test",
+      "rust_case": "rate_gate::RateGateStateExpiredIgnored",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 10
+    },
+    {
+      "file": "internal/adapter/devin/rategate_test.go",
+      "function": "RateGateUnlatchesOnUpstreamSuccess",
+      "kind": "test",
+      "rust_case": "rate_gate::RateGateUnlatchesOnUpstreamSuccess",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 10
+    },
+    {
+      "file": "internal/adapter/devin/rategate_test.go",
+      "function": "RateGateWaitCancelRefunds",
+      "kind": "test",
+      "rust_case": "rate_gate::RateGateWaitCancelRefunds",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 10
+    },
+    {
+      "file": "internal/adapter/devin/rategate_test.go",
+      "function": "RateGateWindowQuotaReject",
+      "kind": "test",
+      "rust_case": "rate_gate::RateGateWindowQuotaReject",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 10
+    },
+    {
+      "file": "internal/adapter/devin/rategate_test.go",
+      "function": "RateGateWindowRollover",
+      "kind": "test",
+      "rust_case": "rate_gate::RateGateWindowRollover",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 10
+    },
+    {
+      "file": "internal/adapter/devin/rategate_test.go",
+      "function": "RateGateZeroQuotaUnlimited",
+      "kind": "test",
+      "rust_case": "rate_gate::RateGateZeroQuotaUnlimited",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 10
+    },
+    {
+      "file": "internal/adapter/devin/rategate_test.go",
+      "function": "RateGateZeroSecondHint",
+      "kind": "test",
+      "rust_case": "rate_gate::RateGateZeroSecondHint",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 10
+    },
+    {
+      "file": "internal/adapter/devin/rategate_test.go",
+      "function": "RateLimitResetBucketAlignsMinutes",
+      "kind": "test",
+      "rust_case": "rate_gate::RateLimitResetBucketAlignsMinutes",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 10
+    },
+    {
+      "file": "internal/adapter/devin/rategate_test.go",
+      "function": "RetryAfterParsesMinutes",
+      "kind": "test",
+      "rust_case": "rate_gate::RetryAfterParsesMinutes",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 10
+    },
+    {
+      "file": "internal/adapter/devin/replay_test.go",
+      "function": "GoldenFramesTextAnswerTurn",
+      "kind": "test",
+      "rust_case": "response_decoder::golden_frames_text_answer_turn",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 9
+    },
+    {
+      "file": "internal/adapter/devin/replay_test.go",
+      "function": "GoldenFramesThinkingLateSignature",
+      "kind": "test",
+      "rust_case": "response_decoder::golden_frames_thinking_late_signature",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 9
+    },
+    {
+      "file": "internal/adapter/devin/replay_test.go",
+      "function": "GoldenFramesToolCallTurn",
+      "kind": "test",
+      "rust_case": "response_decoder::golden_frames_tool_call_turn",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 9
+    },
+    {
+      "file": "internal/adapter/devin/sanitize_test.go",
+      "function": "SanitizeCodexOpensourceDef",
+      "kind": "test",
+      "rust_case": "request_projection::sanitize_texts_match_go_oracle",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 8
+    },
+    {
+      "file": "internal/adapter/devin/tool_definition_test.go",
+      "function": "ConvertToolDefinitionStripsAnnotationsButKeepsSchema",
+      "kind": "test",
+      "rust_case": "request_projection::tool_definitions_match_go_oracle",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 8
+    },
+    {
+      "file": "internal/adapter/devin/tool_definition_test.go",
+      "function": "FormatToolDescriptionHandlesChineseAndJSON",
+      "kind": "test",
+      "rust_case": "request_projection::tool_descriptions_match_go_oracle",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 8
+    },
+    {
+      "file": "internal/adapter/devin/tool_definition_test.go",
+      "function": "FormatToolDescriptionRenumbersExistingLists",
+      "kind": "test",
+      "rust_case": "request_projection::tool_descriptions_match_go_oracle",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 8
+    },
+    {
+      "file": "internal/adapter/devin/tool_definition_test.go",
+      "function": "WithToolDescriptionsNumbersProseAndPreservesCode",
+      "kind": "test",
+      "rust_case": "request_projection::tool_descriptions_match_go_oracle",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 8
+    },
+    {
+      "file": "internal/api/anthropic/messages/request_test.go",
+      "function": "DecodeRequestAcceptsStringContent",
+      "kind": "test",
+      "rust_case": "input_protocols::anthropic_decode_request_accepts_string_content",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 5
+    },
+    {
+      "file": "internal/api/anthropic/messages/request_test.go",
+      "function": "DecodeRequestBuildsConversationContext",
+      "kind": "test",
+      "rust_case": "input_protocols::anthropic_decode_request_builds_conversation_context",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 5
+    },
+    {
+      "file": "internal/api/anthropic/messages/request_test.go",
+      "function": "DecodeRequestClientTypedTools",
+      "kind": "test",
+      "rust_case": "input_protocols::anthropic_decode_request_client_typed_tools",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 5
+    },
+    {
+      "file": "internal/api/anthropic/messages/request_test.go",
+      "function": "DecodeRequestDroppedFields",
+      "kind": "test",
+      "rust_case": "input_protocols::anthropic_decode_request_dropped_fields",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 5
+    },
+    {
+      "file": "internal/api/anthropic/messages/request_test.go",
+      "function": "DecodeRequestMergesAdjacentAssistants",
+      "kind": "test",
+      "rust_case": "input_protocols::anthropic_decode_request_merges_adjacent_assistants",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 5
+    },
+    {
+      "file": "internal/api/anthropic/messages/request_test.go",
+      "function": "DecodeRequestPositionalToolResults",
+      "kind": "test",
+      "rust_case": "input_protocols::anthropic_decode_request_positional_tool_results",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 5
+    },
+    {
+      "file": "internal/api/anthropic/messages/request_test.go",
+      "function": "DecodeRequestPreservesMidConversationSystem",
+      "kind": "test",
+      "rust_case": "input_protocols::anthropic_decode_request_preserves_mid_conversation_system",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 5
+    },
+    {
+      "file": "internal/api/anthropic/messages/request_test.go",
+      "function": "DecodeRequestReplaysThinkingSignature",
+      "kind": "test",
+      "rust_case": "input_protocols::anthropic_decode_request_replays_thinking_signature",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 5
+    },
+    {
+      "file": "internal/api/anthropic/messages/request_test.go",
+      "function": "DecodeRequestTrailingData",
+      "kind": "test",
+      "rust_case": "input_protocols::anthropic_decode_request_trailing_data",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 5
+    },
+    {
+      "file": "internal/api/anthropic/messages/response_test.go",
+      "function": "EncodeResponseFinal",
+      "kind": "test",
+      "rust_case": "output_protocols::encode_response_final",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 12
+    },
+    {
+      "file": "internal/api/anthropic/messages/response_test.go",
+      "function": "StreamEncoderBuffersSignatureFragments",
+      "kind": "test",
+      "rust_case": "output_protocols::stream_encoder_buffers_signature_fragments",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 12
+    },
+    {
+      "file": "internal/api/anthropic/messages/response_test.go",
+      "function": "StreamEncoderClosesBlocksInIndexOrder",
+      "kind": "test",
+      "rust_case": "output_protocols::stream_encoder_closes_blocks_in_index_order",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 12
+    },
+    {
+      "file": "internal/api/anthropic/messages/response_test.go",
+      "function": "StreamEncoderEmitsError",
+      "kind": "test",
+      "rust_case": "output_protocols::stream_encoder_emits_error",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 12
+    },
+    {
+      "file": "internal/api/anthropic/messages/response_test.go",
+      "function": "StreamEncoderEmitsMessageStartAndText",
+      "kind": "test",
+      "rust_case": "output_protocols::stream_encoder_emits_message_start_and_text",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 12
+    },
+    {
+      "file": "internal/api/anthropic/messages/response_test.go",
+      "function": "StreamEncoderEmitsToolUse",
+      "kind": "test",
+      "rust_case": "output_protocols::stream_encoder_emits_tool_use",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 12
+    },
+    {
+      "file": "internal/api/anthropic/messages/response_test.go",
+      "function": "StreamEncoderHoldsThinkingForLateSignature",
+      "kind": "test",
+      "rust_case": "output_protocols::stream_encoder_holds_thinking_for_late_signature",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 12
+    },
+    {
+      "file": "internal/api/anthropic/messages/response_test.go",
+      "function": "StreamEncoderRedactedThinkingDeferredStart",
+      "kind": "test",
+      "rust_case": "output_protocols::stream_encoder_redacted_thinking_deferred_start",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 12
+    },
+    {
+      "file": "internal/api/anthropic/messages/response_test.go",
+      "function": "StreamEncoderSignatureReadyAtThinkingEnd",
+      "kind": "test",
+      "rust_case": "output_protocols::stream_encoder_signature_ready_at_thinking_end",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 12
+    },
+    {
+      "file": "internal/api/common/bench_perf_test.go",
+      "function": "DecodeRawBase64",
+      "kind": "benchmark",
+      "rust_case": "",
+      "disposition": "intentional_deviation",
+      "reason": "Performance-only Go benchmark; executable paired Rust/Go benchmark coverage is owned by task 24 and is not a functional parity assertion.",
+      "owner_task": 24
+    },
+    {
+      "file": "internal/api/common/bench_perf_test.go",
+      "function": "SniffImageMIME",
+      "kind": "benchmark",
+      "rust_case": "",
+      "disposition": "intentional_deviation",
+      "reason": "Performance-only Go benchmark; executable paired Rust/Go benchmark coverage is owned by task 24 and is not a functional parity assertion.",
+      "owner_task": 24
+    },
+    {
+      "file": "internal/api/common/error_test.go",
+      "function": "AnthropicErrorType",
+      "kind": "test",
+      "rust_case": "output_protocols::anthropic_error_type_table",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 12
+    },
+    {
+      "file": "internal/api/common/error_test.go",
+      "function": "ErrorCode",
+      "kind": "test",
+      "rust_case": "output_protocols::error_code_table",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 12
+    },
+    {
+      "file": "internal/api/common/error_test.go",
+      "function": "HTTPStatus",
+      "kind": "test",
+      "rust_case": "output_protocols::http_status_table",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 12
+    },
+    {
+      "file": "internal/api/common/error_test.go",
+      "function": "OpenAIErrorType",
+      "kind": "test",
+      "rust_case": "output_protocols::openai_error_type_table",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 12
+    },
+    {
+      "file": "internal/api/common/toolchoice_test.go",
+      "function": "ParseAnthropicToolChoice",
+      "kind": "test",
+      "rust_case": "input_protocols::parse_anthropic_tool_choice",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 5
+    },
+    {
+      "file": "internal/api/common/toolchoice_test.go",
+      "function": "ParseOpenAIToolChoice",
+      "kind": "test",
+      "rust_case": "input_protocols::parse_openai_tool_choice",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 5
+    },
+    {
+      "file": "internal/api/openai/chat/bench_perf_test.go",
+      "function": "DecodeRequestToolHistory",
+      "kind": "benchmark",
+      "rust_case": "",
+      "disposition": "intentional_deviation",
+      "reason": "Performance-only Go benchmark; executable paired Rust/Go benchmark coverage is owned by task 24 and is not a functional parity assertion.",
+      "owner_task": 24
+    },
+    {
+      "file": "internal/api/openai/chat/request_test.go",
+      "function": "DecodeRequestAcceptsFunctionCallArguments",
+      "kind": "test",
+      "rust_case": "input_protocols::chat_decode_request_accepts_function_call_arguments",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 5
+    },
+    {
+      "file": "internal/api/openai/chat/request_test.go",
+      "function": "DecodeRequestAcceptsLegacyFunctionDialect",
+      "kind": "test",
+      "rust_case": "input_protocols::chat_decode_request_accepts_legacy_function_dialect",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 5
+    },
+    {
+      "file": "internal/api/openai/chat/request_test.go",
+      "function": "DecodeRequestAcceptsPlainString",
+      "kind": "test",
+      "rust_case": "input_protocols::chat_decode_request_accepts_plain_string",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 5
+    },
+    {
+      "file": "internal/api/openai/chat/request_test.go",
+      "function": "DecodeRequestBuildsConversationContext",
+      "kind": "test",
+      "rust_case": "input_protocols::chat_decode_request_builds_conversation_context",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 5
+    },
+    {
+      "file": "internal/api/openai/chat/request_test.go",
+      "function": "DecodeRequestEmptyContent",
+      "kind": "test",
+      "rust_case": "input_protocols::chat_decode_request_empty_content",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 5
+    },
+    {
+      "file": "internal/api/openai/chat/request_test.go",
+      "function": "DecodeRequestMergesAdjacentAssistants",
+      "kind": "test",
+      "rust_case": "input_protocols::chat_decode_request_merges_adjacent_assistants",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 5
+    },
+    {
+      "file": "internal/api/openai/chat/request_test.go",
+      "function": "DecodeRequestSkipsFieldScan",
+      "kind": "test",
+      "rust_case": "input_protocols::chat_decode_request_skips_field_scan",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 5
+    },
+    {
+      "file": "internal/api/openai/chat/request_test.go",
+      "function": "DecodeRequestTrailingData",
+      "kind": "test",
+      "rust_case": "input_protocols::chat_decode_request_trailing_data",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 5
+    },
+    {
+      "file": "internal/api/openai/chat/response_test.go",
+      "function": "EncodeResponseFinal",
+      "kind": "test",
+      "rust_case": "output_protocols::encode_response_final",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 12
+    },
+    {
+      "file": "internal/api/openai/chat/response_test.go",
+      "function": "EncodeResponseFinalWithReasoning",
+      "kind": "test",
+      "rust_case": "output_protocols::encode_response_final_with_reasoning",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 12
+    },
+    {
+      "file": "internal/api/openai/chat/response_test.go",
+      "function": "MessageToChatKeepsTextWithToolCalls",
+      "kind": "test",
+      "rust_case": "output_protocols::message_to_chat_keeps_text_with_tool_calls",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 12
+    },
+    {
+      "file": "internal/api/openai/chat/response_test.go",
+      "function": "StreamEncoderEmitsError",
+      "kind": "test",
+      "rust_case": "output_protocols::stream_encoder_emits_error",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 12
+    },
+    {
+      "file": "internal/api/openai/chat/response_test.go",
+      "function": "StreamEncoderEmitsRoleAndText",
+      "kind": "test",
+      "rust_case": "output_protocols::stream_encoder_emits_role_and_text",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 12
+    },
+    {
+      "file": "internal/api/openai/chat/response_test.go",
+      "function": "StreamEncoderEmitsThinkingAsReasoningContent",
+      "kind": "test",
+      "rust_case": "output_protocols::stream_encoder_emits_thinking_as_reasoning_content",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 12
+    },
+    {
+      "file": "internal/api/openai/chat/response_test.go",
+      "function": "StreamEncoderEmitsToolCalls",
+      "kind": "test",
+      "rust_case": "output_protocols::stream_encoder_emits_tool_calls",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 12
+    },
+    {
+      "file": "internal/api/openai/chat/response_test.go",
+      "function": "StreamEncoderToolCallAfterOtherBlocks",
+      "kind": "test",
+      "rust_case": "output_protocols::stream_encoder_tool_call_after_other_blocks",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 12
+    },
+    {
+      "file": "internal/api/openai/responses/bench_perf_test.go",
+      "function": "DecodeRequestToolHistory",
+      "kind": "benchmark",
+      "rust_case": "",
+      "disposition": "intentional_deviation",
+      "reason": "Performance-only Go benchmark; executable paired Rust/Go benchmark coverage is owned by task 24 and is not a functional parity assertion.",
+      "owner_task": 24
+    },
+    {
+      "file": "internal/api/openai/responses/request_test.go",
+      "function": "DecodeRequestAcceptsCallIDVariants",
+      "kind": "test",
+      "rust_case": "input_protocols::responses_decode_request_accepts_call_id_variants",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 5
+    },
+    {
+      "file": "internal/api/openai/responses/request_test.go",
+      "function": "DecodeRequestAcceptsChatCompletionsImagePart",
+      "kind": "test",
+      "rust_case": "input_protocols::responses_decode_request_accepts_chat_completions_image_part",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 5
+    },
+    {
+      "file": "internal/api/openai/responses/request_test.go",
+      "function": "DecodeRequestAcceptsImageURLObject",
+      "kind": "test",
+      "rust_case": "input_protocols::responses_decode_request_accepts_image_url_object",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 5
+    },
+    {
+      "file": "internal/api/openai/responses/request_test.go",
+      "function": "DecodeRequestAcceptsMessageWithoutType",
+      "kind": "test",
+      "rust_case": "input_protocols::responses_decode_request_accepts_message_without_type",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 5
+    },
+    {
+      "file": "internal/api/openai/responses/request_test.go",
+      "function": "DecodeRequestAcceptsStringInput",
+      "kind": "test",
+      "rust_case": "input_protocols::responses_decode_request_accepts_string_input",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 5
+    },
+    {
+      "file": "internal/api/openai/responses/request_test.go",
+      "function": "DecodeRequestAttachesReasoningSummary",
+      "kind": "test",
+      "rust_case": "input_protocols::responses_decode_request_attaches_reasoning_summary",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 5
+    },
+    {
+      "file": "internal/api/openai/responses/request_test.go",
+      "function": "DecodeRequestBuildsConversationContext",
+      "kind": "test",
+      "rust_case": "input_protocols::responses_decode_request_builds_conversation_context",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 5
+    },
+    {
+      "file": "internal/api/openai/responses/request_test.go",
+      "function": "DecodeRequestCustomToolCall",
+      "kind": "test",
+      "rust_case": "input_protocols::responses_decode_request_custom_tool_call",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 5
+    },
+    {
+      "file": "internal/api/openai/responses/request_test.go",
+      "function": "DecodeRequestCustomToolDeclaration",
+      "kind": "test",
+      "rust_case": "input_protocols::responses_decode_request_custom_tool_declaration",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 5
+    },
+    {
+      "file": "internal/api/openai/responses/request_test.go",
+      "function": "DecodeRequestDropsForeignReasoningPayload",
+      "kind": "test",
+      "rust_case": "input_protocols::responses_decode_request_drops_foreign_reasoning_payload",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 5
+    },
+    {
+      "file": "internal/api/openai/responses/request_test.go",
+      "function": "DecodeRequestDropsOrphanReasoning",
+      "kind": "test",
+      "rust_case": "input_protocols::responses_decode_request_drops_orphan_reasoning",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 5
+    },
+    {
+      "file": "internal/api/openai/responses/request_test.go",
+      "function": "DecodeRequestIgnoresUnsupportedExtensions",
+      "kind": "test",
+      "rust_case": "input_protocols::responses_decode_request_ignores_unsupported_extensions",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 5
+    },
+    {
+      "file": "internal/api/openai/responses/request_test.go",
+      "function": "DecodeRequestKeepsEmptyMessage",
+      "kind": "test",
+      "rust_case": "input_protocols::responses_decode_request_keeps_empty_message",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 5
+    },
+    {
+      "file": "internal/api/openai/responses/request_test.go",
+      "function": "DecodeRequestMalformedToolOutputParts",
+      "kind": "test",
+      "rust_case": "input_protocols::responses_decode_request_malformed_tool_output_parts",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 5
+    },
+    {
+      "file": "internal/api/openai/responses/request_test.go",
+      "function": "DecodeRequestMergesAssistantTurnItems",
+      "kind": "test",
+      "rust_case": "input_protocols::responses_decode_request_merges_assistant_turn_items",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 5
+    },
+    {
+      "file": "internal/api/openai/responses/request_test.go",
+      "function": "DecodeRequestPositionalToolResults",
+      "kind": "test",
+      "rust_case": "input_protocols::responses_decode_request_positional_tool_results",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 5
+    },
+    {
+      "file": "internal/api/openai/responses/request_test.go",
+      "function": "DecodeRequestPreservesMalformedToolArguments",
+      "kind": "test",
+      "rust_case": "input_protocols::responses_decode_request_preserves_malformed_tool_arguments",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 5
+    },
+    {
+      "file": "internal/api/openai/responses/request_test.go",
+      "function": "DecodeRequestReplaysOpenAIReasoningSignature",
+      "kind": "test",
+      "rust_case": "input_protocols::responses_decode_request_replays_openai_reasoning_signature",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 5
+    },
+    {
+      "file": "internal/api/openai/responses/request_test.go",
+      "function": "DecodeRequestRetainsRawSchema",
+      "kind": "test",
+      "rust_case": "input_protocols::responses_decode_request_retains_raw_schema",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 5
+    },
+    {
+      "file": "internal/api/openai/responses/request_test.go",
+      "function": "DecodeRequestToleratesOrphanToolOutput",
+      "kind": "test",
+      "rust_case": "input_protocols::responses_decode_request_tolerates_orphan_tool_output",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 5
+    },
+    {
+      "file": "internal/api/openai/responses/request_test.go",
+      "function": "DecodeRequestToolOutputPartArray",
+      "kind": "test",
+      "rust_case": "input_protocols::responses_decode_request_tool_output_part_array",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 5
+    },
+    {
+      "file": "internal/api/openai/responses/request_test.go",
+      "function": "DecodeRequestTrailingData",
+      "kind": "test",
+      "rust_case": "input_protocols::responses_decode_request_trailing_data",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 5
+    },
+    {
+      "file": "internal/api/openai/responses/response_test.go",
+      "function": "ResponseUsageIncludesCachedTokensInInputTotal",
+      "kind": "test",
+      "rust_case": "output_protocols::response_usage_includes_cached_tokens_in_input_total",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 12
+    },
+    {
+      "file": "internal/api/openai/responses/response_test.go",
+      "function": "StreamEncoderAccumulatesSignatureFragments",
+      "kind": "test",
+      "rust_case": "output_protocols::stream_encoder_accumulates_signature_fragments",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 12
+    },
+    {
+      "file": "internal/api/openai/responses/response_test.go",
+      "function": "StreamEncoderCustomToolCall",
+      "kind": "test",
+      "rust_case": "output_protocols::stream_encoder_custom_tool_call",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 12
+    },
+    {
+      "file": "internal/api/openai/responses/response_test.go",
+      "function": "StreamEncoderEncodesFinalTextMessage",
+      "kind": "test",
+      "rust_case": "output_protocols::stream_encoder_encodes_final_text_message",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 12
+    },
+    {
+      "file": "internal/api/openai/responses/response_test.go",
+      "function": "StreamEncoderEncodesLengthAsIncomplete",
+      "kind": "test",
+      "rust_case": "output_protocols::stream_encoder_encodes_length_as_incomplete",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 12
+    },
+    {
+      "file": "internal/api/openai/responses/response_test.go",
+      "function": "StreamEncoderEncodesReasoningAndToolItems",
+      "kind": "test",
+      "rust_case": "output_protocols::stream_encoder_encodes_reasoning_and_tool_items",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 12
+    },
+    {
+      "file": "internal/api/openai/responses/response_test.go",
+      "function": "StreamEncoderEncodesSignatureOnlyReasoning",
+      "kind": "test",
+      "rust_case": "output_protocols::stream_encoder_encodes_signature_only_reasoning",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 12
+    },
+    {
+      "file": "internal/api/openai/responses/response_test.go",
+      "function": "StreamEncoderHoldsReasoningForLateSignature",
+      "kind": "test",
+      "rust_case": "output_protocols::stream_encoder_holds_reasoning_for_late_signature",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 12
+    },
+    {
+      "file": "internal/api/openai/responses/response_test.go",
+      "function": "StreamEncoderMessageItemUsesOutputID",
+      "kind": "test",
+      "rust_case": "output_protocols::stream_encoder_message_item_uses_output_id",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 12
+    },
+    {
+      "file": "internal/api/openai/responses/response_test.go",
+      "function": "StreamEncoderOpenAISignatureRestoresItemID",
+      "kind": "test",
+      "rust_case": "output_protocols::stream_encoder_openai_signature_restores_item_id",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 12
+    },
+    {
+      "file": "internal/api/openai/responses/response_test.go",
+      "function": "StreamEncoderRejectsDoneWithOpenItem",
+      "kind": "test",
+      "rust_case": "output_protocols::stream_encoder_rejects_done_with_open_item",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 12
+    },
+    {
+      "file": "internal/api/openai/responses/response_test.go",
+      "function": "StreamEncoderRejectsUnknownEvent",
+      "kind": "test",
+      "rust_case": "output_protocols::stream_encoder_rejects_unknown_event",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 12
+    },
+    {
+      "file": "internal/app/app_anthropic_test.go",
+      "function": "MessagesHandlerReturnsJSON",
+      "kind": "test",
+      "rust_case": "http_surface::MessagesHandlerReturnsJSON",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 14
+    },
+    {
+      "file": "internal/app/app_anthropic_test.go",
+      "function": "MessagesHandlerStreamError",
+      "kind": "test",
+      "rust_case": "http_surface::MessagesHandlerStreamError",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 14
+    },
+    {
+      "file": "internal/app/app_anthropic_test.go",
+      "function": "MessagesHandlerStreamsSSE",
+      "kind": "test",
+      "rust_case": "http_surface::MessagesHandlerStreamsSSE",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 14
+    },
+    {
+      "file": "internal/app/app_chat_test.go",
+      "function": "ChatCompletionsHandlerReturnsJSON",
+      "kind": "test",
+      "rust_case": "http_surface::ChatCompletionsHandlerReturnsJSON",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 14
+    },
+    {
+      "file": "internal/app/app_chat_test.go",
+      "function": "ChatCompletionsHandlerStreamError",
+      "kind": "test",
+      "rust_case": "http_surface::ChatCompletionsHandlerStreamError",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 14
+    },
+    {
+      "file": "internal/app/app_chat_test.go",
+      "function": "ChatCompletionsHandlerStreamsSSE",
+      "kind": "test",
+      "rust_case": "http_surface::ChatCompletionsHandlerStreamsSSE",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 14
+    },
+    {
+      "file": "internal/app/app_chat_test.go",
+      "function": "ChatCompletionsHandlerStreamsThinking",
+      "kind": "test",
+      "rust_case": "http_surface::ChatCompletionsHandlerStreamsThinking",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 14
+    },
+    {
+      "file": "internal/app/app_test.go",
+      "function": "ClientDisconnectRecords499",
+      "kind": "test",
+      "rust_case": "http_surface::ClientDisconnectRecords499",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 14
+    },
+    {
+      "file": "internal/app/app_test.go",
+      "function": "ConcurrencyOverflowReturns429",
+      "kind": "test",
+      "rust_case": "http_surface::ConcurrencyOverflowReturns429",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 14
+    },
+    {
+      "file": "internal/app/app_test.go",
+      "function": "ConcurrentResponsesDoNotInterleave",
+      "kind": "test",
+      "rust_case": "http_surface::ConcurrentResponsesDoNotInterleave",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 14
+    },
+    {
+      "file": "internal/app/app_test.go",
+      "function": "DrainTrackerLateAddDuringWait",
+      "kind": "test",
+      "rust_case": "http_surface::DrainTrackerLateAddDuringWait",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 14
+    },
+    {
+      "file": "internal/app/app_test.go",
+      "function": "DrainTrackerWaitTimeout",
+      "kind": "test",
+      "rust_case": "http_surface::DrainTrackerWaitTimeout",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 14
+    },
+    {
+      "file": "internal/app/app_test.go",
+      "function": "PrematureEndTurnFlagged",
+      "kind": "test",
+      "rust_case": "http_surface::PrematureEndTurnFlagged",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 14
+    },
+    {
+      "file": "internal/app/app_test.go",
+      "function": "PrematureEndTurnNotFlaggedForUserInput",
+      "kind": "test",
+      "rust_case": "http_surface::PrematureEndTurnNotFlaggedForUserInput",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 14
+    },
+    {
+      "file": "internal/app/app_test.go",
+      "function": "ReadFailureRejectedWithoutDir",
+      "kind": "test",
+      "rust_case": "http_surface::ReadFailureRejectedWithoutDir",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 14
+    },
+    {
+      "file": "internal/app/app_test.go",
+      "function": "RequestIDHeaderAndDebugRef",
+      "kind": "test",
+      "rust_case": "http_surface::RequestIDHeaderAndDebugRef",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 14
+    },
+    {
+      "file": "internal/app/app_test.go",
+      "function": "RequestTooLargeKeepsDebugDir",
+      "kind": "test",
+      "rust_case": "http_surface::RequestTooLargeKeepsDebugDir",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 14
+    },
+    {
+      "file": "internal/app/app_test.go",
+      "function": "ResponsesHandlerAcceptsBearerAPIKey",
+      "kind": "test",
+      "rust_case": "http_surface::ResponsesHandlerAcceptsBearerAPIKey",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 14
+    },
+    {
+      "file": "internal/app/app_test.go",
+      "function": "ResponsesHandlerAcceptsXApiKeyHeader",
+      "kind": "test",
+      "rust_case": "http_surface::ResponsesHandlerAcceptsXApiKeyHeader",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 14
+    },
+    {
+      "file": "internal/app/app_test.go",
+      "function": "ResponsesHandlerConsumesAllAssistantRounds",
+      "kind": "test",
+      "rust_case": "http_surface::ResponsesHandlerConsumesAllAssistantRounds",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 14
+    },
+    {
+      "file": "internal/app/app_test.go",
+      "function": "ResponsesHandlerHealthIsUnprotected",
+      "kind": "test",
+      "rust_case": "http_surface::ResponsesHandlerHealthIsUnprotected",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 14
+    },
+    {
+      "file": "internal/app/app_test.go",
+      "function": "ResponsesHandlerIgnoresLogInitializationFailure",
+      "kind": "test",
+      "rust_case": "http_surface::ResponsesHandlerIgnoresLogInitializationFailure",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 14
+    },
+    {
+      "file": "internal/app/app_test.go",
+      "function": "ResponsesHandlerMapsRateLimitError",
+      "kind": "test",
+      "rust_case": "http_surface::ResponsesHandlerMapsRateLimitError",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 14
+    },
+    {
+      "file": "internal/app/app_test.go",
+      "function": "ResponsesHandlerMarksStreamError",
+      "kind": "test",
+      "rust_case": "http_surface::ResponsesHandlerMarksStreamError",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 14
+    },
+    {
+      "file": "internal/app/app_test.go",
+      "function": "ResponsesHandlerRejectsInvalidAPIKey",
+      "kind": "test",
+      "rust_case": "http_surface::ResponsesHandlerRejectsInvalidAPIKey",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 14
+    },
+    {
+      "file": "internal/app/app_test.go",
+      "function": "ResponsesHandlerRejectsMissingAPIKey",
+      "kind": "test",
+      "rust_case": "http_surface::ResponsesHandlerRejectsMissingAPIKey",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 14
+    },
+    {
+      "file": "internal/app/app_test.go",
+      "function": "ResponsesHandlerReturnsJSONForNonStream",
+      "kind": "test",
+      "rust_case": "http_surface::ResponsesHandlerReturnsJSONForNonStream",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 14
+    },
+    {
+      "file": "internal/app/app_test.go",
+      "function": "ResponsesHandlerStreamsOrderedEvents",
+      "kind": "test",
+      "rust_case": "http_surface::ResponsesHandlerStreamsOrderedEvents",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 14
+    },
+    {
+      "file": "internal/app/app_test.go",
+      "function": "ResponsesHandlerWritesStageLogs",
+      "kind": "test",
+      "rust_case": "http_surface::ResponsesHandlerWritesStageLogs",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 14
+    },
+    {
+      "file": "internal/app/app_test.go",
+      "function": "ResponsesHandlerZeroResetHintWritesNoRetryAfter",
+      "kind": "test",
+      "rust_case": "http_surface::ResponsesHandlerZeroResetHintWritesNoRetryAfter",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 14
+    },
+    {
+      "file": "internal/app/app_test.go",
+      "function": "StreamErrorCarriesDebugRef",
+      "kind": "test",
+      "rust_case": "http_surface::StreamErrorCarriesDebugRef",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 14
+    },
+    {
+      "file": "internal/app/app_test.go",
+      "function": "StreamImmediateErrorReturnsHTTPStatus",
+      "kind": "test",
+      "rust_case": "http_surface::StreamImmediateErrorReturnsHTTPStatus",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 14
+    },
+    {
+      "file": "internal/app/app_test.go",
+      "function": "StreamKeepsAliveDuringUpstreamSilence",
+      "kind": "test",
+      "rust_case": "http_surface::StreamKeepsAliveDuringUpstreamSilence",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 14
+    },
+    {
+      "file": "internal/app/app_test.go",
+      "function": "StreamMidStreamErrorCarriesHTTPStatus",
+      "kind": "test",
+      "rust_case": "http_surface::StreamMidStreamErrorCarriesHTTPStatus",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 14
+    },
+    {
+      "file": "internal/app/app_test.go",
+      "function": "StreamPromptTooLongDeliversSSE413",
+      "kind": "test",
+      "rust_case": "http_surface::StreamPromptTooLongDeliversSSE413",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 14
+    },
+    {
+      "file": "internal/app/app_test.go",
+      "function": "StreamRateLimitAnthropicKeepsHTTPStatus",
+      "kind": "test",
+      "rust_case": "http_surface::StreamRateLimitAnthropicKeepsHTTPStatus",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 14
+    },
+    {
+      "file": "internal/app/app_test.go",
+      "function": "StreamRateLimitDeliversSSE429",
+      "kind": "test",
+      "rust_case": "http_surface::StreamRateLimitDeliversSSE429",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 14
+    },
+    {
+      "file": "internal/app/app_websocket_test.go",
+      "function": "WebSocketConcurrencySlotIsPerTurn",
+      "kind": "test",
+      "rust_case": "websocket_surface::inference_limit_is_per_turn_not_per_idle_connection",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 15
+    },
+    {
+      "file": "internal/app/app_websocket_test.go",
+      "function": "WebSocketConnectionLimit",
+      "kind": "test",
+      "rust_case": "websocket_surface::first_message_idle_ping_and_write_budgets_match_go",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 15
+    },
+    {
+      "file": "internal/app/app_websocket_test.go",
+      "function": "WebSocketErrorTaxonomy",
+      "kind": "test",
+      "rust_case": "websocket_surface::malformed_messages_are_errors_without_closing_the_socket",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 15
+    },
+    {
+      "file": "internal/app/app_websocket_test.go",
+      "function": "WebSocketFailedResponseKeepsConnection",
+      "kind": "test",
+      "rust_case": "websocket_surface::failed_turn_does_not_advance_previous_response_id",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 15
+    },
+    {
+      "file": "internal/app/app_websocket_test.go",
+      "function": "WebSocketInboundQueueByteLimit",
+      "kind": "test",
+      "rust_case": "websocket_surface::inbound_queue_limit_closes_1009_with_exact_reason",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 15
+    },
+    {
+      "file": "internal/app/app_websocket_test.go",
+      "function": "WebSocketInterruptedTurnReplaysReplacement",
+      "kind": "test",
+      "rust_case": "websocket_surface::interrupted_turn_requires_full_replacement_replay",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 15
+    },
+    {
+      "file": "internal/app/app_websocket_test.go",
+      "function": "WebSocketMultiTurnMerge",
+      "kind": "test",
+      "rust_case": "websocket_surface::streams_two_serial_turns_and_replays_previous_output",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 15
+    },
+    {
+      "file": "internal/app/app_websocket_test.go",
+      "function": "WebSocketNoUpgradeRejected",
+      "kind": "test",
+      "rust_case": "websocket_surface::non_upgrade_get_is_405_with_post_allow",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 15
+    },
+    {
+      "file": "internal/app/app_websocket_test.go",
+      "function": "WebSocketPendingToolCall",
+      "kind": "test",
+      "rust_case": "websocket_surface::pending_tool_call_requires_output_then_replays_it",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 15
+    },
+    {
+      "file": "internal/app/app_websocket_test.go",
+      "function": "WebSocketPreviousResponseMismatch",
+      "kind": "test",
+      "rust_case": "websocket_surface::previous_response_mismatch_is_exact_and_connection_survives",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 15
+    },
+    {
+      "file": "internal/app/app_websocket_test.go",
+      "function": "WebSocketPrewarm",
+      "kind": "test",
+      "rust_case": "websocket_surface::prewarm_is_local_and_its_response_id_can_be_replayed",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 15
+    },
+    {
+      "file": "internal/app/bench_perf_test.go",
+      "function": "AppendSSE",
+      "kind": "benchmark",
+      "rust_case": "",
+      "disposition": "intentional_deviation",
+      "reason": "Performance-only Go benchmark; executable paired Rust/Go benchmark coverage is owned by task 24 and is not a functional parity assertion.",
+      "owner_task": 24
+    },
+    {
+      "file": "internal/app/bench_perf_test.go",
+      "function": "StreamEndToEnd",
+      "kind": "benchmark",
+      "rust_case": "",
+      "disposition": "intentional_deviation",
+      "reason": "Performance-only Go benchmark; executable paired Rust/Go benchmark coverage is owned by task 24 and is not a functional parity assertion.",
+      "owner_task": 24
+    },
+    {
+      "file": "internal/app/bench_perf_test.go",
+      "function": "StreamEndToEndDebugLog",
+      "kind": "benchmark",
+      "rust_case": "",
+      "disposition": "intentional_deviation",
+      "reason": "Performance-only Go benchmark; executable paired Rust/Go benchmark coverage is owned by task 24 and is not a functional parity assertion.",
+      "owner_task": 24
+    },
+    {
+      "file": "internal/app/bench_perf_test.go",
+      "function": "WSNormalizeTurn",
+      "kind": "benchmark",
+      "rust_case": "",
+      "disposition": "intentional_deviation",
+      "reason": "Performance-only Go benchmark; executable paired Rust/Go benchmark coverage is owned by task 24 and is not a functional parity assertion.",
+      "owner_task": 24
+    },
+    {
+      "file": "internal/app/bench_perf_test.go",
+      "function": "WSWriteFrame",
+      "kind": "benchmark",
+      "rust_case": "",
+      "disposition": "intentional_deviation",
+      "reason": "Performance-only Go benchmark; executable paired Rust/Go benchmark coverage is owned by task 24 and is not a functional parity assertion.",
+      "owner_task": 24
+    },
+    {
+      "file": "internal/config/config_test.go",
+      "function": "LoadDisablesDebugLoggingByDefault",
+      "kind": "test",
+      "rust_case": "config_contract::load_disables_debug_logging_by_default",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 4
+    },
+    {
+      "file": "internal/config/config_test.go",
+      "function": "LoadEnablesDebugLoggingExplicitly",
+      "kind": "test",
+      "rust_case": "config_contract::load_enables_debug_logging_explicitly",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 4
+    },
+    {
+      "file": "internal/config/config_test.go",
+      "function": "LoadParsesAuthAPIKey",
+      "kind": "test",
+      "rust_case": "config_contract::load_parses_auth_api_key",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 4
+    },
+    {
+      "file": "internal/config/config_test.go",
+      "function": "LoadParsesListenAddress",
+      "kind": "test",
+      "rust_case": "config_contract::load_parses_listen_address",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 4
+    },
+    {
+      "file": "internal/config/config_test.go",
+      "function": "LoadRejectsUnknownFields",
+      "kind": "test",
+      "rust_case": "config_contract::load_rejects_unknown_fields",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 4
+    },
+    {
+      "file": "internal/config/config_test.go",
+      "function": "NormalizeAliases",
+      "kind": "test",
+      "rust_case": "config_contract::normalize_aliases_contract",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 4
+    },
+    {
+      "file": "internal/config/config_test.go",
+      "function": "ResolveConfigPath",
+      "kind": "test",
+      "rust_case": "config_contract::resolve_config_path_precedence",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 4
+    },
+    {
+      "file": "internal/config/config_test.go",
+      "function": "ResolveStateDir",
+      "kind": "test",
+      "rust_case": "config_contract::resolve_state_dir_precedence",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 4
+    },
+    {
+      "file": "internal/dashboard/handler_test.go",
+      "function": "BearerFailureSharesLoginLedger",
+      "kind": "test",
+      "rust_case": "dashboard_api::authentication_cookie_bearer_and_shared_lockout_match_panel_contract",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 17
+    },
+    {
+      "file": "internal/dashboard/handler_test.go",
+      "function": "LoginFailureSweep",
+      "kind": "test",
+      "rust_case": "dashboard_api::authentication_cookie_bearer_and_shared_lockout_match_panel_contract",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 17
+    },
+    {
+      "file": "internal/dashboard/handler_test.go",
+      "function": "PanelExportTruncatedHeader",
+      "kind": "test",
+      "rust_case": "dashboard_api::every_admin_route_and_history_behavior_is_wired",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 17
+    },
+    {
+      "file": "internal/dashboard/handler_test.go",
+      "function": "PanelRequestsEndpoints",
+      "kind": "test",
+      "rust_case": "dashboard_api::every_admin_route_and_history_behavior_is_wired",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 17
+    },
+    {
+      "file": "internal/dashboard/helpers_test.go",
+      "function": "MaskTokenEscapedForms",
+      "kind": "test",
+      "rust_case": "dashboard_api::every_admin_route_and_history_behavior_is_wired",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 17
+    },
+    {
+      "file": "internal/dashboard/merge_test.go",
+      "function": "MergeChatChunks",
+      "kind": "test",
+      "rust_case": "dashboard_api::every_admin_route_and_history_behavior_is_wired",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 17
+    },
+    {
+      "file": "internal/dashboard/merge_test.go",
+      "function": "MergeResponsesAndAnthropic",
+      "kind": "test",
+      "rust_case": "dashboard_api::every_admin_route_and_history_behavior_is_wired",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 17
+    },
+    {
+      "file": "internal/dashboard/quota_test.go",
+      "function": "ForecastBurnRate",
+      "kind": "test",
+      "rust_case": "dashboard_api::seat_top_up_root_plan_info_and_quota_projection_match_go",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 17
+    },
+    {
+      "file": "internal/dashboard/quota_test.go",
+      "function": "ForecastSurvivesUntilReset",
+      "kind": "test",
+      "rust_case": "dashboard_api::seat_top_up_root_plan_info_and_quota_projection_match_go",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 17
+    },
+    {
+      "file": "internal/dashboard/quota_test.go",
+      "function": "ForecastTooFewPoints",
+      "kind": "test",
+      "rust_case": "dashboard_api::seat_top_up_root_plan_info_and_quota_projection_match_go",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 17
+    },
+    {
+      "file": "internal/dashboard/quota_test.go",
+      "function": "QuotaFileRoundTrip",
+      "kind": "test",
+      "rust_case": "dashboard_api::seat_top_up_root_plan_info_and_quota_projection_match_go",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 17
+    },
+    {
+      "file": "internal/dashboard/quota_test.go",
+      "function": "QuotaPointGraceAndTopUpFields",
+      "kind": "test",
+      "rust_case": "dashboard_api::seat_top_up_root_plan_info_and_quota_projection_match_go",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 17
+    },
+    {
+      "file": "internal/debuglog/index_test.go",
+      "function": "IndexFileCapTruncates",
+      "kind": "test",
+      "rust_case": "debuglog_compat::IndexFileCapTruncates",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 13
+    },
+    {
+      "file": "internal/debuglog/recorder_test.go",
+      "function": "ActiveRequestsSnapshot",
+      "kind": "test",
+      "rust_case": "debuglog_compat::ActiveRequestsSnapshot",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 13
+    },
+    {
+      "file": "internal/debuglog/recorder_test.go",
+      "function": "CleanerRemovesExpiredDirs",
+      "kind": "test",
+      "rust_case": "debuglog_compat::CleanerRemovesExpiredDirs",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 13
+    },
+    {
+      "file": "internal/debuglog/recorder_test.go",
+      "function": "DroppedCounterOnClosedQueue",
+      "kind": "test",
+      "rust_case": "debuglog_compat::DroppedCounterOnClosedQueue",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 13
+    },
+    {
+      "file": "internal/debuglog/recorder_test.go",
+      "function": "DroppedCounterOnFullQueue",
+      "kind": "test",
+      "rust_case": "debuglog_compat::DroppedCounterOnFullQueue",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 13
+    },
+    {
+      "file": "internal/debuglog/recorder_test.go",
+      "function": "IOErrorsCountedOncePerKind",
+      "kind": "test",
+      "rust_case": "debuglog_compat::IOErrorsCountedOncePerKind",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 13
+    },
+    {
+      "file": "internal/debuglog/recorder_test.go",
+      "function": "IndexWrittenOnComplete",
+      "kind": "test",
+      "rust_case": "debuglog_compat::IndexWrittenOnComplete",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 13
+    },
+    {
+      "file": "internal/debuglog/recorder_test.go",
+      "function": "ManagerAllocatesCollisionSuffix",
+      "kind": "test",
+      "rust_case": "debuglog_compat::ManagerAllocatesCollisionSuffix",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 13
+    },
+    {
+      "file": "internal/debuglog/recorder_test.go",
+      "function": "ReaderListDetailAndFiles",
+      "kind": "test",
+      "rust_case": "debuglog_compat::ReaderListDetailAndFiles",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 13
+    },
+    {
+      "file": "internal/debuglog/recorder_test.go",
+      "function": "ReaderRejectsTraversal",
+      "kind": "test",
+      "rust_case": "debuglog_compat::ReaderRejectsTraversal",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 13
+    },
+    {
+      "file": "internal/debuglog/recorder_test.go",
+      "function": "RecorderWritesRedactedStagesAndAttachments",
+      "kind": "test",
+      "rust_case": "debuglog_compat::RecorderWritesRedactedStagesAndAttachments",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 13
+    },
+    {
+      "file": "internal/debuglog/recorder_test.go",
+      "function": "SameSecondSuffixBeyondPattern",
+      "kind": "test",
+      "rust_case": "debuglog_compat::SameSecondSuffixBeyondPattern",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 13
+    },
+    {
+      "file": "internal/debuglog/recorder_test.go",
+      "function": "SanitizeEscapedAndHyphenatedKeys",
+      "kind": "test",
+      "rust_case": "debuglog_compat::SanitizeEscapedAndHyphenatedKeys",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 13
+    },
+    {
+      "file": "internal/debuglog/recorder_test.go",
+      "function": "WriteErrorKeepsFirstCause",
+      "kind": "test",
+      "rust_case": "debuglog_compat::WriteErrorKeepsFirstCause",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 13
+    },
+    {
+      "file": "internal/debuglog/usage_test.go",
+      "function": "AbortActiveRequest",
+      "kind": "test",
+      "rust_case": "debuglog_compat::AbortActiveRequest",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 13
+    },
+    {
+      "file": "internal/debuglog/usage_test.go",
+      "function": "ErrorOwnerAndSLA",
+      "kind": "test",
+      "rust_case": "debuglog_compat::ErrorOwnerAndSLA",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 13
+    },
+    {
+      "file": "internal/debuglog/usage_test.go",
+      "function": "IndexSnapshottedGate",
+      "kind": "test",
+      "rust_case": "debuglog_compat::IndexSnapshottedGate",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 13
+    },
+    {
+      "file": "internal/debuglog/usage_test.go",
+      "function": "LayeredRetention",
+      "kind": "test",
+      "rust_case": "debuglog_compat::LayeredRetention",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 13
+    },
+    {
+      "file": "internal/debuglog/usage_test.go",
+      "function": "RequestFilters",
+      "kind": "test",
+      "rust_case": "debuglog_compat::RequestFilters",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 13
+    },
+    {
+      "file": "internal/debuglog/usage_test.go",
+      "function": "RetentionAgesByDirName",
+      "kind": "test",
+      "rust_case": "debuglog_compat::RetentionAgesByDirName",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 13
+    },
+    {
+      "file": "internal/debuglog/usage_test.go",
+      "function": "RetryAttemptsInIndex",
+      "kind": "test",
+      "rust_case": "debuglog_compat::RetryAttemptsInIndex",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 13
+    },
+    {
+      "file": "internal/debuglog/usage_test.go",
+      "function": "SetEnabledHotToggle",
+      "kind": "test",
+      "rust_case": "debuglog_compat::SetEnabledHotToggle",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 13
+    },
+    {
+      "file": "internal/debuglog/usage_test.go",
+      "function": "UsageAggregatorCounts",
+      "kind": "test",
+      "rust_case": "debuglog_compat::UsageAggregatorCounts",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 13
+    },
+    {
+      "file": "internal/debuglog/usage_test.go",
+      "function": "UsageMinBucketWraparound",
+      "kind": "test",
+      "rust_case": "debuglog_compat::UsageMinBucketWraparound",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 13
+    },
+    {
+      "file": "internal/debuglog/usage_test.go",
+      "function": "UsagePercentiles",
+      "kind": "test",
+      "rust_case": "debuglog_compat::UsagePercentiles",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 13
+    },
+    {
+      "file": "internal/debuglog/usage_test.go",
+      "function": "UsageRateLimitSampling",
+      "kind": "test",
+      "rust_case": "debuglog_compat::UsageRateLimitSampling",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 13
+    },
+    {
+      "file": "internal/debuglog/usage_test.go",
+      "function": "UsageReplayCountsOnce",
+      "kind": "test",
+      "rust_case": "debuglog_compat::UsageReplayCountsOnce",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 13
+    },
+    {
+      "file": "internal/debuglog/usage_test.go",
+      "function": "UsageReplayOnRestart",
+      "kind": "test",
+      "rust_case": "debuglog_compat::UsageReplayOnRestart",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 13
+    },
+    {
+      "file": "internal/llm/failure_test.go",
+      "function": "ClassifyConnectError",
+      "kind": "test",
+      "rust_case": "input_protocols::classify_connect_error",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 5
+    },
+    {
+      "file": "internal/llm/failure_test.go",
+      "function": "ClassifyTextCodePrefix",
+      "kind": "test",
+      "rust_case": "input_protocols::classify_text_code_prefix",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 5
+    },
+    {
+      "file": "internal/llm/failure_test.go",
+      "function": "ClassifyTypedFailure",
+      "kind": "test",
+      "rust_case": "input_protocols::classify_typed_failure",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 5
+    },
+    {
+      "file": "internal/llm/failure_test.go",
+      "function": "RateLimitResetZero",
+      "kind": "test",
+      "rust_case": "input_protocols::rate_limit_reset_zero",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 5
+    },
+    {
+      "file": "internal/llm/failure_test.go",
+      "function": "RetryAfterSeconds",
+      "kind": "test",
+      "rust_case": "input_protocols::retry_after_seconds",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 5
+    },
+    {
+      "file": "internal/llm/failure_test.go",
+      "function": "UpstreamFault",
+      "kind": "test",
+      "rust_case": "input_protocols::upstream_fault",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 5
+    },
+    {
+      "file": "internal/llm/failure_test.go",
+      "function": "UpstreamTraceID",
+      "kind": "test",
+      "rust_case": "input_protocols::upstream_trace_id",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 5
+    },
+    {
+      "file": "internal/llm/request_test.go",
+      "function": "DemoteOrphanToolResults",
+      "kind": "test",
+      "rust_case": "input_protocols::demote_orphan_tool_results",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 5
+    },
+    {
+      "file": "internal/llm/request_test.go",
+      "function": "MergeAdjacentAssistantTurns",
+      "kind": "test",
+      "rust_case": "input_protocols::merge_adjacent_assistant_turns",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 5
+    },
+    {
+      "file": "internal/llm/request_test.go",
+      "function": "RequestMessagesRejectsInvalidToolArguments",
+      "kind": "test",
+      "rust_case": "input_protocols::request_messages_rejects_invalid_tool_arguments",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 5
+    },
+    {
+      "file": "internal/llm/request_test.go",
+      "function": "RequestMessagesSupportsProviderIndependentHistory",
+      "kind": "test",
+      "rust_case": "input_protocols::request_messages_supports_provider_independent_history",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 5
+    },
+    {
+      "file": "internal/llm/response_test.go",
+      "function": "ResponseEventAllowsEmptyToolCallDelta",
+      "kind": "test",
+      "rust_case": "input_protocols::response_event_allows_empty_tool_call_delta",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 5
+    },
+    {
+      "file": "internal/llm/response_test.go",
+      "function": "ResponseEventProtocolCarriesPartialUsageAndFinalMessage",
+      "kind": "test",
+      "rust_case": "input_protocols::response_event_protocol_carries_partial_usage_and_final_message",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 5
+    },
+    {
+      "file": "internal/llm/response_test.go",
+      "function": "ResponseEventRejectsDoneWithoutFinalMessage",
+      "kind": "test",
+      "rust_case": "input_protocols::response_event_rejects_done_without_final_message",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 5
+    },
+    {
+      "file": "internal/llm/response_test.go",
+      "function": "ResponseEventRejectsToolCallDeltaWithoutID",
+      "kind": "test",
+      "rust_case": "input_protocols::response_event_rejects_tool_call_delta_without_id",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 5
+    },
+    {
+      "file": "internal/obs/metrics_test.go",
+      "function": "DiagnosticBoundsAndRedacts",
+      "kind": "test",
+      "rust_case": "diagnostics::diagnostics_expose_instrumented_tasks_waits_and_spans",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 16
+    },
+    {
+      "file": "internal/obs/metrics_test.go",
+      "function": "MetricsLifecycle",
+      "kind": "test",
+      "rust_case": "diagnostics::lifecycle_rates_reject_ring_and_process_values_are_truthful",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 16
+    },
+    {
+      "file": "internal/obs/metrics_test.go",
+      "function": "ProcessMetrics",
+      "kind": "test",
+      "rust_case": "diagnostics::lifecycle_rates_reject_ring_and_process_values_are_truthful",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 16
+    },
+    {
+      "file": "internal/obs/metrics_test.go",
+      "function": "RatesDerived",
+      "kind": "test",
+      "rust_case": "diagnostics::lifecycle_rates_reject_ring_and_process_values_are_truthful",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 16
+    },
+    {
+      "file": "internal/obs/metrics_test.go",
+      "function": "TrendBuckets",
+      "kind": "test",
+      "rust_case": "diagnostics::trend_bucket_rollover_uses_the_injected_clock",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 16
+    },
+    {
+      "file": "internal/upstream/upstream_test.go",
+      "function": "BasicAuthTransportFuncRefreshesPerRequest",
+      "kind": "test",
+      "rust_case": "transport_interop::per_attempt_token_refresh_and_bearer_passthrough",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 6
+    },
+    {
+      "file": "internal/upstream/upstream_test.go",
+      "function": "BasicAuthTransportPreservesExistingAuthorization",
+      "kind": "test",
+      "rust_case": "transport_interop::per_attempt_token_refresh_and_bearer_passthrough",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 6
+    },
+    {
+      "file": "internal/upstream/upstream_test.go",
+      "function": "BasicAuthTransportSuppressesUserAgent",
+      "kind": "test",
+      "rust_case": "transport_interop::per_attempt_token_refresh_and_bearer_passthrough",
+      "disposition": "rust_test",
+      "reason": "",
+      "owner_task": 6
+    }
+  ]
+}

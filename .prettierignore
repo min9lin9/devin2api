@@ -1,0 +1,10 @@
+target/
+target-*/
+logs/
+outputs/
+dist/
+test-results/
+tmp/
+notes/
+node_modules/
+package-lock.json

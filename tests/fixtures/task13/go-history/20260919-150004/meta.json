@@ -1,0 +1,18 @@
+{
+  "api": "openai-responses",
+  "client": {
+    "ip": "10.0.0.3"
+  },
+  "duration_ms": 2337314,
+  "finished_at": "2026-09-19T15:39:01.314824829Z",
+  "method": "POST",
+  "model": "",
+  "path": "/v1/responses",
+  "provider": "",
+  "request_ready_ms": 2337314,
+  "requested_model": "swe-2",
+  "result": "disconnected",
+  "started_at": "2026-09-19T15:00:04Z",
+  "status_code": 499,
+  "stream": true
+}

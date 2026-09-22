@@ -1,0 +1,30 @@
+name: Setup Rust
+description: >-
+  Install the pinned rust-toolchain.toml toolchain (rustfmt + clippy
+  components), optionally add cross targets, and cache cargo artifacts.
+inputs:
+  targets:
+    description: Extra rustup targets to install (comma-separated)
+    required: false
+    default: ""
+runs:
+  using: composite
+  steps:
+    # rustup 1.28+ auto-installs the toolchain named by rust-toolchain.toml
+    # (channel 1.98.1 + rustfmt/clippy components) on first invocation;
+    # `rustup show` forces that resolution up front so failures surface here.
+    - name: Install pinned toolchain
+      shell: bash
+      run: rustup show
+
+    - name: Add cross targets
+      if: ${{ inputs.targets != '' }}
+      shell: bash
+      run: rustup target add '${{ inputs.targets }}'
+
+    - name: Cache cargo artifacts
+      uses: swatinem/rust-cache@v2
+
+    - name: Verify toolchain
+      shell: bash
+      run: rustc -vV && cargo --version

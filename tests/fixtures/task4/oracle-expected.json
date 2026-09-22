@@ -1,0 +1,3495 @@
+{
+  "credentials": [
+    {
+      "token": "tok123"
+    },
+    {
+      "token": "tok"
+    },
+    {
+      "token": "a"
+    },
+    {
+      "token": "v"
+    },
+    {
+      "token": "v"
+    },
+    {
+      "token": "a\nb"
+    },
+    {
+      "token": "a"
+    },
+    {
+      "token": "a"
+    },
+    {
+      "token": null
+    },
+    {
+      "token": null
+    },
+    {
+      "token": null
+    },
+    {
+      "token": null
+    },
+    {
+      "token": "real"
+    },
+    {
+      "token": null
+    },
+    {
+      "token": null
+    },
+    {
+      "token": null
+    },
+    {
+      "token": null
+    },
+    {
+      "token": "v"
+    },
+    {
+      "token": "v"
+    },
+    {
+      "token": "tabbed"
+    },
+    {
+      "token": "v1"
+    },
+    {
+      "token": "v"
+    },
+    {
+      "token": "v"
+    },
+    {
+      "token": "v"
+    },
+    {
+      "token": "v"
+    },
+    {
+      "token": "v"
+    },
+    {
+      "token": "v"
+    },
+    {
+      "token": null
+    },
+    {
+      "token": ""
+    },
+    {
+      "token": ""
+    },
+    {
+      "token": "v v"
+    },
+    {
+      "token": "v\tv"
+    },
+    {
+      "token": "v\nv"
+    },
+    {
+      "token": "v\rv"
+    },
+    {
+      "token": "v\fv"
+    },
+    {
+      "token": "v\u000bv"
+    },
+    {
+      "token": "v\\"
+    },
+    {
+      "token": "v'v"
+    },
+    {
+      "token": "v=v"
+    },
+    {
+      "token": "v=v"
+    },
+    {
+      "token": "v"
+    },
+    {
+      "token": "v"
+    },
+    {
+      "token": "v"
+    },
+    {
+      "token": "v"
+    },
+    {
+      "token": "v"
+    },
+    {
+      "token": "v"
+    },
+    {
+      "token": "v"
+    },
+    {
+      "token": "v"
+    },
+    {
+      "token": "v"
+    },
+    {
+      "token": "v"
+    },
+    {
+      "token": "v"
+    },
+    {
+      "token": "v"
+    },
+    {
+      "token": "v"
+    },
+    {
+      "token": "v"
+    },
+    {
+      "token": "v"
+    },
+    {
+      "token": "v"
+    },
+    {
+      "token": "v"
+    },
+    {
+      "token": "v"
+    },
+    {
+      "token": "v"
+    },
+    {
+      "token": "v"
+    }
+  ],
+  "flags": [
+    {
+      "config": "a.yaml",
+      "error": "",
+      "rest": [],
+      "state_dir": "",
+      "version": false
+    },
+    {
+      "config": "b.yaml",
+      "error": "",
+      "rest": [],
+      "state_dir": "",
+      "version": false
+    },
+    {
+      "config": "",
+      "error": "",
+      "rest": [],
+      "state_dir": "",
+      "version": false
+    },
+    {
+      "config": "",
+      "error": "",
+      "rest": [],
+      "state_dir": "",
+      "version": false
+    },
+    {
+      "config": "",
+      "error": "",
+      "rest": [],
+      "state_dir": "/s",
+      "version": false
+    },
+    {
+      "config": "",
+      "error": "",
+      "rest": [],
+      "state_dir": "/s",
+      "version": false
+    },
+    {
+      "config": "",
+      "error": "",
+      "rest": [],
+      "state_dir": "",
+      "version": true
+    },
+    {
+      "config": "",
+      "error": "",
+      "rest": [],
+      "state_dir": "",
+      "version": false
+    },
+    {
+      "config": "",
+      "error": "",
+      "rest": [
+        "false",
+        "-config",
+        "x"
+      ],
+      "state_dir": "",
+      "version": true
+    },
+    {
+      "config": "a",
+      "error": "",
+      "rest": [
+        "-version"
+      ],
+      "state_dir": "",
+      "version": false
+    },
+    {
+      "config": "",
+      "error": "flag provided but not defined: -bogus",
+      "rest": [],
+      "state_dir": "",
+      "version": false
+    },
+    {
+      "config": "",
+      "error": "flag needs an argument: -config",
+      "rest": [],
+      "state_dir": "",
+      "version": false
+    },
+    {
+      "config": "",
+      "error": "bad flag syntax: ---x",
+      "rest": [
+        "---x"
+      ],
+      "state_dir": "",
+      "version": false
+    },
+    {
+      "config": "",
+      "error": "invalid boolean value \"maybe\" for -version: parse error",
+      "rest": [],
+      "state_dir": "",
+      "version": false
+    },
+    {
+      "config": "",
+      "error": "flag: help requested",
+      "rest": [],
+      "state_dir": "",
+      "version": false
+    },
+    {
+      "config": "",
+      "error": "flag: help requested",
+      "rest": [],
+      "state_dir": "",
+      "version": false
+    },
+    {
+      "config": "",
+      "error": "flag: help requested",
+      "rest": [],
+      "state_dir": "",
+      "version": false
+    },
+    {
+      "config": "",
+      "error": "",
+      "rest": [
+        "-"
+      ],
+      "state_dir": "",
+      "version": false
+    },
+    {
+      "config": "",
+      "error": "",
+      "rest": [],
+      "state_dir": "",
+      "version": false
+    },
+    {
+      "config": "-version",
+      "error": "",
+      "rest": [],
+      "state_dir": "",
+      "version": false
+    },
+    {
+      "config": "b",
+      "error": "",
+      "rest": [],
+      "state_dir": "",
+      "version": false
+    },
+    {
+      "config": "",
+      "error": "",
+      "rest": [],
+      "state_dir": "",
+      "version": false
+    },
+    {
+      "config": "",
+      "error": "",
+      "rest": [],
+      "state_dir": "",
+      "version": true
+    },
+    {
+      "config": "a",
+      "error": "",
+      "rest": [
+        "pos1",
+        "-version"
+      ],
+      "state_dir": "",
+      "version": false
+    },
+    {
+      "config": "",
+      "error": "",
+      "rest": [
+        "pos1"
+      ],
+      "state_dir": "",
+      "version": false
+    },
+    {
+      "config": "a",
+      "error": "",
+      "rest": [
+        "p1",
+        "p2"
+      ],
+      "state_dir": "",
+      "version": false
+    },
+    {
+      "config": "a",
+      "error": "",
+      "rest": [
+        "rest"
+      ],
+      "state_dir": "/s",
+      "version": true
+    },
+    {
+      "config": "a",
+      "error": "flag provided but not defined: -unknown",
+      "rest": [
+        "x"
+      ],
+      "state_dir": "",
+      "version": false
+    },
+    {
+      "config": "",
+      "error": "",
+      "rest": [],
+      "state_dir": "",
+      "version": true
+    },
+    {
+      "config": "",
+      "error": "",
+      "rest": [],
+      "state_dir": "",
+      "version": true
+    },
+    {
+      "config": "",
+      "error": "",
+      "rest": [],
+      "state_dir": "",
+      "version": false
+    },
+    {
+      "config": "",
+      "error": "",
+      "rest": [],
+      "state_dir": "",
+      "version": true
+    },
+    {
+      "config": "",
+      "error": "",
+      "rest": [],
+      "state_dir": "",
+      "version": true
+    },
+    {
+      "config": "",
+      "error": "",
+      "rest": [],
+      "state_dir": "",
+      "version": true
+    },
+    {
+      "config": "",
+      "error": "",
+      "rest": [],
+      "state_dir": "",
+      "version": true
+    },
+    {
+      "config": "",
+      "error": "",
+      "rest": [],
+      "state_dir": "",
+      "version": false
+    },
+    {
+      "config": "",
+      "error": "",
+      "rest": [],
+      "state_dir": "",
+      "version": false
+    },
+    {
+      "config": "",
+      "error": "",
+      "rest": [],
+      "state_dir": "",
+      "version": false
+    },
+    {
+      "config": "",
+      "error": "",
+      "rest": [],
+      "state_dir": "",
+      "version": false
+    },
+    {
+      "config": "",
+      "error": "invalid boolean value \"yes\" for -version: parse error",
+      "rest": [],
+      "state_dir": "",
+      "version": false
+    },
+    {
+      "config": "",
+      "error": "invalid boolean value \"no\" for -version: parse error",
+      "rest": [],
+      "state_dir": "",
+      "version": false
+    },
+    {
+      "config": "",
+      "error": "invalid boolean value \"\" for -version: parse error",
+      "rest": [],
+      "state_dir": "",
+      "version": false
+    },
+    {
+      "config": "a",
+      "error": "",
+      "rest": [
+        "extra",
+        "args"
+      ],
+      "state_dir": "",
+      "version": true
+    },
+    {
+      "config": "b",
+      "error": "",
+      "rest": [],
+      "state_dir": "",
+      "version": false
+    },
+    {
+      "config": "b",
+      "error": "",
+      "rest": [],
+      "state_dir": "",
+      "version": false
+    },
+    {
+      "config": "",
+      "error": "",
+      "rest": [],
+      "state_dir": "b",
+      "version": false
+    },
+    {
+      "config": "a",
+      "error": "flag: help requested",
+      "rest": [],
+      "state_dir": "",
+      "version": false
+    },
+    {
+      "config": "a",
+      "error": "flag: help requested",
+      "rest": [],
+      "state_dir": "",
+      "version": false
+    },
+    {
+      "config": "a",
+      "error": "flag: help requested",
+      "rest": [],
+      "state_dir": "",
+      "version": false
+    },
+    {
+      "config": "a",
+      "error": "flag: help requested",
+      "rest": [
+        "x"
+      ],
+      "state_dir": "",
+      "version": false
+    },
+    {
+      "config": "a",
+      "error": "flag: help requested",
+      "rest": [
+        "x"
+      ],
+      "state_dir": "",
+      "version": false
+    },
+    {
+      "config": "a",
+      "error": "flag: help requested",
+      "rest": [
+        "x"
+      ],
+      "state_dir": "",
+      "version": false
+    },
+    {
+      "config": "a",
+      "error": "flag: help requested",
+      "rest": [],
+      "state_dir": "",
+      "version": true
+    },
+    {
+      "config": "a",
+      "error": "flag: help requested",
+      "rest": [],
+      "state_dir": "",
+      "version": true
+    },
+    {
+      "config": "a",
+      "error": "flag: help requested",
+      "rest": [],
+      "state_dir": "",
+      "version": true
+    },
+    {
+      "config": "a",
+      "error": "flag: help requested",
+      "rest": [
+        "x"
+      ],
+      "state_dir": "",
+      "version": true
+    },
+    {
+      "config": "a",
+      "error": "flag: help requested",
+      "rest": [
+        "x"
+      ],
+      "state_dir": "",
+      "version": true
+    },
+    {
+      "config": "a",
+      "error": "flag: help requested",
+      "rest": [
+        "x"
+      ],
+      "state_dir": "",
+      "version": true
+    },
+    {
+      "config": "a",
+      "error": "flag provided but not defined: -bogus",
+      "rest": [],
+      "state_dir": "",
+      "version": true
+    },
+    {
+      "config": "a",
+      "error": "flag provided but not defined: -bogus",
+      "rest": [],
+      "state_dir": "",
+      "version": true
+    },
+    {
+      "config": "a",
+      "error": "flag provided but not defined: -bogus",
+      "rest": [
+        "x"
+      ],
+      "state_dir": "",
+      "version": true
+    },
+    {
+      "config": "a",
+      "error": "flag provided but not defined: -bogus",
+      "rest": [
+        "x"
+      ],
+      "state_dir": "",
+      "version": true
+    },
+    {
+      "config": "a",
+      "error": "flag provided but not defined: -bogus",
+      "rest": [],
+      "state_dir": "",
+      "version": true
+    },
+    {
+      "config": "a",
+      "error": "flag provided but not defined: -bogus",
+      "rest": [],
+      "state_dir": "",
+      "version": true
+    },
+    {
+      "config": "a",
+      "error": "flag provided but not defined: -bogus",
+      "rest": [
+        "x",
+        "y"
+      ],
+      "state_dir": "",
+      "version": true
+    },
+    {
+      "config": "a",
+      "error": "flag provided but not defined: -bogus",
+      "rest": [
+        "x",
+        "y"
+      ],
+      "state_dir": "",
+      "version": true
+    },
+    {
+      "config": "a",
+      "error": "flag provided but not defined: -bogus",
+      "rest": [
+        "y"
+      ],
+      "state_dir": "",
+      "version": true
+    },
+    {
+      "config": "a",
+      "error": "flag provided but not defined: -bogus",
+      "rest": [
+        "y"
+      ],
+      "state_dir": "",
+      "version": true
+    },
+    {
+      "config": "a",
+      "error": "flag provided but not defined: -bogus",
+      "rest": [
+        "x",
+        "y",
+        "z"
+      ],
+      "state_dir": "",
+      "version": true
+    },
+    {
+      "config": "a",
+      "error": "flag provided but not defined: -bogus",
+      "rest": [
+        "x",
+        "y",
+        "z"
+      ],
+      "state_dir": "",
+      "version": true
+    },
+    {
+      "config": "a",
+      "error": "flag provided but not defined: -bogus",
+      "rest": [
+        "y",
+        "z"
+      ],
+      "state_dir": "",
+      "version": true
+    },
+    {
+      "config": "a",
+      "error": "flag provided but not defined: -bogus",
+      "rest": [
+        "y",
+        "z"
+      ],
+      "state_dir": "",
+      "version": true
+    }
+  ],
+  "proxy": [
+    "http://proxy.local:8080",
+    "http://proxy.local:8080/path?q=1#frag",
+    "socks5://127.0.0.1:1080",
+    "socks5h://h",
+    "http://u:p@h|x",
+    "http://u:p@h{",
+    "http://u:p@h:abc",
+    "http://u:p@h:8080x",
+    "http://h:99999",
+    "http://h:",
+    "http:",
+    "http://h",
+    "http://h",
+    "http://u:p@h/%zz",
+    "http://h/%41",
+    "http://h/a%20b",
+    "http://h/a%2fb",
+    "http://h/a%2Fb",
+    "http://h/a[b]",
+    "http://h?",
+    "http://h?x=1",
+    "http://h#f",
+    "http://h",
+    "http://h/a#f%20g",
+    "http://H",
+    "http://[::1]:8080",
+    "http://u:p@[::1",
+    "http://u:p@[::1]x",
+    "http://u:p@[::1]:x",
+    "http://u:p@[1.2.3.4]",
+    "http://[::ffff:1.2.3.4]",
+    "http://[fe80::1%25eth0]",
+    "http://u:p@[fe80::1%eth0]",
+    "http://u:p@a:b:c",
+    "socks5://u:p@a:b:c",
+    "http://u:p@a:1:2",
+    "socks5://a:1:2",
+    "//h",
+    "u:p@h",
+    "http://h:8080/",
+    "http://h//double",
+    "http://h/%2e%2e/",
+    "http://h/a?b?c",
+    "http://h/a??",
+    "http://h/a?#f",
+    "http://h/a#f?x",
+    "http://u:p@h/a%2",
+    "http://u:p@h/a%",
+    "http://u:p@h/a%zz",
+    "http://h/%2F",
+    "http://h/a+b",
+    "http://h/~user",
+    "http://h/a;b,c=d",
+    "http://h/a%7Cb",
+    "http://h/a%5Eb",
+    "http://h/a%60b",
+    "http://h/a%7Bb%7D",
+    "http://h/a%3Cb%3E",
+    "http://h/a%5Cb",
+    "http://h/%C3%A4",
+    "http://ü:p@h",
+    "http://h.ost:80",
+    "http://h..",
+    "http://h:0",
+    "http://h:080",
+    "http://u:p@h:-1",
+    "http://u:p@h:+1",
+    "http://u:p@h: 80",
+    "http://u:p@h :80",
+    "http://u:p@h\t:80",
+    "http://u:p@h\n:80",
+    "http://u:p@h:80",
+    "http://h/a%00b",
+    "http://h/%41%42",
+    "http://u:p@h/a%2Gb",
+    "http://h/a%fFb",
+    "http://u:p@h/%%41",
+    "http://h/a%C3%A4",
+    "http://h/a%FF",
+    "http://h/a%ff",
+    "http://u:p@h/a%fg",
+    "http://h/a%0a",
+    "http://h/a%0A",
+    "http://h/a%20b",
+    "http://h/a%7Eb",
+    "http://h/a%7eb",
+    "http://h/a%2fb%2F",
+    "http://h/a%3fb",
+    "http://h/a%3Fb",
+    "http://h/a%23b",
+    "http://h/a%25b",
+    "http://h/a%26b",
+    "http://h/a%3db",
+    "http://h/a%3Db",
+    "http://h/a%5bb",
+    "http://h/a%5Bb",
+    "http://h/a%5db",
+    "http://h/a%5Db",
+    "http://h/a%40b",
+    "http://h/a%3ab",
+    "http://h/a%3Ab",
+    "http://h/a%3bb",
+    "http://h/a%3Bb",
+    "http://h/a%2bb",
+    "http://h/a%2Bb",
+    "http://h/a%2cb",
+    "http://h/a%2Cb",
+    "http://h/a%24b",
+    "http://h/a%21b",
+    "http://h/a%27b",
+    "http://h/a%28b%29",
+    "http://h/a%2ab",
+    "http://h/a%2Ab",
+    "http://h/a%60b",
+    "http://h/a%7bb",
+    "http://h/a%7Bb",
+    "http://h/a%7cb",
+    "http://h/a%7Cb",
+    "http://h/a%7db",
+    "http://h/a%7Db",
+    "http://h/a%5eb",
+    "http://h/a%5Eb",
+    "http://h/a%22b",
+    "http://h/a%3cb",
+    "http://h/a%3Cb",
+    "http://h/a%3eb",
+    "http://h/a%3Eb",
+    "http://h/a%5cb",
+    "http://h/a%5Cb",
+    "http://h/a%09b",
+    "http://h/a%0db",
+    "http://h/a%0Db",
+    "http://h/a%1fb",
+    "http://h/a%1Fb",
+    "http://h/a%80b",
+    "http://h/a%FFb",
+    "http://h/a%ffb",
+    "http://h/a%Ffb",
+    "http://h/a%fFb",
+    "http://h/a%C3%28",
+    "http://h/a%e2%82%ac",
+    "http://h/a%E2%82%AC",
+    "http://h/a%ed%a0%80",
+    "http://h/a%ED%A0%80",
+    "http://h/a%f4%90%80%80",
+    "http://h/a%F4%90%80%80",
+    "http://u:p@h/a%zz%41",
+    "http://u:p@h/a%41%zz",
+    "http://u:p@h/a%4",
+    "http://h/a%41b%42",
+    "http://h/a%41%42%43",
+    "http://h/a%41%42%43%44",
+    "http://h/a%2f%2F",
+    "http://h/a%2F%2f",
+    "http://h/a%2f%2f",
+    "http://h/a%2F%2F",
+    "http://h/a%3f%3F",
+    "http://h/a%23%23",
+    "http://h/a%25%25",
+    "http://h/a%26%26",
+    "http://h/a%3d%3D",
+    "http://h/a%5b%5D",
+    "http://h/a%5B%5d",
+    "http://h/a%40%40",
+    "http://h/a%3a%3A",
+    "http://h/a%3b%3B",
+    "http://h/a%2b%2B",
+    "http://h/a%2c%2C",
+    "http://h/a%24%24",
+    "http://h/a%21%21",
+    "http://h/a%27%27",
+    "http://h/a%28%28",
+    "http://h/a%29%29",
+    "http://h/a%2a%2A",
+    "http://h/a%60%60",
+    "http://h/a%7b%7B",
+    "http://h/a%7c%7C",
+    "http://h/a%7d%7D",
+    "http://h/a%5e%5E",
+    "http://h/a%22%22",
+    "http://h/a%3c%3C",
+    "http://h/a%3e%3E",
+    "http://h/a%5c%5C",
+    "http://h/a%09%09",
+    "http://h/a%0d%0D",
+    "http://h/a%1f%1F",
+    "http://h/a%80%80",
+    "http://h/a%ff%FF",
+    "http://h/a%Ff%fF",
+    "http://h/a%C3%28%41",
+    "http://h/a%e2%82%ac%41",
+    "http://h/a%ed%a0%80%41",
+    "http://h/a%f4%90%80%80%41",
+    "http://u:p@h/a%zz%41%42",
+    "http://u:p@h/a%41%zz%42",
+    "http://u:p@h/a%4%41",
+    "http://h/a%41b%42c",
+    "http://h/a%41%42%43d",
+    "http://h/a%41%42%43%44e",
+    "http://h/a%2f%2Fb",
+    "http://h/a%2F%2fb",
+    "http://h/a%2f%2fb",
+    "http://h/a%2F%2Fb",
+    "http://h/a%3f%3Fb",
+    "http://h/a%23%23b",
+    "http://h/a%25%25b",
+    "http://h/a%26%26b",
+    "http://h/a%3d%3Db",
+    "http://h/a%5b%5Db",
+    "http://h/a%5B%5db",
+    "http://h/a%40%40b",
+    "http://h/a%3a%3Ab",
+    "http://h/a%3b%3Bb",
+    "http://h/a%2b%2Bb",
+    "http://h/a%2c%2Cb",
+    "http://h/a%24%24b",
+    "http://h/a%21%21b",
+    "http://h/a%27%27b",
+    "http://h/a%28%28b",
+    "http://h/a%29%29b",
+    "http://h/a%2a%2Ab",
+    "http://h/a%60%60b",
+    "http://h/a%7b%7Bb",
+    "http://h/a%7c%7Cb",
+    "http://h/a%7d%7Db",
+    "http://h/a%5e%5Eb",
+    "http://h/a%22%22b",
+    "http://h/a%3c%3Cb",
+    "http://h/a%3e%3Eb",
+    "http://h/a%5c%5Cb",
+    "http://h/a%09%09b",
+    "http://h/a%0d%0Db",
+    "http://h/a%1f%1Fb",
+    "http://h/a%80%80b",
+    "http://h/a%ff%FFb",
+    "http://h/a%Ff%fFb",
+    "http://h/a%C3%28%41b",
+    "http://h/a%e2%82%ac%41b",
+    "http://h/a%ed%a0%80%41b",
+    "http://h/a%f4%90%80%80%41b",
+    "http://u:p@h/a%zz%41%42b",
+    "http://u:p@h/a%41%zz%42b",
+    "http://u:p@h/a%4%41b",
+    "http://h/a%41b%42c",
+    "http://h/a%41%42%43d",
+    "http://h/a%41%42%43%44e"
+  ],
+  "token_env": [
+    {
+      "token": ""
+    },
+    {
+      "token": "tok"
+    },
+    {
+      "token": "tok"
+    },
+    {
+      "token": ""
+    },
+    {
+      "token": "ws"
+    },
+    {
+      "token": "ws"
+    },
+    {
+      "token": "ws"
+    },
+    {
+      "token": "dt"
+    },
+    {
+      "token": ""
+    },
+    {
+      "token": ""
+    }
+  ],
+  "yaml": [
+    {
+      "config": {
+        "auth": {
+          "api_key": ""
+        },
+        "dashboard": {
+          "password": ""
+        },
+        "debug": {
+          "enabled": false,
+          "keep_error_dirs": 32,
+          "max_total_mb": 1024,
+          "payload_hours": 24,
+          "pprof_listen": "",
+          "quota_interval_minutes": 5,
+          "retention_days": 14
+        },
+        "devin": {
+          "aliases": {},
+          "base_url": "",
+          "client_name": "",
+          "client_os": "",
+          "client_version": "",
+          "force_http1": true,
+          "gate_default_latch_seconds": 0,
+          "gate_drip_interval_seconds": 0,
+          "gate_max_hold_seconds": 0,
+          "gate_window_guard_seconds": 0,
+          "gate_window_offset_seconds": 0,
+          "max_rpm": 0,
+          "model": "",
+          "proxy": "",
+          "token": ""
+        },
+        "server": {
+          "listen": ":8080",
+          "max_concurrency": 1024
+        }
+      }
+    },
+    {
+      "config": {
+        "auth": {
+          "api_key": ""
+        },
+        "dashboard": {
+          "password": ""
+        },
+        "debug": {
+          "enabled": false,
+          "keep_error_dirs": 32,
+          "max_total_mb": 1024,
+          "payload_hours": 24,
+          "pprof_listen": "",
+          "quota_interval_minutes": 5,
+          "retention_days": 14
+        },
+        "devin": {
+          "aliases": {},
+          "base_url": "",
+          "client_name": "",
+          "client_os": "",
+          "client_version": "",
+          "force_http1": true,
+          "gate_default_latch_seconds": 0,
+          "gate_drip_interval_seconds": 0,
+          "gate_max_hold_seconds": 0,
+          "gate_window_guard_seconds": 0,
+          "gate_window_offset_seconds": 0,
+          "max_rpm": 0,
+          "model": "",
+          "proxy": "",
+          "token": ""
+        },
+        "server": {
+          "listen": "8080",
+          "max_concurrency": 1024
+        }
+      }
+    },
+    {
+      "error": "validate: server.listen is required"
+    },
+    {
+      "error": "validate: server.listen is required"
+    },
+    {
+      "config": {
+        "auth": {
+          "api_key": ""
+        },
+        "dashboard": {
+          "password": ""
+        },
+        "debug": {
+          "enabled": false,
+          "keep_error_dirs": 32,
+          "max_total_mb": 1024,
+          "payload_hours": 24,
+          "pprof_listen": "",
+          "quota_interval_minutes": 5,
+          "retention_days": 14
+        },
+        "devin": {
+          "aliases": {},
+          "base_url": "",
+          "client_name": "",
+          "client_os": "",
+          "client_version": "",
+          "force_http1": true,
+          "gate_default_latch_seconds": 0,
+          "gate_drip_interval_seconds": 0,
+          "gate_max_hold_seconds": 0,
+          "gate_window_guard_seconds": 0,
+          "gate_window_offset_seconds": 0,
+          "max_rpm": 0,
+          "model": "",
+          "proxy": "",
+          "token": ""
+        },
+        "server": {
+          "listen": ":1",
+          "max_concurrency": 64
+        }
+      }
+    },
+    {
+      "config": {
+        "auth": {
+          "api_key": ""
+        },
+        "dashboard": {
+          "password": ""
+        },
+        "debug": {
+          "enabled": false,
+          "keep_error_dirs": 32,
+          "max_total_mb": 1024,
+          "payload_hours": 24,
+          "pprof_listen": "",
+          "quota_interval_minutes": 5,
+          "retention_days": 14
+        },
+        "devin": {
+          "aliases": {},
+          "base_url": "",
+          "client_name": "",
+          "client_os": "",
+          "client_version": "",
+          "force_http1": true,
+          "gate_default_latch_seconds": 0,
+          "gate_drip_interval_seconds": 0,
+          "gate_max_hold_seconds": 0,
+          "gate_window_guard_seconds": 0,
+          "gate_window_offset_seconds": 0,
+          "max_rpm": 0,
+          "model": "",
+          "proxy": "",
+          "token": ""
+        },
+        "server": {
+          "listen": ":1",
+          "max_concurrency": 1
+        }
+      }
+    },
+    {
+      "error": "decode: yaml: unmarshal errors:\n  line 3: cannot unmarshal !!str `12` into int"
+    },
+    {
+      "config": {
+        "auth": {
+          "api_key": ""
+        },
+        "dashboard": {
+          "password": ""
+        },
+        "debug": {
+          "enabled": false,
+          "keep_error_dirs": 32,
+          "max_total_mb": 1024,
+          "payload_hours": 24,
+          "pprof_listen": "",
+          "quota_interval_minutes": 5,
+          "retention_days": 14
+        },
+        "devin": {
+          "aliases": {},
+          "base_url": "",
+          "client_name": "",
+          "client_os": "",
+          "client_version": "",
+          "force_http1": true,
+          "gate_default_latch_seconds": 0,
+          "gate_drip_interval_seconds": 0,
+          "gate_max_hold_seconds": 0,
+          "gate_window_guard_seconds": 0,
+          "gate_window_offset_seconds": 0,
+          "max_rpm": 0,
+          "model": "",
+          "proxy": "",
+          "token": ""
+        },
+        "server": {
+          "listen": ":1",
+          "max_concurrency": 16
+        }
+      }
+    },
+    {
+      "config": {
+        "auth": {
+          "api_key": ""
+        },
+        "dashboard": {
+          "password": ""
+        },
+        "debug": {
+          "enabled": false,
+          "keep_error_dirs": 32,
+          "max_total_mb": 1024,
+          "payload_hours": 24,
+          "pprof_listen": "",
+          "quota_interval_minutes": 5,
+          "retention_days": 14
+        },
+        "devin": {
+          "aliases": {},
+          "base_url": "",
+          "client_name": "",
+          "client_os": "",
+          "client_version": "",
+          "force_http1": true,
+          "gate_default_latch_seconds": 0,
+          "gate_drip_interval_seconds": 0,
+          "gate_max_hold_seconds": 0,
+          "gate_window_guard_seconds": 0,
+          "gate_window_offset_seconds": 0,
+          "max_rpm": 0,
+          "model": "",
+          "proxy": "",
+          "token": ""
+        },
+        "server": {
+          "listen": ":1",
+          "max_concurrency": 15
+        }
+      }
+    },
+    {
+      "config": {
+        "auth": {
+          "api_key": ""
+        },
+        "dashboard": {
+          "password": ""
+        },
+        "debug": {
+          "enabled": false,
+          "keep_error_dirs": 32,
+          "max_total_mb": 1024,
+          "payload_hours": 24,
+          "pprof_listen": "",
+          "quota_interval_minutes": 5,
+          "retention_days": 14
+        },
+        "devin": {
+          "aliases": {},
+          "base_url": "",
+          "client_name": "",
+          "client_os": "",
+          "client_version": "",
+          "force_http1": true,
+          "gate_default_latch_seconds": 0,
+          "gate_drip_interval_seconds": 0,
+          "gate_max_hold_seconds": 0,
+          "gate_window_guard_seconds": 0,
+          "gate_window_offset_seconds": 0,
+          "max_rpm": 0,
+          "model": "",
+          "proxy": "",
+          "token": ""
+        },
+        "server": {
+          "listen": ":1",
+          "max_concurrency": 5
+        }
+      }
+    },
+    {
+      "config": {
+        "auth": {
+          "api_key": ""
+        },
+        "dashboard": {
+          "password": ""
+        },
+        "debug": {
+          "enabled": false,
+          "keep_error_dirs": 32,
+          "max_total_mb": 1024,
+          "payload_hours": 24,
+          "pprof_listen": "",
+          "quota_interval_minutes": 5,
+          "retention_days": 14
+        },
+        "devin": {
+          "aliases": {},
+          "base_url": "",
+          "client_name": "",
+          "client_os": "",
+          "client_version": "",
+          "force_http1": true,
+          "gate_default_latch_seconds": 0,
+          "gate_drip_interval_seconds": 0,
+          "gate_max_hold_seconds": 0,
+          "gate_window_guard_seconds": 0,
+          "gate_window_offset_seconds": 0,
+          "max_rpm": 0,
+          "model": "",
+          "proxy": "",
+          "token": ""
+        },
+        "server": {
+          "listen": ":1",
+          "max_concurrency": 1024
+        }
+      }
+    },
+    {
+      "config": {
+        "auth": {
+          "api_key": ""
+        },
+        "dashboard": {
+          "password": ""
+        },
+        "debug": {
+          "enabled": false,
+          "keep_error_dirs": 32,
+          "max_total_mb": 1024,
+          "payload_hours": 24,
+          "pprof_listen": "",
+          "quota_interval_minutes": 5,
+          "retention_days": 14
+        },
+        "devin": {
+          "aliases": {},
+          "base_url": "",
+          "client_name": "",
+          "client_os": "",
+          "client_version": "",
+          "force_http1": true,
+          "gate_default_latch_seconds": 0,
+          "gate_drip_interval_seconds": 0,
+          "gate_max_hold_seconds": 0,
+          "gate_window_guard_seconds": 0,
+          "gate_window_offset_seconds": 0,
+          "max_rpm": 0,
+          "model": "",
+          "proxy": "",
+          "token": ""
+        },
+        "server": {
+          "listen": ":1",
+          "max_concurrency": 1024
+        }
+      }
+    },
+    {
+      "error": "decode: yaml: unmarshal errors:\n  line 3: cannot unmarshal !!float `1e20` into int"
+    },
+    {
+      "config": {
+        "auth": {
+          "api_key": ""
+        },
+        "dashboard": {
+          "password": ""
+        },
+        "debug": {
+          "enabled": false,
+          "keep_error_dirs": 32,
+          "max_total_mb": 1024,
+          "payload_hours": 24,
+          "pprof_listen": "",
+          "quota_interval_minutes": 5,
+          "retention_days": 14
+        },
+        "devin": {
+          "aliases": {},
+          "base_url": "",
+          "client_name": "",
+          "client_os": "",
+          "client_version": "",
+          "force_http1": true,
+          "gate_default_latch_seconds": 0,
+          "gate_drip_interval_seconds": 0,
+          "gate_max_hold_seconds": 0,
+          "gate_window_guard_seconds": 0,
+          "gate_window_offset_seconds": 0,
+          "max_rpm": 0,
+          "model": "",
+          "proxy": "",
+          "token": ""
+        },
+        "server": {
+          "listen": ":1",
+          "max_concurrency": 9223372036854775807
+        }
+      }
+    },
+    {
+      "error": "decode: yaml: unmarshal errors:\n  line 3: cannot unmarshal !!int `1844674...` into int"
+    },
+    {
+      "error": "decode: yaml: unmarshal errors:\n  line 3: cannot unmarshal !!float `1844674...` into int"
+    },
+    {
+      "error": "decode: yaml: unmarshal errors:\n  line 3: cannot unmarshal !!float `.inf` into int"
+    },
+    {
+      "error": "decode: yaml: unmarshal errors:\n  line 3: cannot unmarshal !!float `.nan` into int"
+    },
+    {
+      "error": "decode: yaml: unmarshal errors:\n  line 3: cannot unmarshal !!str `yes` into int"
+    },
+    {
+      "config": {
+        "auth": {
+          "api_key": ""
+        },
+        "dashboard": {
+          "password": ""
+        },
+        "debug": {
+          "enabled": false,
+          "keep_error_dirs": 32,
+          "max_total_mb": 1024,
+          "payload_hours": 24,
+          "pprof_listen": "",
+          "quota_interval_minutes": 5,
+          "retention_days": 14
+        },
+        "devin": {
+          "aliases": {},
+          "base_url": "",
+          "client_name": "",
+          "client_os": "",
+          "client_version": "",
+          "force_http1": true,
+          "gate_default_latch_seconds": 0,
+          "gate_drip_interval_seconds": 0,
+          "gate_max_hold_seconds": 0,
+          "gate_window_guard_seconds": 0,
+          "gate_window_offset_seconds": 0,
+          "max_rpm": 0,
+          "model": "",
+          "proxy": "",
+          "token": ""
+        },
+        "server": {
+          "listen": ":1",
+          "max_concurrency": 2000
+        }
+      }
+    },
+    {
+      "config": {
+        "auth": {
+          "api_key": ""
+        },
+        "dashboard": {
+          "password": ""
+        },
+        "debug": {
+          "enabled": false,
+          "keep_error_dirs": 32,
+          "max_total_mb": 1024,
+          "payload_hours": 24,
+          "pprof_listen": "",
+          "quota_interval_minutes": 5,
+          "retention_days": 14
+        },
+        "devin": {
+          "aliases": {},
+          "base_url": "",
+          "client_name": "",
+          "client_os": "",
+          "client_version": "",
+          "force_http1": true,
+          "gate_default_latch_seconds": 0,
+          "gate_drip_interval_seconds": 0,
+          "gate_max_hold_seconds": 0,
+          "gate_window_guard_seconds": 0,
+          "gate_window_offset_seconds": 0,
+          "max_rpm": 0,
+          "model": "",
+          "proxy": "",
+          "token": ""
+        },
+        "server": {
+          "listen": ":1",
+          "max_concurrency": 1024
+        }
+      }
+    },
+    {
+      "config": {
+        "auth": {
+          "api_key": ""
+        },
+        "dashboard": {
+          "password": ""
+        },
+        "debug": {
+          "enabled": false,
+          "keep_error_dirs": 32,
+          "max_total_mb": 1024,
+          "payload_hours": 24,
+          "pprof_listen": "",
+          "quota_interval_minutes": 5,
+          "retention_days": 14
+        },
+        "devin": {
+          "aliases": {},
+          "base_url": "",
+          "client_name": "",
+          "client_os": "",
+          "client_version": "",
+          "force_http1": true,
+          "gate_default_latch_seconds": 0,
+          "gate_drip_interval_seconds": 0,
+          "gate_max_hold_seconds": 0,
+          "gate_window_guard_seconds": 0,
+          "gate_window_offset_seconds": 0,
+          "max_rpm": 0,
+          "model": "",
+          "proxy": "",
+          "token": ""
+        },
+        "server": {
+          "listen": ":1",
+          "max_concurrency": 1000
+        }
+      }
+    },
+    {
+      "config": {
+        "auth": {
+          "api_key": ""
+        },
+        "dashboard": {
+          "password": ""
+        },
+        "debug": {
+          "enabled": false,
+          "keep_error_dirs": 32,
+          "max_total_mb": 1024,
+          "payload_hours": 24,
+          "pprof_listen": "",
+          "quota_interval_minutes": 5,
+          "retention_days": 14
+        },
+        "devin": {
+          "aliases": {},
+          "base_url": "",
+          "client_name": "",
+          "client_os": "",
+          "client_version": "",
+          "force_http1": true,
+          "gate_default_latch_seconds": 0,
+          "gate_drip_interval_seconds": 0,
+          "gate_max_hold_seconds": 0,
+          "gate_window_guard_seconds": 0,
+          "gate_window_offset_seconds": 0,
+          "max_rpm": 0,
+          "model": "",
+          "proxy": "",
+          "token": ""
+        },
+        "server": {
+          "listen": ":1",
+          "max_concurrency": 8
+        }
+      }
+    },
+    {
+      "config": {
+        "auth": {
+          "api_key": ""
+        },
+        "dashboard": {
+          "password": ""
+        },
+        "debug": {
+          "enabled": false,
+          "keep_error_dirs": 32,
+          "max_total_mb": 1024,
+          "payload_hours": 24,
+          "pprof_listen": "",
+          "quota_interval_minutes": 5,
+          "retention_days": 14
+        },
+        "devin": {
+          "aliases": {},
+          "base_url": "",
+          "client_name": "",
+          "client_os": "",
+          "client_version": "",
+          "force_http1": true,
+          "gate_default_latch_seconds": 0,
+          "gate_drip_interval_seconds": 0,
+          "gate_max_hold_seconds": 0,
+          "gate_window_guard_seconds": 0,
+          "gate_window_offset_seconds": 0,
+          "max_rpm": 0,
+          "model": "",
+          "proxy": "",
+          "token": ""
+        },
+        "server": {
+          "listen": ":1",
+          "max_concurrency": 42
+        }
+      }
+    },
+    {
+      "config": {
+        "auth": {
+          "api_key": ""
+        },
+        "dashboard": {
+          "password": ""
+        },
+        "debug": {
+          "enabled": false,
+          "keep_error_dirs": 32,
+          "max_total_mb": 1024,
+          "payload_hours": 24,
+          "pprof_listen": "",
+          "quota_interval_minutes": 5,
+          "retention_days": 14
+        },
+        "devin": {
+          "aliases": {},
+          "base_url": "",
+          "client_name": "",
+          "client_os": "",
+          "client_version": "",
+          "force_http1": true,
+          "gate_default_latch_seconds": 0,
+          "gate_drip_interval_seconds": 0,
+          "gate_max_hold_seconds": 0,
+          "gate_window_guard_seconds": 0,
+          "gate_window_offset_seconds": 0,
+          "max_rpm": 0,
+          "model": "",
+          "proxy": "",
+          "token": ""
+        },
+        "server": {
+          "listen": ":1",
+          "max_concurrency": 1
+        }
+      }
+    },
+    {
+      "config": {
+        "auth": {
+          "api_key": ""
+        },
+        "dashboard": {
+          "password": ""
+        },
+        "debug": {
+          "enabled": false,
+          "keep_error_dirs": 32,
+          "max_total_mb": 1024,
+          "payload_hours": 24,
+          "pprof_listen": "",
+          "quota_interval_minutes": 5,
+          "retention_days": 14
+        },
+        "devin": {
+          "aliases": {},
+          "base_url": "",
+          "client_name": "",
+          "client_os": "",
+          "client_version": "",
+          "force_http1": true,
+          "gate_default_latch_seconds": 0,
+          "gate_drip_interval_seconds": 0,
+          "gate_max_hold_seconds": 0,
+          "gate_window_guard_seconds": 0,
+          "gate_window_offset_seconds": 0,
+          "max_rpm": 0,
+          "model": "",
+          "proxy": "",
+          "token": "12345"
+        },
+        "server": {
+          "listen": ":1",
+          "max_concurrency": 1024
+        }
+      }
+    },
+    {
+      "config": {
+        "auth": {
+          "api_key": ""
+        },
+        "dashboard": {
+          "password": ""
+        },
+        "debug": {
+          "enabled": false,
+          "keep_error_dirs": 32,
+          "max_total_mb": 1024,
+          "payload_hours": 24,
+          "pprof_listen": "",
+          "quota_interval_minutes": 5,
+          "retention_days": 14
+        },
+        "devin": {
+          "aliases": {},
+          "base_url": "",
+          "client_name": "",
+          "client_os": "",
+          "client_version": "",
+          "force_http1": true,
+          "gate_default_latch_seconds": 0,
+          "gate_drip_interval_seconds": 0,
+          "gate_max_hold_seconds": 0,
+          "gate_window_guard_seconds": 0,
+          "gate_window_offset_seconds": 0,
+          "max_rpm": 0,
+          "model": "",
+          "proxy": "",
+          "token": "true"
+        },
+        "server": {
+          "listen": ":1",
+          "max_concurrency": 1024
+        }
+      }
+    },
+    {
+      "config": {
+        "auth": {
+          "api_key": ""
+        },
+        "dashboard": {
+          "password": ""
+        },
+        "debug": {
+          "enabled": false,
+          "keep_error_dirs": 32,
+          "max_total_mb": 1024,
+          "payload_hours": 24,
+          "pprof_listen": "",
+          "quota_interval_minutes": 5,
+          "retention_days": 14
+        },
+        "devin": {
+          "aliases": {},
+          "base_url": "",
+          "client_name": "",
+          "client_os": "",
+          "client_version": "",
+          "force_http1": true,
+          "gate_default_latch_seconds": 0,
+          "gate_drip_interval_seconds": 0,
+          "gate_max_hold_seconds": 0,
+          "gate_window_guard_seconds": 0,
+          "gate_window_offset_seconds": 0,
+          "max_rpm": 0,
+          "model": "",
+          "proxy": "",
+          "token": ""
+        },
+        "server": {
+          "listen": ":1",
+          "max_concurrency": 1024
+        }
+      }
+    },
+    {
+      "config": {
+        "auth": {
+          "api_key": ""
+        },
+        "dashboard": {
+          "password": ""
+        },
+        "debug": {
+          "enabled": false,
+          "keep_error_dirs": 32,
+          "max_total_mb": 1024,
+          "payload_hours": 24,
+          "pprof_listen": "",
+          "quota_interval_minutes": 5,
+          "retention_days": 14
+        },
+        "devin": {
+          "aliases": {},
+          "base_url": "",
+          "client_name": "",
+          "client_os": "",
+          "client_version": "",
+          "force_http1": true,
+          "gate_default_latch_seconds": 0,
+          "gate_drip_interval_seconds": 0,
+          "gate_max_hold_seconds": 0,
+          "gate_window_guard_seconds": 0,
+          "gate_window_offset_seconds": 0,
+          "max_rpm": 0,
+          "model": "",
+          "proxy": "",
+          "token": "  spaced  "
+        },
+        "server": {
+          "listen": ":1",
+          "max_concurrency": 1024
+        }
+      }
+    },
+    {
+      "config": {
+        "auth": {
+          "api_key": ""
+        },
+        "dashboard": {
+          "password": ""
+        },
+        "debug": {
+          "enabled": false,
+          "keep_error_dirs": 32,
+          "max_total_mb": 1024,
+          "payload_hours": 24,
+          "pprof_listen": "",
+          "quota_interval_minutes": 5,
+          "retention_days": 14
+        },
+        "devin": {
+          "aliases": {},
+          "base_url": "",
+          "client_name": "",
+          "client_os": "",
+          "client_version": "",
+          "force_http1": true,
+          "gate_default_latch_seconds": 0,
+          "gate_drip_interval_seconds": 0,
+          "gate_max_hold_seconds": 0,
+          "gate_window_guard_seconds": 0,
+          "gate_window_offset_seconds": 0,
+          "max_rpm": 0,
+          "model": "",
+          "proxy": "",
+          "token": ""
+        },
+        "server": {
+          "listen": ":1",
+          "max_concurrency": 1024
+        }
+      }
+    },
+    {
+      "config": {
+        "auth": {
+          "api_key": ""
+        },
+        "dashboard": {
+          "password": ""
+        },
+        "debug": {
+          "enabled": false,
+          "keep_error_dirs": 32,
+          "max_total_mb": 1024,
+          "payload_hours": 24,
+          "pprof_listen": "",
+          "quota_interval_minutes": 5,
+          "retention_days": 14
+        },
+        "devin": {
+          "aliases": {},
+          "base_url": "",
+          "client_name": "",
+          "client_os": "",
+          "client_version": "",
+          "force_http1": true,
+          "gate_default_latch_seconds": 0,
+          "gate_drip_interval_seconds": 0,
+          "gate_max_hold_seconds": 0,
+          "gate_window_guard_seconds": 0,
+          "gate_window_offset_seconds": 0,
+          "max_rpm": 0,
+          "model": "",
+          "proxy": "",
+          "token": ""
+        },
+        "server": {
+          "listen": ":1",
+          "max_concurrency": 1024
+        }
+      }
+    },
+    {
+      "config": {
+        "auth": {
+          "api_key": ""
+        },
+        "dashboard": {
+          "password": ""
+        },
+        "debug": {
+          "enabled": false,
+          "keep_error_dirs": 32,
+          "max_total_mb": 1024,
+          "payload_hours": 24,
+          "pprof_listen": "",
+          "quota_interval_minutes": 5,
+          "retention_days": 14
+        },
+        "devin": {
+          "aliases": {},
+          "base_url": "",
+          "client_name": "",
+          "client_os": "",
+          "client_version": "",
+          "force_http1": false,
+          "gate_default_latch_seconds": 0,
+          "gate_drip_interval_seconds": 0,
+          "gate_max_hold_seconds": 0,
+          "gate_window_guard_seconds": 0,
+          "gate_window_offset_seconds": 0,
+          "max_rpm": 0,
+          "model": "",
+          "proxy": "",
+          "token": ""
+        },
+        "server": {
+          "listen": ":1",
+          "max_concurrency": 1024
+        }
+      }
+    },
+    {
+      "config": {
+        "auth": {
+          "api_key": ""
+        },
+        "dashboard": {
+          "password": ""
+        },
+        "debug": {
+          "enabled": false,
+          "keep_error_dirs": 32,
+          "max_total_mb": 1024,
+          "payload_hours": 24,
+          "pprof_listen": "",
+          "quota_interval_minutes": 5,
+          "retention_days": 14
+        },
+        "devin": {
+          "aliases": {},
+          "base_url": "",
+          "client_name": "",
+          "client_os": "",
+          "client_version": "",
+          "force_http1": false,
+          "gate_default_latch_seconds": 0,
+          "gate_drip_interval_seconds": 0,
+          "gate_max_hold_seconds": 0,
+          "gate_window_guard_seconds": 0,
+          "gate_window_offset_seconds": 0,
+          "max_rpm": 0,
+          "model": "",
+          "proxy": "",
+          "token": ""
+        },
+        "server": {
+          "listen": ":1",
+          "max_concurrency": 1024
+        }
+      }
+    },
+    {
+      "error": "decode: yaml: unmarshal errors:\n  line 2: cannot unmarshal !!str `maybe` into bool"
+    },
+    {
+      "error": "decode: yaml: unmarshal errors:\n  line 2: cannot unmarshal !!int `1` into bool"
+    },
+    {
+      "config": {
+        "auth": {
+          "api_key": ""
+        },
+        "dashboard": {
+          "password": ""
+        },
+        "debug": {
+          "enabled": false,
+          "keep_error_dirs": 32,
+          "max_total_mb": 1024,
+          "payload_hours": 24,
+          "pprof_listen": "",
+          "quota_interval_minutes": 5,
+          "retention_days": 14
+        },
+        "devin": {
+          "aliases": {},
+          "base_url": "",
+          "client_name": "",
+          "client_os": "",
+          "client_version": "",
+          "force_http1": true,
+          "gate_default_latch_seconds": 0,
+          "gate_drip_interval_seconds": 0,
+          "gate_max_hold_seconds": 0,
+          "gate_window_guard_seconds": 0,
+          "gate_window_offset_seconds": 0,
+          "max_rpm": 0,
+          "model": "",
+          "proxy": "",
+          "token": ""
+        },
+        "server": {
+          "listen": ":1",
+          "max_concurrency": 1024
+        }
+      }
+    },
+    {
+      "config": {
+        "auth": {
+          "api_key": ""
+        },
+        "dashboard": {
+          "password": ""
+        },
+        "debug": {
+          "enabled": false,
+          "keep_error_dirs": 32,
+          "max_total_mb": 1024,
+          "payload_hours": 24,
+          "pprof_listen": "",
+          "quota_interval_minutes": 5,
+          "retention_days": 14
+        },
+        "devin": {
+          "aliases": {},
+          "base_url": "",
+          "client_name": "",
+          "client_os": "",
+          "client_version": "",
+          "force_http1": false,
+          "gate_default_latch_seconds": 0,
+          "gate_drip_interval_seconds": 0,
+          "gate_max_hold_seconds": 0,
+          "gate_window_guard_seconds": 0,
+          "gate_window_offset_seconds": 0,
+          "max_rpm": 0,
+          "model": "",
+          "proxy": "",
+          "token": ""
+        },
+        "server": {
+          "listen": ":1",
+          "max_concurrency": 1024
+        }
+      }
+    },
+    {
+      "error": "decode: yaml: unmarshal errors:\n  line 2: cannot unmarshal !!str `false` into bool"
+    },
+    {
+      "config": {
+        "auth": {
+          "api_key": ""
+        },
+        "dashboard": {
+          "password": ""
+        },
+        "debug": {
+          "enabled": true,
+          "keep_error_dirs": 32,
+          "max_total_mb": 1024,
+          "payload_hours": 24,
+          "pprof_listen": "",
+          "quota_interval_minutes": 5,
+          "retention_days": 14
+        },
+        "devin": {
+          "aliases": {},
+          "base_url": "",
+          "client_name": "",
+          "client_os": "",
+          "client_version": "",
+          "force_http1": true,
+          "gate_default_latch_seconds": 0,
+          "gate_drip_interval_seconds": 0,
+          "gate_max_hold_seconds": 0,
+          "gate_window_guard_seconds": 0,
+          "gate_window_offset_seconds": 0,
+          "max_rpm": 0,
+          "model": "",
+          "proxy": "",
+          "token": ""
+        },
+        "server": {
+          "listen": ":1",
+          "max_concurrency": 1024
+        }
+      }
+    },
+    {
+      "config": {
+        "auth": {
+          "api_key": ""
+        },
+        "dashboard": {
+          "password": ""
+        },
+        "debug": {
+          "enabled": true,
+          "keep_error_dirs": 32,
+          "max_total_mb": 1024,
+          "payload_hours": 24,
+          "pprof_listen": "",
+          "quota_interval_minutes": 5,
+          "retention_days": 14
+        },
+        "devin": {
+          "aliases": {},
+          "base_url": "",
+          "client_name": "",
+          "client_os": "",
+          "client_version": "",
+          "force_http1": true,
+          "gate_default_latch_seconds": 0,
+          "gate_drip_interval_seconds": 0,
+          "gate_max_hold_seconds": 0,
+          "gate_window_guard_seconds": 0,
+          "gate_window_offset_seconds": 0,
+          "max_rpm": 0,
+          "model": "",
+          "proxy": "",
+          "token": ""
+        },
+        "server": {
+          "listen": ":1",
+          "max_concurrency": 1024
+        }
+      }
+    },
+    {
+      "error": "decode: yaml: unmarshal errors:\n  line 2: cannot unmarshal !!int `0` into bool"
+    },
+    {
+      "config": {
+        "auth": {
+          "api_key": ""
+        },
+        "dashboard": {
+          "password": ""
+        },
+        "debug": {
+          "enabled": false,
+          "keep_error_dirs": 32,
+          "max_total_mb": 1024,
+          "payload_hours": 24,
+          "pprof_listen": "",
+          "quota_interval_minutes": 5,
+          "retention_days": 14
+        },
+        "devin": {
+          "aliases": {},
+          "base_url": "",
+          "client_name": "",
+          "client_os": "",
+          "client_version": "",
+          "force_http1": true,
+          "gate_default_latch_seconds": 0,
+          "gate_drip_interval_seconds": 0,
+          "gate_max_hold_seconds": 0,
+          "gate_window_guard_seconds": 0,
+          "gate_window_offset_seconds": 0,
+          "max_rpm": 0,
+          "model": "",
+          "proxy": "",
+          "token": ""
+        },
+        "server": {
+          "listen": ":1",
+          "max_concurrency": 1024
+        }
+      }
+    },
+    {
+      "config": {
+        "auth": {
+          "api_key": ""
+        },
+        "dashboard": {
+          "password": ""
+        },
+        "debug": {
+          "enabled": false,
+          "keep_error_dirs": 32,
+          "max_total_mb": 1024,
+          "payload_hours": 24,
+          "pprof_listen": "",
+          "quota_interval_minutes": 5,
+          "retention_days": 14
+        },
+        "devin": {
+          "aliases": {},
+          "base_url": "",
+          "client_name": "",
+          "client_os": "",
+          "client_version": "",
+          "force_http1": true,
+          "gate_default_latch_seconds": 0,
+          "gate_drip_interval_seconds": 0,
+          "gate_max_hold_seconds": 0,
+          "gate_window_guard_seconds": 0,
+          "gate_window_offset_seconds": 0,
+          "max_rpm": 0,
+          "model": "",
+          "proxy": "",
+          "token": ""
+        },
+        "server": {
+          "listen": ":1",
+          "max_concurrency": 1024
+        }
+      }
+    },
+    {
+      "config": {
+        "auth": {
+          "api_key": ""
+        },
+        "dashboard": {
+          "password": ""
+        },
+        "debug": {
+          "enabled": false,
+          "keep_error_dirs": 32,
+          "max_total_mb": 1024,
+          "payload_hours": 24,
+          "pprof_listen": "",
+          "quota_interval_minutes": 5,
+          "retention_days": 0
+        },
+        "devin": {
+          "aliases": {},
+          "base_url": "",
+          "client_name": "",
+          "client_os": "",
+          "client_version": "",
+          "force_http1": true,
+          "gate_default_latch_seconds": 0,
+          "gate_drip_interval_seconds": 0,
+          "gate_max_hold_seconds": 0,
+          "gate_window_guard_seconds": 0,
+          "gate_window_offset_seconds": 0,
+          "max_rpm": 0,
+          "model": "",
+          "proxy": "",
+          "token": ""
+        },
+        "server": {
+          "listen": ":1",
+          "max_concurrency": 1024
+        }
+      }
+    },
+    {
+      "config": {
+        "auth": {
+          "api_key": ""
+        },
+        "dashboard": {
+          "password": ""
+        },
+        "debug": {
+          "enabled": false,
+          "keep_error_dirs": 32,
+          "max_total_mb": 1024,
+          "payload_hours": 24,
+          "pprof_listen": "",
+          "quota_interval_minutes": 5,
+          "retention_days": -3
+        },
+        "devin": {
+          "aliases": {},
+          "base_url": "",
+          "client_name": "",
+          "client_os": "",
+          "client_version": "",
+          "force_http1": true,
+          "gate_default_latch_seconds": 0,
+          "gate_drip_interval_seconds": 0,
+          "gate_max_hold_seconds": 0,
+          "gate_window_guard_seconds": 0,
+          "gate_window_offset_seconds": 0,
+          "max_rpm": 0,
+          "model": "",
+          "proxy": "",
+          "token": ""
+        },
+        "server": {
+          "listen": ":1",
+          "max_concurrency": 1024
+        }
+      }
+    },
+    {
+      "config": {
+        "auth": {
+          "api_key": ""
+        },
+        "dashboard": {
+          "password": ""
+        },
+        "debug": {
+          "enabled": false,
+          "keep_error_dirs": 32,
+          "max_total_mb": 1024,
+          "payload_hours": 24,
+          "pprof_listen": "",
+          "quota_interval_minutes": 5,
+          "retention_days": 7
+        },
+        "devin": {
+          "aliases": {},
+          "base_url": "",
+          "client_name": "",
+          "client_os": "",
+          "client_version": "",
+          "force_http1": true,
+          "gate_default_latch_seconds": 0,
+          "gate_drip_interval_seconds": 0,
+          "gate_max_hold_seconds": 0,
+          "gate_window_guard_seconds": 0,
+          "gate_window_offset_seconds": 0,
+          "max_rpm": 0,
+          "model": "",
+          "proxy": "",
+          "token": ""
+        },
+        "server": {
+          "listen": ":1",
+          "max_concurrency": 1024
+        }
+      }
+    },
+    {
+      "error": "decode: yaml: unmarshal errors:\n  line 2: cannot unmarshal !!str `7` into int"
+    },
+    {
+      "config": {
+        "auth": {
+          "api_key": ""
+        },
+        "dashboard": {
+          "password": ""
+        },
+        "debug": {
+          "enabled": false,
+          "keep_error_dirs": 32,
+          "max_total_mb": 1024,
+          "payload_hours": 24,
+          "pprof_listen": "",
+          "quota_interval_minutes": 5,
+          "retention_days": 14
+        },
+        "devin": {
+          "aliases": {},
+          "base_url": "",
+          "client_name": "",
+          "client_os": "",
+          "client_version": "",
+          "force_http1": true,
+          "gate_default_latch_seconds": 0,
+          "gate_drip_interval_seconds": 0,
+          "gate_max_hold_seconds": 0,
+          "gate_window_guard_seconds": 0,
+          "gate_window_offset_seconds": 0,
+          "max_rpm": 0,
+          "model": "",
+          "proxy": "",
+          "token": ""
+        },
+        "server": {
+          "listen": ":1",
+          "max_concurrency": 1024
+        }
+      }
+    },
+    {
+      "config": {
+        "auth": {
+          "api_key": ""
+        },
+        "dashboard": {
+          "password": ""
+        },
+        "debug": {
+          "enabled": false,
+          "keep_error_dirs": 32,
+          "max_total_mb": 1024,
+          "payload_hours": 24,
+          "pprof_listen": "",
+          "quota_interval_minutes": 5,
+          "retention_days": 14
+        },
+        "devin": {
+          "aliases": {
+            "a": "1"
+          },
+          "base_url": "",
+          "client_name": "",
+          "client_os": "",
+          "client_version": "",
+          "force_http1": true,
+          "gate_default_latch_seconds": 0,
+          "gate_drip_interval_seconds": 0,
+          "gate_max_hold_seconds": 0,
+          "gate_window_guard_seconds": 0,
+          "gate_window_offset_seconds": 0,
+          "max_rpm": 0,
+          "model": "",
+          "proxy": "",
+          "token": ""
+        },
+        "server": {
+          "listen": ":1",
+          "max_concurrency": 1024
+        }
+      }
+    },
+    {
+      "config": {
+        "auth": {
+          "api_key": ""
+        },
+        "dashboard": {
+          "password": ""
+        },
+        "debug": {
+          "enabled": false,
+          "keep_error_dirs": 32,
+          "max_total_mb": 1024,
+          "payload_hours": 24,
+          "pprof_listen": "",
+          "quota_interval_minutes": 5,
+          "retention_days": 14
+        },
+        "devin": {
+          "aliases": {
+            "1": "x"
+          },
+          "base_url": "",
+          "client_name": "",
+          "client_os": "",
+          "client_version": "",
+          "force_http1": true,
+          "gate_default_latch_seconds": 0,
+          "gate_drip_interval_seconds": 0,
+          "gate_max_hold_seconds": 0,
+          "gate_window_guard_seconds": 0,
+          "gate_window_offset_seconds": 0,
+          "max_rpm": 0,
+          "model": "",
+          "proxy": "",
+          "token": ""
+        },
+        "server": {
+          "listen": ":1",
+          "max_concurrency": 1024
+        }
+      }
+    },
+    {
+      "error": "validate: devin.aliases[\"a\"] has an empty target"
+    },
+    {
+      "config": {
+        "auth": {
+          "api_key": ""
+        },
+        "dashboard": {
+          "password": ""
+        },
+        "debug": {
+          "enabled": false,
+          "keep_error_dirs": 32,
+          "max_total_mb": 1024,
+          "payload_hours": 24,
+          "pprof_listen": "",
+          "quota_interval_minutes": 5,
+          "retention_days": 14
+        },
+        "devin": {
+          "aliases": {},
+          "base_url": "",
+          "client_name": "",
+          "client_os": "",
+          "client_version": "",
+          "force_http1": true,
+          "gate_default_latch_seconds": 0,
+          "gate_drip_interval_seconds": 0,
+          "gate_max_hold_seconds": 0,
+          "gate_window_guard_seconds": 0,
+          "gate_window_offset_seconds": 0,
+          "max_rpm": 0,
+          "model": "",
+          "proxy": "",
+          "token": ""
+        },
+        "server": {
+          "listen": ":1",
+          "max_concurrency": 1024
+        }
+      }
+    },
+    {
+      "error": "decode: yaml: unmarshal errors:\n  line 2: mapping key \"a\" already defined at line 2"
+    },
+    {
+      "error": "decode: yaml: unmarshal errors:\n  line 2: mapping key \"a\" already defined at line 2"
+    },
+    {
+      "error": "decode: yaml: unmarshal errors:\n  line 2: cannot unmarshal !!seq into map[string]string"
+    },
+    {
+      "config": {
+        "auth": {
+          "api_key": ""
+        },
+        "dashboard": {
+          "password": ""
+        },
+        "debug": {
+          "enabled": false,
+          "keep_error_dirs": 32,
+          "max_total_mb": 1024,
+          "payload_hours": 24,
+          "pprof_listen": "",
+          "quota_interval_minutes": 5,
+          "retention_days": 14
+        },
+        "devin": {
+          "aliases": {
+            "a": "c",
+            "b": "c"
+          },
+          "base_url": "",
+          "client_name": "",
+          "client_os": "",
+          "client_version": "",
+          "force_http1": true,
+          "gate_default_latch_seconds": 0,
+          "gate_drip_interval_seconds": 0,
+          "gate_max_hold_seconds": 0,
+          "gate_window_guard_seconds": 0,
+          "gate_window_offset_seconds": 0,
+          "max_rpm": 0,
+          "model": "",
+          "proxy": "",
+          "token": ""
+        },
+        "server": {
+          "listen": ":1",
+          "max_concurrency": 1024
+        }
+      }
+    },
+    {
+      "error": "validate: devin.aliases: cycle detected through \"a\""
+    },
+    {
+      "error": "validate: devin.aliases: cycle detected through \"a\""
+    },
+    {
+      "config": {
+        "auth": {
+          "api_key": ""
+        },
+        "dashboard": {
+          "password": ""
+        },
+        "debug": {
+          "enabled": false,
+          "keep_error_dirs": 32,
+          "max_total_mb": 1024,
+          "payload_hours": 24,
+          "pprof_listen": "",
+          "quota_interval_minutes": 5,
+          "retention_days": 14
+        },
+        "devin": {
+          "aliases": {
+            "*": "z"
+          },
+          "base_url": "",
+          "client_name": "",
+          "client_os": "",
+          "client_version": "",
+          "force_http1": true,
+          "gate_default_latch_seconds": 0,
+          "gate_drip_interval_seconds": 0,
+          "gate_max_hold_seconds": 0,
+          "gate_window_guard_seconds": 0,
+          "gate_window_offset_seconds": 0,
+          "max_rpm": 0,
+          "model": "",
+          "proxy": "",
+          "token": ""
+        },
+        "server": {
+          "listen": ":1",
+          "max_concurrency": 1024
+        }
+      }
+    },
+    {
+      "error": "validate: devin.aliases[\"a\"]: \"*\" is only valid as a catch-all key, not a target"
+    },
+    {
+      "error": "validate: devin.aliases: keys \"A\" and \"a\" differ only by case"
+    },
+    {
+      "config": {
+        "auth": {
+          "api_key": ""
+        },
+        "dashboard": {
+          "password": ""
+        },
+        "debug": {
+          "enabled": false,
+          "keep_error_dirs": 32,
+          "max_total_mb": 1024,
+          "payload_hours": 24,
+          "pprof_listen": "",
+          "quota_interval_minutes": 5,
+          "retention_days": 14
+        },
+        "devin": {
+          "aliases": {
+            "a": "b"
+          },
+          "base_url": "",
+          "client_name": "",
+          "client_os": "",
+          "client_version": "",
+          "force_http1": true,
+          "gate_default_latch_seconds": 0,
+          "gate_drip_interval_seconds": 0,
+          "gate_max_hold_seconds": 0,
+          "gate_window_guard_seconds": 0,
+          "gate_window_offset_seconds": 0,
+          "max_rpm": 0,
+          "model": "",
+          "proxy": "",
+          "token": ""
+        },
+        "server": {
+          "listen": ":1",
+          "max_concurrency": 1024
+        }
+      }
+    },
+    {
+      "error": "validate: devin.aliases contains an empty key"
+    },
+    {
+      "error": "validate: devin.aliases[\"a\"] has an empty target"
+    },
+    {
+      "error": "validate: devin.aliases: keys \"A\" and \"a\" differ only by case"
+    },
+    {
+      "error": "decode: yaml: unmarshal errors:\n  line 3: field bogus not found in type main.Config"
+    },
+    {
+      "error": "decode: yaml: unmarshal errors:\n  line 3: field bogus not found in type main.ServerConfig"
+    },
+    {
+      "error": "decode: yaml: unmarshal errors:\n  line 3: mapping key \"listen\" already defined at line 2"
+    },
+    {
+      "error": "decode: yaml: unmarshal errors:\n  line 1: field Server not found in type main.Config"
+    },
+    {
+      "error": "decode: yaml: unmarshal errors:\n  line 2: field Listen not found in type main.ServerConfig"
+    },
+    {
+      "config": {
+        "auth": {
+          "api_key": ""
+        },
+        "dashboard": {
+          "password": ""
+        },
+        "debug": {
+          "enabled": false,
+          "keep_error_dirs": 32,
+          "max_total_mb": 1024,
+          "payload_hours": 24,
+          "pprof_listen": "",
+          "quota_interval_minutes": 5,
+          "retention_days": 14
+        },
+        "devin": {
+          "aliases": {},
+          "base_url": "",
+          "client_name": "",
+          "client_os": "",
+          "client_version": "",
+          "force_http1": true,
+          "gate_default_latch_seconds": 0,
+          "gate_drip_interval_seconds": 0,
+          "gate_max_hold_seconds": 0,
+          "gate_window_guard_seconds": 0,
+          "gate_window_offset_seconds": 0,
+          "max_rpm": 0,
+          "model": "",
+          "proxy": "",
+          "token": ""
+        },
+        "server": {
+          "listen": ":1",
+          "max_concurrency": 1024
+        }
+      }
+    },
+    {
+      "error": "decode: EOF"
+    },
+    {
+      "error": "decode: EOF"
+    },
+    {
+      "error": "validate: server.listen is required"
+    },
+    {
+      "error": "validate: server.listen is required"
+    },
+    {
+      "config": {
+        "auth": {
+          "api_key": ""
+        },
+        "dashboard": {
+          "password": ""
+        },
+        "debug": {
+          "enabled": false,
+          "keep_error_dirs": 32,
+          "max_total_mb": 1024,
+          "payload_hours": 24,
+          "pprof_listen": "6060",
+          "quota_interval_minutes": 5,
+          "retention_days": 14
+        },
+        "devin": {
+          "aliases": {},
+          "base_url": "",
+          "client_name": "",
+          "client_os": "",
+          "client_version": "",
+          "force_http1": true,
+          "gate_default_latch_seconds": 0,
+          "gate_drip_interval_seconds": 0,
+          "gate_max_hold_seconds": 0,
+          "gate_window_guard_seconds": 0,
+          "gate_window_offset_seconds": 0,
+          "max_rpm": 0,
+          "model": "",
+          "proxy": "",
+          "token": ""
+        },
+        "server": {
+          "listen": ":1",
+          "max_concurrency": 1024
+        }
+      }
+    },
+    {
+      "config": {
+        "auth": {
+          "api_key": ""
+        },
+        "dashboard": {
+          "password": "42"
+        },
+        "debug": {
+          "enabled": false,
+          "keep_error_dirs": 32,
+          "max_total_mb": 1024,
+          "payload_hours": 24,
+          "pprof_listen": "",
+          "quota_interval_minutes": 5,
+          "retention_days": 14
+        },
+        "devin": {
+          "aliases": {},
+          "base_url": "",
+          "client_name": "",
+          "client_os": "",
+          "client_version": "",
+          "force_http1": true,
+          "gate_default_latch_seconds": 0,
+          "gate_drip_interval_seconds": 0,
+          "gate_max_hold_seconds": 0,
+          "gate_window_guard_seconds": 0,
+          "gate_window_offset_seconds": 0,
+          "max_rpm": 0,
+          "model": "",
+          "proxy": "",
+          "token": ""
+        },
+        "server": {
+          "listen": ":1",
+          "max_concurrency": 1024
+        }
+      }
+    },
+    {
+      "config": {
+        "auth": {
+          "api_key": "3.14"
+        },
+        "dashboard": {
+          "password": ""
+        },
+        "debug": {
+          "enabled": false,
+          "keep_error_dirs": 32,
+          "max_total_mb": 1024,
+          "payload_hours": 24,
+          "pprof_listen": "",
+          "quota_interval_minutes": 5,
+          "retention_days": 14
+        },
+        "devin": {
+          "aliases": {},
+          "base_url": "",
+          "client_name": "",
+          "client_os": "",
+          "client_version": "",
+          "force_http1": true,
+          "gate_default_latch_seconds": 0,
+          "gate_drip_interval_seconds": 0,
+          "gate_max_hold_seconds": 0,
+          "gate_window_guard_seconds": 0,
+          "gate_window_offset_seconds": 0,
+          "max_rpm": 0,
+          "model": "",
+          "proxy": "",
+          "token": ""
+        },
+        "server": {
+          "listen": ":1",
+          "max_concurrency": 1024
+        }
+      }
+    },
+    {
+      "config": {
+        "auth": {
+          "api_key": ""
+        },
+        "dashboard": {
+          "password": ""
+        },
+        "debug": {
+          "enabled": false,
+          "keep_error_dirs": 32,
+          "max_total_mb": 1024,
+          "payload_hours": 24,
+          "pprof_listen": "",
+          "quota_interval_minutes": 5,
+          "retention_days": 14
+        },
+        "devin": {
+          "aliases": {},
+          "base_url": "",
+          "client_name": "",
+          "client_os": "",
+          "client_version": "",
+          "force_http1": true,
+          "gate_default_latch_seconds": 0,
+          "gate_drip_interval_seconds": 0,
+          "gate_max_hold_seconds": 0,
+          "gate_window_guard_seconds": 0,
+          "gate_window_offset_seconds": 0,
+          "max_rpm": 1,
+          "model": "",
+          "proxy": "",
+          "token": ""
+        },
+        "server": {
+          "listen": ":1",
+          "max_concurrency": 1024
+        }
+      }
+    },
+    {
+      "config": {
+        "auth": {
+          "api_key": ""
+        },
+        "dashboard": {
+          "password": ""
+        },
+        "debug": {
+          "enabled": false,
+          "keep_error_dirs": 32,
+          "max_total_mb": 1024,
+          "payload_hours": 24,
+          "pprof_listen": "",
+          "quota_interval_minutes": 5,
+          "retention_days": 14
+        },
+        "devin": {
+          "aliases": {},
+          "base_url": "",
+          "client_name": "2024",
+          "client_os": "",
+          "client_version": "",
+          "force_http1": true,
+          "gate_default_latch_seconds": 0,
+          "gate_drip_interval_seconds": 0,
+          "gate_max_hold_seconds": 0,
+          "gate_window_guard_seconds": 0,
+          "gate_window_offset_seconds": 0,
+          "max_rpm": 0,
+          "model": "",
+          "proxy": "",
+          "token": ""
+        },
+        "server": {
+          "listen": ":1",
+          "max_concurrency": 1024
+        }
+      }
+    },
+    {
+      "config": {
+        "auth": {
+          "api_key": ""
+        },
+        "dashboard": {
+          "password": ""
+        },
+        "debug": {
+          "enabled": false,
+          "keep_error_dirs": 32,
+          "max_total_mb": 1024,
+          "payload_hours": 24,
+          "pprof_listen": "",
+          "quota_interval_minutes": 5,
+          "retention_days": 14
+        },
+        "devin": {
+          "aliases": {},
+          "base_url": "https://example.com",
+          "client_name": "",
+          "client_os": "",
+          "client_version": "",
+          "force_http1": true,
+          "gate_default_latch_seconds": 0,
+          "gate_drip_interval_seconds": 0,
+          "gate_max_hold_seconds": 0,
+          "gate_window_guard_seconds": 0,
+          "gate_window_offset_seconds": 0,
+          "max_rpm": 0,
+          "model": "m",
+          "proxy": "http://u:p@h:1",
+          "token": ""
+        },
+        "server": {
+          "listen": ":1",
+          "max_concurrency": 1024
+        }
+      }
+    },
+    {
+      "error": "decode: yaml: unmarshal errors:\n  line 2: cannot unmarshal !!seq into string"
+    },
+    {
+      "error": "decode: yaml: unmarshal errors:\n  line 2: cannot unmarshal !!seq into main.ServerConfig"
+    },
+    {
+      "config": {
+        "auth": {
+          "api_key": ""
+        },
+        "dashboard": {
+          "password": ""
+        },
+        "debug": {
+          "enabled": false,
+          "keep_error_dirs": 32,
+          "max_total_mb": 1024,
+          "payload_hours": 24,
+          "pprof_listen": "",
+          "quota_interval_minutes": 5,
+          "retention_days": 14
+        },
+        "devin": {
+          "aliases": {
+            "a": "yes"
+          },
+          "base_url": "",
+          "client_name": "",
+          "client_os": "",
+          "client_version": "",
+          "force_http1": true,
+          "gate_default_latch_seconds": 0,
+          "gate_drip_interval_seconds": 0,
+          "gate_max_hold_seconds": 0,
+          "gate_window_guard_seconds": 0,
+          "gate_window_offset_seconds": 0,
+          "max_rpm": 0,
+          "model": "",
+          "proxy": "",
+          "token": ""
+        },
+        "server": {
+          "listen": ":1",
+          "max_concurrency": 1024
+        }
+      }
+    },
+    {
+      "config": {
+        "auth": {
+          "api_key": ""
+        },
+        "dashboard": {
+          "password": ""
+        },
+        "debug": {
+          "enabled": false,
+          "keep_error_dirs": 32,
+          "max_total_mb": 1024,
+          "payload_hours": 24,
+          "pprof_listen": "",
+          "quota_interval_minutes": 5,
+          "retention_days": 14
+        },
+        "devin": {
+          "aliases": {
+            "yes": "x"
+          },
+          "base_url": "",
+          "client_name": "",
+          "client_os": "",
+          "client_version": "",
+          "force_http1": true,
+          "gate_default_latch_seconds": 0,
+          "gate_drip_interval_seconds": 0,
+          "gate_max_hold_seconds": 0,
+          "gate_window_guard_seconds": 0,
+          "gate_window_offset_seconds": 0,
+          "max_rpm": 0,
+          "model": "",
+          "proxy": "",
+          "token": ""
+        },
+        "server": {
+          "listen": ":1",
+          "max_concurrency": 1024
+        }
+      }
+    },
+    {
+      "config": {
+        "auth": {
+          "api_key": ""
+        },
+        "dashboard": {
+          "password": ""
+        },
+        "debug": {
+          "enabled": false,
+          "keep_error_dirs": 32,
+          "max_total_mb": 1024,
+          "payload_hours": 24,
+          "pprof_listen": "",
+          "quota_interval_minutes": 5,
+          "retention_days": 14
+        },
+        "devin": {
+          "aliases": {},
+          "base_url": "",
+          "client_name": "",
+          "client_os": "",
+          "client_version": "",
+          "force_http1": true,
+          "gate_default_latch_seconds": 0,
+          "gate_drip_interval_seconds": 0,
+          "gate_max_hold_seconds": 0,
+          "gate_window_guard_seconds": 0,
+          "gate_window_offset_seconds": 0,
+          "max_rpm": 0,
+          "model": "",
+          "proxy": "",
+          "token": ""
+        },
+        "server": {
+          "listen": ":1",
+          "max_concurrency": 1024
+        }
+      }
+    },
+    {
+      "config": {
+        "auth": {
+          "api_key": ""
+        },
+        "dashboard": {
+          "password": ""
+        },
+        "debug": {
+          "enabled": false,
+          "keep_error_dirs": 32,
+          "max_total_mb": 256,
+          "payload_hours": 24,
+          "pprof_listen": "",
+          "quota_interval_minutes": 5,
+          "retention_days": 14
+        },
+        "devin": {
+          "aliases": {},
+          "base_url": "",
+          "client_name": "",
+          "client_os": "",
+          "client_version": "",
+          "force_http1": true,
+          "gate_default_latch_seconds": 0,
+          "gate_drip_interval_seconds": 0,
+          "gate_max_hold_seconds": 0,
+          "gate_window_guard_seconds": 0,
+          "gate_window_offset_seconds": 0,
+          "max_rpm": 0,
+          "model": "",
+          "proxy": "",
+          "token": ""
+        },
+        "server": {
+          "listen": ":1",
+          "max_concurrency": 1024
+        }
+      }
+    },
+    {
+      "error": "decode: yaml: unmarshal errors:\n  line 4: cannot unmarshal !!float `.inf` into int"
+    },
+    {
+      "config": {
+        "auth": {
+          "api_key": ""
+        },
+        "dashboard": {
+          "password": ""
+        },
+        "debug": {
+          "enabled": false,
+          "keep_error_dirs": 32,
+          "max_total_mb": 1024,
+          "payload_hours": 24,
+          "pprof_listen": "",
+          "quota_interval_minutes": 5,
+          "retention_days": 14
+        },
+        "devin": {
+          "aliases": {},
+          "base_url": "",
+          "client_name": "",
+          "client_os": "",
+          "client_version": "",
+          "force_http1": true,
+          "gate_default_latch_seconds": 0,
+          "gate_drip_interval_seconds": 0,
+          "gate_max_hold_seconds": 31,
+          "gate_window_guard_seconds": 0,
+          "gate_window_offset_seconds": 0,
+          "max_rpm": 0,
+          "model": "",
+          "proxy": "",
+          "token": ""
+        },
+        "server": {
+          "listen": ":1",
+          "max_concurrency": 1024
+        }
+      }
+    },
+    {
+      "config": {
+        "auth": {
+          "api_key": ""
+        },
+        "dashboard": {
+          "password": ""
+        },
+        "debug": {
+          "enabled": false,
+          "keep_error_dirs": 32,
+          "max_total_mb": 1024,
+          "payload_hours": 24,
+          "pprof_listen": "",
+          "quota_interval_minutes": 5,
+          "retention_days": 14
+        },
+        "devin": {
+          "aliases": {},
+          "base_url": "",
+          "client_name": "",
+          "client_os": "",
+          "client_version": "",
+          "force_http1": true,
+          "gate_default_latch_seconds": 0,
+          "gate_drip_interval_seconds": 0,
+          "gate_max_hold_seconds": 0,
+          "gate_window_guard_seconds": 0,
+          "gate_window_offset_seconds": 0,
+          "max_rpm": 0,
+          "model": "123",
+          "proxy": "",
+          "token": ""
+        },
+        "server": {
+          "listen": ":1",
+          "max_concurrency": 1024
+        }
+      }
+    },
+    {
+      "error": "decode: yaml: unmarshal errors:\n  line 4: cannot unmarshal !!str `5` into int"
+    },
+    {
+      "config": {
+        "auth": {
+          "api_key": ""
+        },
+        "dashboard": {
+          "password": ""
+        },
+        "debug": {
+          "enabled": false,
+          "keep_error_dirs": 32,
+          "max_total_mb": 1024,
+          "payload_hours": 24,
+          "pprof_listen": "",
+          "quota_interval_minutes": 5,
+          "retention_days": 14
+        },
+        "devin": {
+          "aliases": {},
+          "base_url": "",
+          "client_name": "",
+          "client_os": "",
+          "client_version": "",
+          "force_http1": true,
+          "gate_default_latch_seconds": 0,
+          "gate_drip_interval_seconds": 0,
+          "gate_max_hold_seconds": 0,
+          "gate_window_guard_seconds": 0,
+          "gate_window_offset_seconds": 0,
+          "max_rpm": 5,
+          "model": "",
+          "proxy": "",
+          "token": ""
+        },
+        "server": {
+          "listen": ":1",
+          "max_concurrency": 1024
+        }
+      }
+    },
+    {
+      "error": "decode: yaml: cannot decode !!str `abc` as a !!int"
+    },
+    {
+      "config": {
+        "auth": {
+          "api_key": ""
+        },
+        "dashboard": {
+          "password": ""
+        },
+        "debug": {
+          "enabled": false,
+          "keep_error_dirs": 32,
+          "max_total_mb": 1024,
+          "payload_hours": 24,
+          "pprof_listen": "",
+          "quota_interval_minutes": 5,
+          "retention_days": 14
+        },
+        "devin": {
+          "aliases": {},
+          "base_url": "",
+          "client_name": "",
+          "client_os": "",
+          "client_version": "",
+          "force_http1": true,
+          "gate_default_latch_seconds": 0,
+          "gate_drip_interval_seconds": 0,
+          "gate_max_hold_seconds": 0,
+          "gate_window_guard_seconds": 0,
+          "gate_window_offset_seconds": 0,
+          "max_rpm": 0,
+          "model": "",
+          "proxy": "",
+          "token": "5"
+        },
+        "server": {
+          "listen": ":1",
+          "max_concurrency": 1024
+        }
+      }
+    },
+    {
+      "config": {
+        "auth": {
+          "api_key": ""
+        },
+        "dashboard": {
+          "password": ""
+        },
+        "debug": {
+          "enabled": false,
+          "keep_error_dirs": 32,
+          "max_total_mb": 1024,
+          "payload_hours": 24,
+          "pprof_listen": "",
+          "quota_interval_minutes": 5,
+          "retention_days": 14
+        },
+        "devin": {
+          "aliases": {},
+          "base_url": "",
+          "client_name": "",
+          "client_os": "",
+          "client_version": "",
+          "force_http1": true,
+          "gate_default_latch_seconds": 0,
+          "gate_drip_interval_seconds": 0,
+          "gate_max_hold_seconds": 0,
+          "gate_window_guard_seconds": 0,
+          "gate_window_offset_seconds": 0,
+          "max_rpm": 0,
+          "model": "",
+          "proxy": "",
+          "token": "true"
+        },
+        "server": {
+          "listen": ":1",
+          "max_concurrency": 1024
+        }
+      }
+    },
+    {
+      "config": {
+        "auth": {
+          "api_key": ""
+        },
+        "dashboard": {
+          "password": ""
+        },
+        "debug": {
+          "enabled": true,
+          "keep_error_dirs": 32,
+          "max_total_mb": 1024,
+          "payload_hours": 24,
+          "pprof_listen": "",
+          "quota_interval_minutes": 5,
+          "retention_days": 14
+        },
+        "devin": {
+          "aliases": {},
+          "base_url": "",
+          "client_name": "",
+          "client_os": "",
+          "client_version": "",
+          "force_http1": true,
+          "gate_default_latch_seconds": 0,
+          "gate_drip_interval_seconds": 0,
+          "gate_max_hold_seconds": 0,
+          "gate_window_guard_seconds": 0,
+          "gate_window_offset_seconds": 0,
+          "max_rpm": 0,
+          "model": "",
+          "proxy": "",
+          "token": ""
+        },
+        "server": {
+          "listen": ":1",
+          "max_concurrency": 1024
+        }
+      }
+    },
+    {
+      "error": "decode: yaml: cannot decode !!str `yes` as a !!bool"
+    },
+    {
+      "config": {
+        "auth": {
+          "api_key": ""
+        },
+        "dashboard": {
+          "password": ""
+        },
+        "debug": {
+          "enabled": false,
+          "keep_error_dirs": 32,
+          "max_total_mb": 1024,
+          "payload_hours": 24,
+          "pprof_listen": "",
+          "quota_interval_minutes": 5,
+          "retention_days": 14
+        },
+        "devin": {
+          "aliases": {
+            "a": "b",
+            "c": "d"
+          },
+          "base_url": "",
+          "client_name": "",
+          "client_os": "",
+          "client_version": "",
+          "force_http1": true,
+          "gate_default_latch_seconds": 0,
+          "gate_drip_interval_seconds": 0,
+          "gate_max_hold_seconds": 0,
+          "gate_window_guard_seconds": 0,
+          "gate_window_offset_seconds": 0,
+          "max_rpm": 0,
+          "model": "",
+          "proxy": "",
+          "token": ""
+        },
+        "server": {
+          "listen": ":1",
+          "max_concurrency": 1024
+        }
+      }
+    }
+  ]
+}

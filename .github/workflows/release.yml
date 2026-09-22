@@ -1,0 +1,134 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo test --locked --workspace --all-features
+
+  binaries:
+    needs: test
+    strategy:
+      matrix:
+        include:
+          - { runner: ubuntu-latest, target: x86_64-unknown-linux-musl, asset: devin-2api-linux-amd64, kind: binary, smoke: native }
+          - { runner: ubuntu-24.04-arm, target: aarch64-unknown-linux-musl, asset: devin-2api-linux-arm64, kind: binary, smoke: native }
+          - { runner: macos-15-intel, target: x86_64-apple-darwin, asset: devin-2api-darwin-amd64, kind: binary, smoke: native }
+          - { runner: macos-15, target: aarch64-apple-darwin, asset: devin-2api-darwin-arm64, kind: binary, smoke: native }
+          - { runner: windows-2025, target: x86_64-pc-windows-msvc, asset: devin-2api-windows-amd64.zip, kind: windows-zip, smoke: version }
+          - { runner: windows-2025, target: aarch64-pc-windows-msvc, asset: devin-2api-windows-arm64.zip, kind: windows-zip, smoke: none }
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - name: Install musl linker
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y musl-tools
+      - name: Build tagged binary
+        shell: bash
+        env:
+          DEVIN2API_BUILD_VERSION: ${{ github.ref_name }}
+        run: cargo build --locked --release --target '${{ matrix.target }}' --bin devin-2api
+      - name: Package Unix binary
+        if: matrix.kind == 'binary'
+        shell: bash
+        run: scripts/package-release.sh --target '${{ matrix.target }}' --binary 'target/${{ matrix.target }}/release/devin-2api' --version '${{ github.ref_name }}'
+      - name: Package Windows ZIP
+        if: matrix.kind == 'windows-zip'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force dist, package | Out-Null
+          Copy-Item 'target/${{ matrix.target }}/release/devin-2api.exe' package/devin-2api.exe
+          Copy-Item config.example.yaml, LICENSE package/
+          Compress-Archive -Path package/devin-2api.exe,package/config.example.yaml,package/LICENSE -DestinationPath 'dist/${{ matrix.asset }}'
+      - name: Assert static Linux binary
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          if readelf -l 'dist/${{ matrix.asset }}' | grep -q 'Requesting program interpreter'; then
+            echo 'Linux release binary has a dynamic interpreter' >&2
+            exit 1
+          fi
+      - name: Smoke tagged artifact (native Unix runner)
+        if: matrix.smoke == 'native'
+        shell: bash
+        run: scripts/smoke.sh --no-upstream --config config.example.yaml --port 18099 --binary 'target/${{ matrix.target }}/release/devin-2api'
+      - name: Smoke tagged artifact (Windows amd64 native)
+        if: matrix.smoke == 'version'
+        shell: pwsh
+        run: |
+          & 'target/${{ matrix.target }}/release/devin-2api.exe' -version
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Smoke unavailable (cross-built Windows arm64)
+        if: matrix.smoke == 'none'
+        shell: pwsh
+        run: Write-Host 'aarch64-pc-windows-msvc is cross-built on windows-2025 x64; execution smoke unavailable (no hosted arm64 Windows runner).'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset }}
+          path: dist/${{ matrix.asset }}
+          if-no-files-found: error
+          retention-days: 1
+
+  publish:
+    needs: [test, binaries]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Verify and checksum all six assets
+        run: |
+          while IFS=$'\t' read -r _ asset _; do test -s "dist/$asset"; done < packaging/targets.tsv
+          (cd dist && sha256sum devin-2api-* | sort -k2 > checksums.txt && sha256sum -c checksums.txt)
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Compute stable/prerelease image tags
+        id: meta
+        shell: bash
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          tags="ghcr.io/min9lin9/devin2api:${version}"
+          if [[ "$version" != *-* ]]; then
+            tags="${tags},ghcr.io/min9lin9/devin2api:${version%.*},ghcr.io/min9lin9/devin2api:${version%%.*},ghcr.io/min9lin9/devin2api:latest"
+          fi
+          echo "tags=$tags" >> "$GITHUB_OUTPUT"
+      - name: Build and publish verified release image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile.release
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+      - name: Read annotated-tag release notes
+        run: |
+          git fetch --force origin "refs/tags/${GITHUB_REF_NAME}:refs/tags/${GITHUB_REF_NAME}"
+          git for-each-ref "refs/tags/${GITHUB_REF_NAME}" --format='%(contents)' > release-notes.md
+      - uses: softprops/action-gh-release@v2
+        with:
+          body_path: release-notes.md
+          fail_on_unmatched_files: true
+          files: |
+            dist/devin-2api-*
+            dist/checksums.txt

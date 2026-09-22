@@ -1,0 +1,5 @@
+{
+  "elapsed_ms": 2335315,
+  "message": "quota exceeded",
+  "stage": "rate_gate"
+}

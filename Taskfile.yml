@@ -1,0 +1,64 @@
+# proto 提取与 Rust 绑定生成（Go 参考 Taskfile 的 Rust 对应物）。
+#
+# 两条链路：
+#   task extract BINARY=<上游二进制>  ① 二进制 → proto/（不可复现，需上游二进制 + 抓包）
+#   task generate                      ② proto/all-protos.fds → crates/devin-proto/src/generated/（可复现，产物已提交进 git；仅 proto 变化后需重跑）
+#
+# 依赖：
+#   ① 无（protoextract 是仓库内 Rust 工具）
+#   ② 无外部依赖——codegen 走 connectrpc-build/buffa（scripts/generate-proto.sh）
+#
+# 注意：extract 会清空 proto/ 后重写 descriptors.pb / all-protos.proto /
+# manifest.json；all-protos.fds 与 SHA256SUMS 是派生/校验产物，extract 之后
+# 必须重建（见 scripts/generate-proto.sh 头部说明），否则 generate 的
+# 校验步骤会失败。
+
+version: "3"
+
+vars:
+  PROTO_DIR: proto
+
+tasks:
+  extract:
+    desc: Extract embedded protobuf descriptors from a binary into proto/
+    summary: |
+      从编译后的二进制中扫描内嵌的 FileDescriptorProto，重建 proto/：
+      descriptors.pb（原始描述符集）、all-protos.proto（扁平化单文件）、
+      manifest.json（符号映射）。
+
+      用法：task extract BINARY=/path/to/binary
+      注意：会清空 proto/ 后重新写入（all-protos.fds / SHA256SUMS 需重建）。
+      该步骤依赖上游二进制与抓包，不可复现；产物需提交进 git。
+    requires:
+      vars: [BINARY]
+    cmds:
+      - cargo run --locked --bin protoextract -- {{.BINARY}} {{.PROTO_DIR}}
+
+  generate:
+    desc: Regenerate Rust bindings from proto/all-protos.fds
+    summary: |
+      用 connectrpc-build + buffa 从 proto/all-protos.fds 重新生成
+      crates/devin-proto/src/generated/。产物已提交进 git，clone 后无需
+      执行本任务；仅上游 proto 变化（task extract + 重建 fds 之后）需要
+      重新生成并提交。
+    cmds:
+      - scripts/generate-proto.sh
+
+  generate-check:
+    desc: Verify checked-in generated bindings match a fresh regeneration
+    cmds:
+      - scripts/generate-proto.sh --check
+
+  census:
+    desc: Scan logs/ wire traffic against the extracted schema (field coverage, drift signals)
+    summary: |
+      统计 logs/ 请求目录里 03-devin-request.json / 04-devin-response.jsonl 的
+      字段覆盖率、未知键和枚举异常。上游新增枚举成员会以数字形式出现在异常里；
+      新增字段在日志中不可见（protojson 会丢未知字段），需走 task extract + diff。
+
+      用法：task census [MAX_DIRS=500]
+      描述符 diff：cargo run --locked --bin protocensus -- diff <old-descriptors.pb> <new-descriptors.pb>
+    vars:
+      MAX_DIRS: "0"
+    cmds:
+      - cargo run --locked --bin protocensus -- census -max-dirs {{.MAX_DIRS}}

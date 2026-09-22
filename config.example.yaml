@@ -1,0 +1,96 @@
+server:
+  listen: ":8080"
+  # 同时处理的 /v1/* 请求数上限；0 或不填表示使用默认值 1024。
+  max_concurrency: 1024
+
+debug:
+  # 请求级调试日志是本服务的排障基础：logs/ 阶段文件、index.jsonl、
+  # 面板 usage/requests 全部依赖它，关闭则整套排障工作流不可用。
+  # 记录含请求正文，注意隐私与磁盘（上限由 max_total_mb 兜底）。
+  enabled: true
+  # 请求日志目录保留天数；<=0 不按时间清理。默认 14。
+  # retention_days: 14
+  # logs 目录总量上限（MB），超限从最旧目录开始删；<=0 不限制。默认 1024。
+  # max_total_mb: 1024
+  # 大体积阶段文件（03-devin-request/04-devin-response/06-http-response 与
+  # attachments/）的保留小时数；超时剥离负载、保留 meta/error/01/02/05 证据。
+  # <=0 不剥离。默认 24。
+  # payload_hours: 24
+  # 容量淘汰时保护的最新失败目录数（含 error.json）；<=0 不保护。默认 32。
+  # keep_error_dirs: 32
+  # 配额快照采样间隔（分钟），写入 logs/quota.jsonl 供燃烧速率预测；<=0 不采样。
+  # 默认 5。
+  # quota_interval_minutes: 5
+  # Rust 运行时诊断端点的独立监听地址；空值不启用（默认）。
+  # 提供 /debug/diagnostics/*（runtime/tasks/tracing/profile）；Go 版
+  # pprof/fgprof 路由返回 501 并指向替代端点。字段名为兼容保留。
+  # 端点无鉴权——只绑回环地址，跨机访问走 ssh 端口转发。
+  # pprof_listen: "127.0.0.1:6060"
+
+devin:
+  base_url: "https://server.codeium.com"
+  # session token；留空则按 DEVIN_TOKEN / WINDSURF_API_KEY 环境变量
+  # → Devin CLI credentials.toml 自动发现（CLI 续期自动跟随，推荐）。
+  # 写死字面量会旁路该链路，token 过期后只能手改本文件；
+  # 本机没有 Devin CLI 时才需要填字面量。
+  token: ""
+  # model: "swe-2-max"
+  model: "glm-5-2"
+  # 代理地址（可选）；支持 http://、https://、socks5://、socks5h://
+  # 留空则直连或走系统环境变量 HTTP_PROXY/HTTPS_PROXY。
+  # proxy: "socks5://127.0.0.1:1080"
+  # 强制 HTTP/1.1：每请求独立 TCP 连接，避免 HTTP/2 单连接多 stream 复用
+  # 被上游串行处理导致并发卡住/首字延迟飙升。默认 true。
+  # 如上游不支持 HTTP/1.1 流式可设 false 回到 HTTP/2。
+  force_http1: true
+  # 客户端模型名 → 上游真实 UID 的别名映射（可选）。
+  # 例如客户端发 swe-2 / glm-5.2，上游实际 UID 是 swe-2-max / glm-5-2。
+  # 匹配顺序：精确命中 → 大小写不敏感命中 → "*" 兜底键（任意未命中
+  # 名字都改写到其目标，适合客户端硬编码模型名的场景）。链式映射在
+  # 加载时自动展开到最终目标；空键/空目标/大小写重复键/环会拒绝启动。
+  # 别名也作用于请求缺省模型时的 devin.model；目标可以是 router uid
+  #（会自动走 AssignModel 解析）。别名条目出现在 /v1/models 列表里，
+  # 带 alias_of 标记，能力位继承自目标。
+  # aliases:
+  #   swe-2: "swe-2-max"
+  #   glm-5.2: "glm-5-2"
+  #   glm-5.3-max: "glm-5-3-max"
+  #   "*": "glm-5-2"
+  # 发给上游 metadata 的客户端身份；默认与真实 Devin CLI 抓包一致
+  #（chisel / 3000.2.17 / mac）。上游若给新模型加版本门（某模型突然
+  # not_found 或 permission_denied），bump client_version 即可，不必发版。
+  # client_name: "chisel"
+  # client_version: "3000.2.17"
+  # client_os: "mac"
+  # 发往上游 GetChatMessage 的消息速率上限（条/分钟），令牌桶实现、
+  # 桶容量为一分钟额度可容纳突发；<=0 或不填不限速——不建议：上游
+  # 限流器按分钟桶计数且把被拒尝试计入，不限速时突发容易触顶。
+  # 冷却闩本身始终生效（resource_exhausted 后按其 reset 时刻拦停，
+  # 闩截止时刻落盘 logs/gate-state.json、重启恢复），max_rpm 决定
+  # 的是触闩频率而不是兜底。
+  max_rpm: 80
+  # 上游限流冷却闩参数（通常无需调整）：
+  # gate_max_hold_seconds: 闩外令牌排队允许的最长等待秒数，超出快速
+  #   失败 429 + Retry-After。默认 15。
+  # gate_drip_interval_seconds: 闩内放行探针的间隔秒数——滴灌节奏
+  #   决定限流期间打到上游的速率与解闩探测频率。默认 8。
+  # gate_default_latch_seconds: 上游未声明 reset 时刻时的兜底闩时长
+  #   秒数。默认 60。
+  # gate_window_offset_seconds: 上游分钟桶界在本地分钟内的估计位置
+  #   （第几秒）；实测桶界在本地 :59 附近（上游时钟快 ~0.5s）。默认 0。
+  # gate_window_guard_seconds: 估计桶界两侧的停发死区秒数，覆盖桶界
+  #   估计误差与上游多分片漂移；死区内请求睡到下一窗口开放。默认 2。
+  # gate_max_hold_seconds: 15
+  # gate_drip_interval_seconds: 8
+  # gate_default_latch_seconds: 60
+  # gate_window_offset_seconds: 0
+  # gate_window_guard_seconds: 2
+
+dashboard:
+  # 管理面板密码；留空则无需登录，直接进入 /panel。
+  password: ""
+
+auth:
+  # OpenAI 兼容接口访问密钥；留空则不校验，任何客户端均可调用 /v1/*。
+  # 客户端可通过 Authorization: Bearer <api_key> 或 X-Api-Key: <api_key> 传递。
+  api_key: ""

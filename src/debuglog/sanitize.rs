@@ -1,0 +1,352 @@
+//! Value sanitization and attachment extraction — port of
+//! `G/internal/debuglog/sanitize.go`.
+//!
+//! `sanitize` normalizes a `LogValue` into a `JVal` tree and recursively
+//! redacts sensitive keys; `extract_image`/`write_data_url` pull inline
+//! base64 images out of the tree into `attachments/` and leave a reference.
+//! The key-name rules (`SECRET_KEY_NAMES`, `METADATA_SECRET_KEY_NAMES`) are
+//! the last gate before bytes hit disk and are centralized here.
+
+use std::collections::BTreeMap;
+
+use base64::Engine as _;
+use sha2::Digest as _;
+
+use super::LogValue;
+use super::gojson::{self, JVal};
+use super::stages::ATTACHMENTS_DIR;
+
+/// JSON key names that are always redacted (after `_`/`-` removal and
+/// lowercasing). Shared by `secret_key` and `raw_needs_sanitize` so the two
+/// paths cannot drift.
+const SECRET_KEY_NAMES: &[&str] = &[
+    "authorization",
+    "cookie",
+    "setcookie",
+    "apikey",
+    "accesskey",
+    "token",
+    "sessiontoken",
+    "accesstoken",
+    "refreshtoken",
+    "bearertoken",
+    "password",
+    "clientsecret",
+    "devicefingerprint",
+    // modelAssignmentJwt is the per-request router JWT issued by
+    // AssignModel — a credential-grade field inside 03 request bodies.
+    "modelassignmentjwt",
+];
+
+/// Key names sensitive only inside a `metadata` object: upstream
+/// `Metadata.f` is a device fingerprint, but `f` is a legitimate short key
+/// in client payloads — a global rule would over-redact.
+const METADATA_SECRET_KEY_NAMES: &[&str] = &["f"];
+
+/// Normalize a JSON key name: strip `_` and `-`, lowercase.
+fn normalize_key(key: &str) -> String {
+    key.chars()
+        .filter(|c| *c != '_' && *c != '-')
+        .flat_map(char::to_lowercase)
+        .collect()
+}
+
+/// Whether `key` is a globally sensitive name.
+fn secret_key(key: &str) -> bool {
+    let normalized = normalize_key(key);
+    SECRET_KEY_NAMES.contains(&normalized.as_str())
+}
+
+/// Whether `key` is sensitive only inside a `metadata` scope.
+fn metadata_secret_key(key: &str) -> bool {
+    let normalized = normalize_key(key);
+    METADATA_SECRET_KEY_NAMES.contains(&normalized.as_str())
+}
+
+/// Whether `key` opens a `metadata` scope.
+fn is_metadata_key(key: &str) -> bool {
+    normalize_key(key) == "metadata"
+}
+
+/// Prescreen a raw JSON record: only inline images or sensitive key names
+/// need the full unmarshal+tree-walk. `"image/"` covers both `data:image/`
+/// values and `{"mime_type":"image/*","data":...}` objects; key names only
+/// match in `"key":` position (normalized like `secret_key`), so same-named
+/// string values stay on the fast path. Keys containing escapes cannot be
+/// byte-normalized — they take the slow path too. Zero-allocation scan.
+pub fn raw_needs_sanitize(data: &[u8]) -> bool {
+    if memchr_subslice(data, b"image/") {
+        return true;
+    }
+    let mut i = 0;
+    while i < data.len() {
+        if data[i] != b'"' {
+            i += 1;
+            continue;
+        }
+        let mut end = i + 1;
+        let mut escaped = false;
+        while end < data.len() && data[end] != b'"' {
+            if data[end] == b'\\' {
+                escaped = true;
+                end += 1;
+            }
+            end += 1;
+        }
+        if end >= data.len() {
+            break;
+        }
+        let mut colon = end + 1;
+        while colon < data.len() && matches!(data[colon], b' ' | b'\t' | b'\r' | b'\n') {
+            colon += 1;
+        }
+        if colon < data.len()
+            && data[colon] == b':'
+            && (escaped || secret_key_span(&data[i + 1..end]))
+        {
+            return true;
+        }
+        i = end + 1;
+    }
+    false
+}
+
+fn memchr_subslice(haystack: &[u8], needle: &[u8]) -> bool {
+    haystack
+        .windows(needle.len())
+        .any(|window| window == needle)
+}
+
+/// Whether a quoted key span hits the redaction list (same normalization as
+/// `secret_key`). The prescreen cannot tell nesting depth, so metadata-only
+/// names also match — the slow path decides by scope.
+fn secret_key_span(span: &[u8]) -> bool {
+    SECRET_KEY_NAMES
+        .iter()
+        .chain(METADATA_SECRET_KEY_NAMES)
+        .any(|name| equal_fold_key(span, name))
+}
+
+/// Compare a raw key span with a normalized list entry: skip `_`/`-`,
+/// fold ASCII case.
+fn equal_fold_key(span: &[u8], name: &str) -> bool {
+    let mut i = 0;
+    for &want in name.as_bytes() {
+        while i < span.len() && (span[i] == b'_' || span[i] == b'-') {
+            i += 1;
+        }
+        if i >= span.len() {
+            return false;
+        }
+        let mut c = span[i];
+        i += 1;
+        if c.is_ascii_uppercase() {
+            c += b'a' - b'A';
+        }
+        if c != want {
+            return false;
+        }
+    }
+    while i < span.len() && (span[i] == b'_' || span[i] == b'-') {
+        i += 1;
+    }
+    i == span.len()
+}
+
+/// Attachment state owned by the write worker (`attachmentByHash` /
+/// `attachmentCount` in Go).
+#[derive(Default)]
+pub struct AttachmentStore {
+    by_hash: BTreeMap<String, Vec<u8>>,
+    count: u32,
+}
+
+/// Sanitizer bound to one request's shared state (worker-side).
+pub(crate) struct Sanitizer<'a> {
+    pub(crate) shared: &'a super::Shared,
+    pub(crate) attachments: &'a mut AttachmentStore,
+}
+
+impl Sanitizer<'_> {
+    /// `sanitize`: normalize a `LogValue` into a `JVal` tree and recursively
+    /// redact. `Raw` payloads take the prescreen fast path — clean bytes
+    /// pass through untouched; dirty bytes are parsed and walked.
+    pub fn sanitize(&mut self, value: LogValue) -> JVal {
+        match value {
+            LogValue::Raw(data) => {
+                if !raw_needs_sanitize(&data) {
+                    return JVal::Raw(data);
+                }
+                match gojson::parse(&data) {
+                    Ok(tree) => self.sanitize_value(tree, false),
+                    Err(err) => serialization_error(&err),
+                }
+            }
+            LogValue::Serde(thunk) => match thunk() {
+                Ok(data) => match gojson::parse(&data) {
+                    // Go's default path marshals then unmarshals — the tree
+                    // is always rebuilt (sorted keys, float64 numbers).
+                    Ok(tree) => self.sanitize_value(tree, false),
+                    Err(err) => serialization_error(&err),
+                },
+                Err(err) => serialization_error(&err),
+            },
+            LogValue::Tree(tree) => self.sanitize_value(tree, false),
+            LogValue::Text(text) => self.sanitize_value(JVal::Str(text), false),
+            // `eval_deferred` normally unwraps thunks before sanitize; a
+            // thunk that yields another thunk evaluates one more level,
+            // matching Go's single `evalDeferred` unwrap.
+            LogValue::Deferred(f) => self.sanitize(f()),
+        }
+    }
+
+    /// `sanitizeValue`: recursive redaction. `metadata_scope` marks subtrees
+    /// under a `metadata` key where `f` is also sensitive.
+    fn sanitize_value(&mut self, value: JVal, metadata_scope: bool) -> JVal {
+        match value {
+            JVal::Arr(items) => JVal::Arr(
+                items
+                    .into_iter()
+                    .map(|item| self.sanitize_value(item, metadata_scope))
+                    .collect(),
+            ),
+            JVal::Obj(mut map) => {
+                for (key, item) in &mut map {
+                    if secret_key(key) || (metadata_scope && metadata_secret_key(key)) {
+                        *item = JVal::Str("<redacted>".to_string());
+                    }
+                }
+                if let Some(reference) = self.extract_image(&map) {
+                    return JVal::Raw(reference);
+                }
+                let map = map
+                    .into_iter()
+                    .map(|(key, item)| {
+                        let scope = metadata_scope || is_metadata_key(&key);
+                        (key, self.sanitize_value(item, scope))
+                    })
+                    .collect::<BTreeMap<_, _>>();
+                JVal::Obj(map)
+            }
+            JVal::Str(text) => {
+                if text.starts_with("data:image/")
+                    && let Some(reference) = self.write_data_url(&text)
+                {
+                    return JVal::Raw(reference);
+                }
+                JVal::Str(text)
+            }
+            JVal::Raw(raw) => {
+                if !raw_needs_sanitize(&raw) {
+                    return JVal::Raw(raw);
+                }
+                match gojson::parse(&raw) {
+                    Ok(tree) => self.sanitize_value(tree, false),
+                    Err(_) => JVal::Raw(raw),
+                }
+            }
+            other => other,
+        }
+    }
+
+    /// `extractImage`: `{mime_type: "image/*", data: "<base64>"}` objects
+    /// become attachment references.
+    fn extract_image(&mut self, value: &BTreeMap<String, JVal>) -> Option<Vec<u8>> {
+        let mime_type = string_field(value, &["mime_type", "mimeType", "MIMEType"])?;
+        let encoded = string_field(value, &["data", "base64_data", "base64Data", "Data"])?;
+        if !mime_type.starts_with("image/") || encoded.is_empty() {
+            return None;
+        }
+        let data = base64::engine::general_purpose::STANDARD
+            .decode(&encoded)
+            .ok()?;
+        Some(self.write_attachment(&data, &mime_type))
+    }
+
+    /// `writeDataURL`: `data:image/...;base64,...` strings become
+    /// attachment references.
+    fn write_data_url(&mut self, value: &str) -> Option<Vec<u8>> {
+        let (header, encoded) = value.split_once(',')?;
+        if !header.ends_with(";base64") {
+            return None;
+        }
+        let mime_type = header
+            .strip_prefix("data:")?
+            .strip_suffix(";base64")?
+            .to_string();
+        let data = base64::engine::general_purpose::STANDARD
+            .decode(encoded)
+            .ok()?;
+        Some(self.write_attachment(&data, &mime_type))
+    }
+
+    /// `writeAttachment`: dedupe by SHA-256, write `attachments/image-NNN.ext`,
+    /// return the compact JSON of the reference struct (field order:
+    /// file, `mime_type`, size, sha256).
+    fn write_attachment(&mut self, data: &[u8], mime_type: &str) -> Vec<u8> {
+        let hash = hex_lower(&sha2::Sha256::digest(data));
+        if let Some(reference) = self.attachments.by_hash.get(&hash) {
+            return reference.clone();
+        }
+        self.attachments.count += 1;
+        let file_name = format!(
+            "image-{:03}{}",
+            self.attachments.count,
+            image_extension(mime_type)
+        );
+        let dir = self.shared.directory.join(ATTACHMENTS_DIR);
+        if let Err(err) = std::fs::create_dir_all(&dir) {
+            super::self_note_io_err(self.shared, "file", &err);
+        }
+        if let Err(err) = std::fs::write(dir.join(&file_name), data) {
+            super::self_note_io_err(self.shared, "file", &err);
+        }
+        let mut writer = gojson::ObjWriter::new();
+        writer
+            .field_str("file", &format!("{ATTACHMENTS_DIR}/{file_name}"))
+            .field_str("mime_type", mime_type)
+            .field_int("size", i64::try_from(data.len()).unwrap_or(i64::MAX))
+            .field_str("sha256", &hash);
+        let reference = writer.finish().unwrap_or_else(|_| b"{}".to_vec());
+        self.attachments.by_hash.insert(hash, reference.clone());
+        reference
+    }
+}
+
+fn serialization_error(message: &str) -> JVal {
+    JVal::obj()
+        .set("serialization_error", JVal::Str(message.to_string()))
+        .build()
+}
+
+fn string_field(value: &BTreeMap<String, JVal>, keys: &[&str]) -> Option<String> {
+    for key in keys {
+        if let Some(JVal::Str(text)) = value.get(*key) {
+            return Some(text.clone());
+        }
+    }
+    None
+}
+
+fn hex_lower(bytes: &[u8]) -> String {
+    let mut out = String::with_capacity(bytes.len() * 2);
+    for b in bytes {
+        out.push(char::from_digit(u32::from(b >> 4), 16).unwrap_or('0'));
+        out.push(char::from_digit(u32::from(b & 0xF), 16).unwrap_or('0'));
+    }
+    out
+}
+
+/// `imageExtension`: fixed table for the common types, `.bin` fallback.
+/// Go consults the system mime DB (`mime.ExtensionsByType`), whose answer
+/// varies by host — the deterministic table keeps fixture and production
+/// naming identical.
+fn image_extension(mime_type: &str) -> &'static str {
+    match mime_type {
+        "image/jpeg" => ".jpg",
+        "image/png" => ".png",
+        "image/gif" => ".gif",
+        "image/webp" => ".webp",
+        _ => ".bin",
+    }
+}

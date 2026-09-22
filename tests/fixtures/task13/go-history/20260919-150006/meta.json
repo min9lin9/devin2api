@@ -1,0 +1,27 @@
+{
+  "api": "openai-chat",
+  "client": {
+    "key_hash": "khash002"
+  },
+  "duration_ms": 2335315,
+  "finished_at": "2026-09-19T15:39:01.315056997Z",
+  "method": "POST",
+  "model": "",
+  "path": "/v1/chat/completions",
+  "provider": "",
+  "rate_limited": true,
+  "requested_model": "swe-2",
+  "result": "failed",
+  "retry_after_seconds": 30,
+  "started_at": "2026-09-19T15:00:06Z",
+  "status_code": 429,
+  "stream": false,
+  "usage": {
+    "cache_read": 0,
+    "cache_write": 0,
+    "input": 5,
+    "output": 0,
+    "reasoning": 0,
+    "total": 5
+  }
+}

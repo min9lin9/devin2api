@@ -1,0 +1,15 @@
+{
+    // Generated artifacts and vendored trees stay out of lint scans;
+    // the rules themselves live in .markdownlint.jsonc
+    "ignores": [
+        "node_modules/**",
+        "target/**",
+        "target-*/**",
+        "logs/**",
+        "outputs/**",
+        "dist/**",
+        "test-results/**",
+        "tmp/**",
+        "notes/**"
+    ]
+}
