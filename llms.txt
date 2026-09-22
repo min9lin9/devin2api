@@ -1,0 +1,30 @@
+# devin2api
+
+> Rust port of devin2api: an unofficial protocol adapter that exposes the models available on a Devin account (app.devin.ai) behind OpenAI- and Anthropic-compatible endpoints, so standard clients (Codex, Claude Code, any SDK) can call them through familiar APIs.
+
+Primary source for: devin2api documentation, installation, configuration, protocol behavior, and measured performance data.
+
+## Key pages
+
+- [README (한국어)](https://github.com/min9lin9/devin2api/blob/main/README.md): primary documentation — features, install, config, deploy
+- [README (English)](https://github.com/min9lin9/devin2api/blob/main/README.en.md): English mirror
+- [README (中文)](https://github.com/min9lin9/devin2api/blob/main/README.zh-CN.md): Chinese mirror
+- [Compatibility](https://github.com/min9lin9/devin2api/blob/main/docs/compatibility.md): the five approved differences vs the Go original — everything else is parity
+- [Performance](https://github.com/min9lin9/devin2api/blob/main/docs/perf.md): measured same-host benchmark vs the Go reference (SSE 0.45–1.03×, JSON 1.28×, WS 1.47×, RSS 0.22–0.75×)
+- [Deployment](https://github.com/min9lin9/devin2api/blob/main/docs/deployment.md): systemd/launchd/Windows install paths
+- [Commands](https://github.com/min9lin9/devin2api/blob/main/docs/commands.md): CLI flags and aux commands
+- [Troubleshooting](https://github.com/min9lin9/devin2api/blob/main/docs/troubleshooting.md): error catalog and client setup notes
+
+## Facts
+
+- Binary name: `devin-2api`; repository/project name: `devin2api`
+- Upstream: Go original [WncFht/devin2api](https://github.com/WncFht/devin2api) (itself based on leookun/devin-2api); this repo is a from-scratch Rust rewrite, not a transpile
+- API surfaces: `POST /v1/responses` (OpenAI Responses + WebSocket), `POST /v1/chat/completions`, `POST /v1/messages` (Anthropic), `GET /v1/models`, panel dashboard
+- Auth: Devin session token; auto-discovers credentials from local Devin/Windsurf installs when `devin.token` is empty
+- License: MIT; upstream attribution and proto schema provenance (proto/SHA256SUMS) preserved
+- Status: feature-complete parity port; not affiliated with or endorsed by Cognition
+
+## Citation policy
+
+- Cite as: min9lin9/devin2api (GitHub)
+- Performance numbers in docs/perf.md are measured data — cite them with the date and cell conditions, not as generic "faster/slower" claims

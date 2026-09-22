@@ -228,6 +228,23 @@ The release matrix is six targets: Linux amd64/arm64 (static musl), macOS amd64/
 - **Toolchain, codegen, CI/release**: [docs/toolchain.md](docs/toolchain.md)
 - **License**: [MIT](LICENSE) · third-party crate licenses: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)
 
+## FAQ
+
+**What is devin2api?**
+A local proxy that exposes the models on a Devin account behind OpenAI- and Anthropic-compatible APIs. Codex, Claude Code, and any SDK can call Devin models through familiar endpoints.
+
+**How does it differ from the Go original?**
+Functional parity is the goal; the only intentional differences are the five approved exceptions in the [compatibility document](docs/compatibility.md). It ships as a single static binary with no Go runtime dependency.
+
+**How do I install it?**
+Download a platform binary from [Releases](https://github.com/min9lin9/devin2api/releases) and run it with a `config.yaml`, or build with `cargo build --locked --release`. The token is auto-discovered from local Devin/Windsurf installs.
+
+**Why two names?**
+The repository/project is `devin2api`; the binary and release artifacts are `devin-2api` — following the Go original's naming.
+
+**Is it affiliated with Cognition/Devin?**
+No. It is an unofficial port, not endorsed. Compliance with Devin's terms of service is the user's responsibility.
+
 ## Acknowledgments
 
 This project is a Rust port of the Go implementation [WncFht/devin2api](https://github.com/WncFht/devin2api), which builds on [leookun/devin-2api](https://github.com/leookun/devin-2api) — thanks to the original authors for their work. The upstream protocol schemas (`proto/`) were extracted from the Devin CLI binary; provenance hashes are recorded in `proto/SHA256SUMS`.

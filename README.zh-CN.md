@@ -228,6 +228,23 @@ curl http://localhost:8080/v1/messages \
 - **工具链、代码生成、CI/发布**：[docs/toolchain.md](docs/toolchain.md)
 - **许可证**：[MIT](LICENSE) · 第三方 crate 许可证：[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)
 
+## 常见问题
+
+**devin2api 是什么？**
+一个本地代理，把 Devin 账号可用的模型暴露在 OpenAI/Anthropic 兼容 API 之后。Codex、Claude Code 和任意 SDK 都能用熟悉的端点调用 Devin 模型。
+
+**与 Go 原版有什么区别？**
+目标是功能对等；有意差异只有[兼容性文档](docs/compatibility.md)中列出的五项已批准例外。交付为无 Go 运行时依赖的单一静态二进制。
+
+**如何安装？**
+从 [Releases](https://github.com/min9lin9/devin2api/releases) 下载平台二进制并配合 `config.yaml` 运行，或用 `cargo build --locked --release` 构建。token 会从本地 Devin/Windsurf 安装自动发现。
+
+**为什么有两个名字？**
+仓库/项目名是 `devin2api`；二进制和发布产物名是 `devin-2api`——沿用 Go 原版的命名。
+
+**与 Cognition/Devin 有关系吗？**
+没有。非官方移植，未获背书。遵守 Devin 服务条款的责任在用户。
+
 ## 致谢
 
 本项目是 Go 实现 [WncFht/devin2api](https://github.com/WncFht/devin2api) 的 Rust 移植，后者基于 [leookun/devin-2api](https://github.com/leookun/devin-2api)——感谢原作者们的工作。上游协议 schema（`proto/`）提取自 Devin CLI 二进制，出处哈希记录在 `proto/SHA256SUMS`。

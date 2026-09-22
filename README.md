@@ -228,6 +228,23 @@ curl http://localhost:8080/v1/messages \
 - **툴체인, 코드젠, CI/릴리스**: [docs/toolchain.md](docs/toolchain.md)
 - **라이선스**: [MIT](LICENSE) · 서드파티 크레이트 라이선스: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)
 
+## 자주 묻는 질문
+
+**devin2api가 뭔가요?**
+Devin 계정의 모델을 OpenAI/Anthropic 호환 API 뒤에 노출하는 로컬 프록시입니다. Codex, Claude Code, 임의 SDK가 익숙한 엔드포인트로 Devin 모델을 호출할 수 있습니다.
+
+**Go 원본과 무엇이 다른가요?**
+기능 동등성이 목표이며, 의도적 차이는 [호환성 문서](docs/compatibility.md)의 승인된 예외 다섯 건뿐입니다. Go 런타임 의존성이 없는 단일 정적 바이너리입니다.
+
+**어떻게 설치하나요?**
+[Releases](https://github.com/min9lin9/devin2api/releases)에서 플랫폼 바이너리를 받아 `config.yaml`과 함께 실행하거나, `cargo build --locked --release`로 빌드합니다. 토큰은 로컬 Devin/Windsurf 설치에서 자동 탐색됩니다.
+
+**이름이 왜 두 가지인가요?**
+저장소/프로젝트명은 `devin2api`, 바이너리/배포 아티팩트명은 `devin-2api`입니다 — Go 원본의 명명 규칙을 따릅니다.
+
+**Cognition/Devin과 관계가 있나요?**
+없습니다. 비공식 포트이며 보증받지 않았습니다. Devin 서비스 약관 준수 책임은 사용자에게 있습니다.
+
 ## 감사
 
 이 프로젝트는 [leookun/devin-2api](https://github.com/leookun/devin-2api)를 기반으로 한 Go 구현 [WncFht/devin2api](https://github.com/WncFht/devin2api)의 Rust 포트입니다 — 원작자들의 작업에 감사합니다. 업스트림 프로토콜 스키마(`proto/`)는 Devin CLI 바이너리에서 추출되었으며 `proto/SHA256SUMS`에 출처 해시가 기록되어 있습니다.

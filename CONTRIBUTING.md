@@ -37,7 +37,7 @@ npm run lint:md && npm run format:check   # if you touched *.md
 
 ## Commit style
 
-- Small, focused commits; describe *why*, not just *what*.
+- Small, focused commits; describe _why_, not just _what_.
 - No merge commits on feature branches — rebase onto `main`.
 
 ## Reporting issues
