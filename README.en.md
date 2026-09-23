@@ -190,25 +190,6 @@ Notes:
 - if `devin.token` is empty, requests still go upstream and return a normalized upstream-auth failure — once a token shows up in any discovery source the next request succeeds, no restart needed;
 - `config.yaml` is gitignored — keep real tokens out of git anyway.
 
-## Compatibility with the Go implementation
-
-The config file, state directory and log formats are **shared as-is** with the Go implementation ([WncFht/devin2api](https://github.com/WncFht/devin2api)). Migration rules, the one-writer state rule, the rollback procedure and the five approved behavioral differences are in [docs/compatibility.md](docs/compatibility.md). Summary:
-
-- Existing `config.yaml`, `credentials.toml` and `logs/` history are read as-is — no migration.
-- **One writer per state directory at a time** — never run two daemons against the same state dir concurrently.
-- Rollback restores a separate backed-up copy of the state directory (procedure in [docs/deployment.md](docs/deployment.md)).
-
-## Measured performance
-
-Same-host comparison against the Go implementation (4-core Ryzen 5 5600G, loopback stub, paired 30-second samples, bootstrap CIs). Full numbers and methodology in [docs/perf.md](docs/perf.md).
-
-- **SSE streaming throughput is lower than Go**: 0.45–1.03× on Chat SSE cells (the gap widens with concurrency and debug logging; c1 debug-on favors Rust). Responses/Messages SSE share the same path.
-- **Buffered JSON and WebSocket are faster**: chat JSON 1.28×, WebSocket turns 1.47×.
-- **Memory use is much lower**: peak RSS is 0.22–0.75× of Go in every cell.
-- All reliability gates pass: zero unexpected failures/duplicate/missing terminal events/leaked permits across 100k stub-backed requests, cancellation p99 15ms.
-
-No claim of being faster on the SSE path — the measurements say otherwise.
-
 ## Platform support status
 
 The release matrix is six targets: Linux amd64/arm64 (static musl), macOS amd64/arm64, Windows amd64/arm64 (zip). Current status:
@@ -220,8 +201,8 @@ The release matrix is six targets: Linux amd64/arm64 (static musl), macOS amd64/
 ## Documentation
 
 - **Deployment, rollback, offline smoke**: [docs/deployment.md](docs/deployment.md)
-- **Go↔Rust compatibility, approved exceptions, migration**: [docs/compatibility.md](docs/compatibility.md)
-- **Measured performance + Rust runtime diagnostics/profiling**: [docs/perf.md](docs/perf.md)
+- **Compatibility with the Go implementation, migration**: [docs/compatibility.md](docs/compatibility.md)
+- **Runtime diagnostics/profiling**: [docs/perf.md](docs/perf.md)
 - **Upstream protocol reverse-engineering reference**: [docs/protocol.md](docs/protocol.md)
 - **Error reference and troubleshooting**: [docs/troubleshooting.md](docs/troubleshooting.md)
 - **Command reference for every binary/flag**: [docs/commands.md](docs/commands.md)
@@ -232,9 +213,6 @@ The release matrix is six targets: Linux amd64/arm64 (static musl), macOS amd64/
 
 **What is devin2api?**
 A local proxy that exposes the models on a Devin account behind OpenAI- and Anthropic-compatible APIs. Codex, Claude Code, and any SDK can call Devin models through familiar endpoints.
-
-**How does it differ from the Go implementation?**
-Behavioral differences are limited to the five approved exceptions in the [compatibility document](docs/compatibility.md). It ships as a single static binary with no Go runtime dependency.
 
 **How do I install it?**
 Download a platform binary from [Releases](https://github.com/min9lin9/devin2api/releases) and run it with a `config.yaml`, or build with `cargo build --locked --release`. The token is auto-discovered from local Devin/Windsurf installs.

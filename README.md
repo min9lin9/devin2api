@@ -188,25 +188,6 @@ curl http://localhost:8080/v1/messages \
 - `devin.token`이 비어 있어도 요청은 업스트림으로 나가며, 업스트림 인증 실패가 정규화된 오류로 반환됩니다 — 탐색 소스 어디든 토큰이 나타나면 다음 요청이 성공하며 재시작이 필요 없습니다;
 - `config.yaml`은 gitignore되어 있습니다 — 그래도 실제 토큰을 git에 넣지 마세요.
 
-## Go 구현과의 호환성
-
-Go 구현([WncFht/devin2api](https://github.com/WncFht/devin2api))과 **설정 파일, 상태 디렉터리, 로그 형식을 그대로 공유**합니다. 마이그레이션 규칙, 단일 writer 규칙, 롤백 절차, 승인된 다섯 가지 동작 차이는 [docs/compatibility.md](docs/compatibility.md)를 보세요. 요약:
-
-- 기존 `config.yaml`, `credentials.toml`, `logs/` 히스토리를 그대로 읽습니다 — 마이그레이션 불필요.
-- **하나의 state 디렉터리에는 한 번에 하나의 writer만** — 두 데몬을 같은 state 디렉터리로 동시에 돌리지 마세요.
-- 롤백은 별도로 백업해 둔 state 사본을 복원하는 방식입니다(절차는 [docs/deployment.md](docs/deployment.md)).
-
-## 측정된 성능
-
-동일 호스트(4코어 Ryzen 5 5600G, 루프백 스텁, 페어링된 30초 샘플, bootstrap CI)에서 Go 구현과 비교한 결과입니다. 전체 수치와 방법론은 [docs/perf.md](docs/perf.md)를 보세요.
-
-- **SSE 스트리밍 처리량은 Go보다 낮습니다**: Chat SSE 셀에서 0.45–1.03×(동시성과 디버그 로깅이 높을수록 격차 확대; c1 debug-on은 Rust 우세). Responses/Messages SSE도 같은 경로를 공유합니다.
-- **버퍼드 JSON과 WebSocket은 더 빠릅니다**: chat JSON 1.28×, WebSocket 턴 1.47×.
-- **메모리는 훨씬 적게 사용합니다**: 모든 셀에서 피크 RSS가 Go의 0.22–0.75×.
-- 신뢰성 게이트는 모두 통과: 100k 스텁 요청에서 예상치 못한 실패/중복/누락 종료 이벤트/리크된 퍼밋 0건, 취소 p99 15ms.
-
-SSE 경로에서 더 빠르다고 주장하지 않습니다 — 측정값이 그렇지 않습니다.
-
 ## 플랫폼 지원 상태
 
 릴리스 매트릭스는 6개 타깃입니다: Linux amd64/arm64(정적 musl), macOS amd64/arm64, Windows amd64/arm64(zip). 현재 상태:
@@ -218,8 +199,8 @@ SSE 경로에서 더 빠르다고 주장하지 않습니다 — 측정값이 그
 ## 문서
 
 - **배포, 롤백, 오프라인 스모크**: [docs/deployment.md](docs/deployment.md)
-- **Go↔Rust 호환성, 승인된 예외, 마이그레이션**: [docs/compatibility.md](docs/compatibility.md)
-- **측정된 성능 + Rust 런타임 진단/프로파일링**: [docs/perf.md](docs/perf.md)
+- **Go 구현과의 호환성, 마이그레이션**: [docs/compatibility.md](docs/compatibility.md)
+- **런타임 진단/프로파일링**: [docs/perf.md](docs/perf.md)
 - **업스트림 프로토콜 역공학 참조**: [docs/protocol.md](docs/protocol.md)
 - **오류 참조와 트러블슈팅**: [docs/troubleshooting.md](docs/troubleshooting.md)
 - **모든 바이너리/플래그의 커맨드 레퍼런스**: [docs/commands.md](docs/commands.md)
@@ -230,9 +211,6 @@ SSE 경로에서 더 빠르다고 주장하지 않습니다 — 측정값이 그
 
 **devin2api가 뭔가요?**
 Devin 계정의 모델을 OpenAI/Anthropic 호환 API 뒤에 노출하는 로컬 프록시입니다. Codex, Claude Code, 임의 SDK가 익숙한 엔드포인트로 Devin 모델을 호출할 수 있습니다.
-
-**Go 구현과 무엇이 다른가요?**
-동작 차이는 [호환성 문서](docs/compatibility.md)의 승인된 예외 다섯 건뿐입니다. Go 런타임 의존성이 없는 단일 정적 바이너리입니다.
 
 **어떻게 설치하나요?**
 [Releases](https://github.com/min9lin9/devin2api/releases)에서 플랫폼 바이너리를 받아 `config.yaml`과 함께 실행하거나, `cargo build --locked --release`로 빌드합니다. 토큰은 로컬 Devin/Windsurf 설치에서 자동 탐색됩니다.
