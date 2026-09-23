@@ -201,7 +201,7 @@ curl http://localhost:8080/v1/messages \
 ## 文档
 
 - **部署、回滚、离线冒烟**：[docs/deployment.md](docs/deployment.md)
-- **与 Go 实现的兼容性、迁移**：[docs/compatibility.md](docs/compatibility.md)
+- **从 Go 守护进程迁移**：[docs/deployment.md](docs/deployment.md#migrating-from-the-go-daemon)
 - **运行时诊断/剖析**：[docs/perf.md](docs/perf.md)
 - **上游协议逆向参考**：[docs/protocol.md](docs/protocol.md)
 - **错误速查与排障**：[docs/troubleshooting.md](docs/troubleshooting.md)

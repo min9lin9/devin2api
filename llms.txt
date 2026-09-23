@@ -9,9 +9,9 @@ Primary source for: devin2api documentation, installation, configuration, protoc
 - [README (한국어)](https://github.com/min9lin9/devin2api/blob/main/README.md): primary documentation — features, install, config, deploy
 - [README (English)](https://github.com/min9lin9/devin2api/blob/main/README.en.md): English mirror
 - [README (中文)](https://github.com/min9lin9/devin2api/blob/main/README.zh-CN.md): Chinese mirror
-- [Compatibility](https://github.com/min9lin9/devin2api/blob/main/docs/compatibility.md): the five approved differences vs the Go original — everything else is parity
-- [Performance](https://github.com/min9lin9/devin2api/blob/main/docs/perf.md): measured same-host benchmark vs the Go reference (SSE 0.45–1.03×, JSON 1.28×, WS 1.47×, RSS 0.22–0.75×)
-- [Deployment](https://github.com/min9lin9/devin2api/blob/main/docs/deployment.md): systemd/launchd/Windows install paths
+- [Deployment](https://github.com/min9lin9/devin2api/blob/main/docs/deployment.md): install, service management, migration from the Go daemon, rollback
+- [Diagnostics](https://github.com/min9lin9/devin2api/blob/main/docs/perf.md): runtime diagnostics/profiling surface
+- [Benchmarks](https://github.com/min9lin9/devin2api/blob/main/docs/BENCHMARKS.md): measured same-host data vs the Go implementation (SSE 0.45–1.03×, JSON 1.28×, WS 1.47×, RSS 0.22–0.75×)
 - [Commands](https://github.com/min9lin9/devin2api/blob/main/docs/commands.md): CLI flags and aux commands
 - [Troubleshooting](https://github.com/min9lin9/devin2api/blob/main/docs/troubleshooting.md): error catalog and client setup notes
 
@@ -27,4 +27,4 @@ Primary source for: devin2api documentation, installation, configuration, protoc
 ## Citation policy
 
 - Cite as: min9lin9/devin2api (GitHub)
-- Performance numbers in docs/perf.md are measured data — cite them with the date and cell conditions, not as generic "faster/slower" claims
+- Performance numbers in docs/BENCHMARKS.md are measured data — cite them with the date and cell conditions, not as generic "faster/slower" claims

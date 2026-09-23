@@ -199,7 +199,7 @@ curl http://localhost:8080/v1/messages \
 ## 문서
 
 - **배포, 롤백, 오프라인 스모크**: [docs/deployment.md](docs/deployment.md)
-- **Go 구현과의 호환성, 마이그레이션**: [docs/compatibility.md](docs/compatibility.md)
+- **Go 데몬에서의 마이그레이션**: [docs/deployment.md](docs/deployment.md#migrating-from-the-go-daemon)
 - **런타임 진단/프로파일링**: [docs/perf.md](docs/perf.md)
 - **업스트림 프로토콜 역공학 참조**: [docs/protocol.md](docs/protocol.md)
 - **오류 참조와 트러블슈팅**: [docs/troubleshooting.md](docs/troubleshooting.md)

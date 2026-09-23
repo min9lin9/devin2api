@@ -18,7 +18,7 @@ The three deploy scripts (macOS/Linux share `scripts/lib-deploy.sh`) have identi
 
 - **`logs/` always lives under the state dir**: per-request debug dirs, `index.jsonl`, `quota.jsonl`, `gate-state.json` are all under `<state-dir>/logs/`; `stdout.log`/`stderr.log` are process output. A `logs/` symlink in the repo just points at the local state dir (dev convenience, not required). The legacy single-runtime-dir layout is migrated automatically by the deploy scripts (`migrate_legacy_runtime`): config/logs move to the platform dirs and the old binary is removed; existing targets are not overwritten.
 - **Graceful drain is a hard requirement**: `SIGTERM` puts the process into draining — `/healthz` keeps answering with `draining: true`, new `/v1/*` get `503 + Retry-After: 1`, in-flight requests run to completion; the drain cap is 600s, after which remaining connections are closed. Both service definitions allow 660s to cover the cap plus margin. Restarts only send SIGTERM — never `kill -9` to save time (Ctrl+C on a Windows console triggers the same drain). Listener behavior during drain depends on `DEVIN2API_REUSEPORT`: without it the listener stays open (new requests get an application-level 503 rather than a kernel refusal); with it the listener closes immediately so the reuseport group's other sockets take over — the old instance must yield the port for the pre-staged handoff process to take over. At drain start keep-alives are disabled: connections accepted before drain would otherwise pin to the old instance eating 503s for the whole window; with keep-alive off they finish with `Connection: close` and the client's reconnect lands on the successor — a stale connection eats at most one 503.
-- **One writer per state directory**: never run two daemons against the same state dir (see `compatibility.md`). The deploy scripts enforce a single supervised instance; bind failures during restart storms are recorded in `logs/bind-failure.json` and surfaced at `/panel/api/stats` under `last_bind_failure`.
+- **One writer per state directory**: never run two daemons against the same state dir. The deploy scripts enforce a single supervised instance; bind failures during restart storms are recorded in `logs/bind-failure.json` and surfaced at `/panel/api/stats` under `last_bind_failure`.
 
 ## Rollback via a backed-up state copy
 
@@ -38,6 +38,19 @@ systemctl --user start devin-2api
 ```
 
 The restored copy contains only pre-upgrade history; requests served during the evaluation window are absent — expected. `qa documented-smoke` executes this workflow end to end (backup → post-upgrade run → restore → panel serves pre-upgrade history).
+
+## Migrating from the Go daemon
+
+The config file, state directory and log formats are shared with the Go implementation ([WncFht/devin2api](https://github.com/WncFht/devin2api)) — an existing `config.yaml`, `credentials.toml` and `logs/` history are read as-is, no migration step.
+
+1. Stop the Go service (`systemctl --user stop devin-2api` / `launchctl bootout` / Ctrl+C).
+2. Install this binary (`scripts/deploy-linux.sh --release latest`, `scripts/deploy.sh`, or unpack the release asset).
+3. Keep the existing `config.yaml` and state dir — both are read as-is.
+4. Start the service; `/healthz` reports the new version and `logs/` continues appending in the same format.
+
+For side-by-side evaluation, run this instance with a **separate** `-state-dir` (and a different `server.listen` port); copy the existing state dir first if you want the history visible. Rollback uses the backed-up-copy procedure above.
+
+Known intentional differences vs the Go daemon (all deliberate fixes or honest capability boundaries): token-generation auth repair, bounded shared catalog fetch, cancellation rechecked before rate admission, drip probes obey `max_rpm` inside a latch, and Go-only runtime metrics (pprof/fgprof) are replaced by Rust diagnostics (`/debug/diagnostics/*`; the legacy routes return 501).
 
 ## Offline smoke (no upstream token)
 

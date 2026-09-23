@@ -4,9 +4,9 @@ Thanks for your interest in contributing to devin2api. This project is a Rust po
 
 ## Ground rules
 
-- **Parity is the contract.** Observable behavior must match the Go reference. Intentional differences are limited to the five approved exceptions in [docs/compatibility.md](docs/compatibility.md); anything else is a regression.
+- **Parity is the contract.** Observable behavior must match the Go reference implementation ([WncFht/devin2api](https://github.com/WncFht/devin2api)). Intentional differences are limited to the approved exceptions listed in [docs/deployment.md](docs/deployment.md#migrating-from-the-go-daemon); anything else is a regression.
 - **Never commit secrets.** `config.yaml` is gitignored for a reason. Tests and QA use synthetic tokens only — no live upstream traffic in CI.
-- **No "faster" claims without evidence.** Performance statements must cite measured data (see [docs/perf.md](docs/perf.md)).
+- **No "faster" claims without evidence.** Performance statements must cite measured data (see [docs/BENCHMARKS.md](docs/BENCHMARKS.md)).
 
 ## Development setup
 

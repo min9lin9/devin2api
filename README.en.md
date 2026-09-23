@@ -201,7 +201,7 @@ The release matrix is six targets: Linux amd64/arm64 (static musl), macOS amd64/
 ## Documentation
 
 - **Deployment, rollback, offline smoke**: [docs/deployment.md](docs/deployment.md)
-- **Compatibility with the Go implementation, migration**: [docs/compatibility.md](docs/compatibility.md)
+- **Migrating from the Go daemon**: [docs/deployment.md](docs/deployment.md#migrating-from-the-go-daemon)
 - **Runtime diagnostics/profiling**: [docs/perf.md](docs/perf.md)
 - **Upstream protocol reverse-engineering reference**: [docs/protocol.md](docs/protocol.md)
 - **Error reference and troubleshooting**: [docs/troubleshooting.md](docs/troubleshooting.md)
