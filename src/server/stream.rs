@@ -25,6 +25,7 @@ use crate::domain::{
     AssistantMessage, Failure, ResponseEvent, ResponseEventType, ResponseStream, StopReason,
     failure_of,
 };
+use crate::protocol::common::{SSE_DONE, SseFrame};
 use crate::protocol::dispatch::{
     AnthropicProtocol, ChatProtocol, HttpError, ProtocolEncoder, ResponsesProtocol, StreamEncoder,
 };
@@ -80,12 +81,14 @@ where
 struct SseBody {
     source: Box<dyn HttpEventStream>,
     encoder: Box<dyn StreamEncoder>,
-    protocol: Box<dyn ProtocolEncoder + Send + Sync>,
     recorder: Recorder,
     cancel: CancellationToken,
     /// Permit + drain slot: released when the body is dropped — after
-    /// hyper has flushed (or abandoned) the queued tail.
-    _admission: Admission,
+    /// hyper has flushed (or abandoned) the queued tail. `Option` so
+    /// `finalize` can move it into the `complete` task: Go's
+    /// `defer release()` runs after `defer Complete`, so the slot stays
+    /// occupied through the drain wait and meta/index writes.
+    admission: Option<Admission>,
     completion: Option<Completion>,
     interval: tokio::time::Interval,
     /// Encoded bytes accumulate while upstream keeps supplying events;
@@ -97,6 +100,10 @@ struct SseBody {
     batch: BytesMut,
     /// Chunks committed to the wire but not yet pulled by hyper.
     pending: VecDeque<Bytes>,
+    /// Per-event frame spans of the last `encode_into` call — the debug
+    /// recorder replays them for its name/payload log split; reused across
+    /// events so the hot path allocates once.
+    frames: Vec<SseFrame>,
     /// The stream's terminal outcome once known; `None` while live.
     terminal_result: Option<&'static str>,
     /// The terminal outcome was already recorded via `complete`.
@@ -112,7 +119,6 @@ impl SseBody {
     fn new(
         source: Box<dyn HttpEventStream>,
         encoder: Box<dyn StreamEncoder>,
-        protocol: Box<dyn ProtocolEncoder + Send + Sync>,
         recorder: Recorder,
         cancel: CancellationToken,
         admission: Admission,
@@ -126,14 +132,14 @@ impl SseBody {
         Self {
             source,
             encoder,
-            protocol,
             recorder,
             cancel,
-            _admission: admission,
+            admission: Some(admission),
             completion: Some(completion),
             interval,
             batch: BytesMut::new(),
             pending: VecDeque::new(),
+            frames: Vec::new(),
             terminal_result: None,
             finalized: false,
             disconnect_logged: false,
@@ -147,14 +153,14 @@ impl SseBody {
         Self {
             source: Box::new(EmptyEventStream),
             encoder: Box::new(NoopEncoder),
-            protocol: Box::new(ChatProtocol),
             recorder: Recorder::none(),
             cancel,
-            _admission: admission,
+            admission: Some(admission),
             completion: None,
             interval: tokio::time::interval(KEEPALIVE_INTERVAL),
             batch: BytesMut::new(),
             pending: VecDeque::from([chunk]),
+            frames: Vec::new(),
             terminal_result: None,
             finalized: true,
             disconnect_logged: true,
@@ -163,8 +169,11 @@ impl SseBody {
 
     /// Record the terminal outcome once the tail is queued: mirrors the
     /// producer's `complete()` after its last `tx.send` — enqueueing the
-    /// final bytes is the commit point, delivery is hyper's job.
-    fn finalize(&mut self) {
+    /// final bytes is the commit point, delivery is hyper's job. The
+    /// drain wait + meta/index writes run on the blocking pool: Go parks
+    /// a goroutine in `Complete`, which is cheap — a parked tokio worker
+    /// is a quarter of the runtime.
+    async fn finalize(&mut self) {
         if self.finalized {
             return;
         }
@@ -172,8 +181,15 @@ impl SseBody {
             return;
         };
         self.finalized = true;
-        if let Some(completion) = self.completion.take() {
-            complete(&self.recorder, completion, result);
+        if let Some(completion) = self.completion.take()
+            && let Some(task) = spawn_complete(
+                self.recorder.clone(),
+                completion,
+                result,
+                self.admission.take(),
+            )
+        {
+            let _ = task.await;
         }
     }
 
@@ -195,22 +211,31 @@ impl SseBody {
             return Some(chunk);
         }
         if self.terminal_result.is_some() {
-            self.finalize();
+            self.finalize().await;
             return None;
         }
         'outer: loop {
             let next = if self.batch.is_empty() {
-                tokio::select! {
-                    () = self.cancel.cancelled() => {
-                        self.terminal_result = Some("disconnected");
-                        self.disconnect_logged = true;
-                        self.recorder.write_error("client_disconnected", &Failure::plain("client disconnected"));
-                        break 'outer;
+                // Fast path: an already-decoded event skips the select —
+                // building the cancel/tick futures per event is the
+                // measured per-frame cost under a saturated pump. The
+                // post-`next` `is_cancelled` check below keeps Go's
+                // cancel attribution identical to the select arm.
+                if let Some(event) = self.source.try_recv() {
+                    Ok(Some(event))
+                } else {
+                    tokio::select! {
+                        () = self.cancel.cancelled() => {
+                            self.terminal_result = Some("disconnected");
+                            self.disconnect_logged = true;
+                            self.recorder.write_error("client_disconnected", &Failure::plain("client disconnected"));
+                            break 'outer;
+                        }
+                        _ = self.interval.tick() => {
+                            return Some(Bytes::from_static(SSE_KEEPALIVE));
+                        }
+                        next = self.source.recv() => next,
                     }
-                    _ = self.interval.tick() => {
-                        return Some(Bytes::from_static(SSE_KEEPALIVE));
-                    }
-                    next = self.source.recv() => next,
                 }
             } else {
                 // Go `select { case item := <-items: ... default: flush }`:
@@ -261,10 +286,10 @@ impl SseBody {
                     }
                     match append_event(
                         &mut *self.encoder,
-                        &*self.protocol,
                         &self.recorder,
                         &event,
                         &mut self.batch,
+                        &mut self.frames,
                     ) {
                         Ok(_) => {
                             if event.kind == ResponseEventType::Error {
@@ -300,10 +325,10 @@ impl SseBody {
                     let before = self.batch.len();
                     if append_event(
                         &mut *self.encoder,
-                        &*self.protocol,
                         &self.recorder,
                         &event,
                         &mut self.batch,
+                        &mut self.frames,
                     )
                     .is_ok()
                         && self.batch.len() > before
@@ -318,13 +343,21 @@ impl SseBody {
             }
         }
         // Terminal paths flush the accumulated batch before ending (the
-        // producer's post-loop `tx.send(batch)`).
+        // producer's post-loop `tx.send(batch)`). When nothing is left to
+        // send this poll is the body's last — finalize here so `complete`
+        // and the permit release still precede EOF (Go's `defer` order);
+        // otherwise `drop` would run them detached and the next turn on a
+        // sequential transport could observe the permit still held.
         if !self.batch.is_empty() {
             let batch = self.batch.split().freeze();
             self.emit(batch);
         }
-        self.finalize();
-        self.pending.pop_front()
+        if let Some(chunk) = self.pending.pop_front() {
+            Some(chunk)
+        } else {
+            self.finalize().await;
+            None
+        }
     }
 }
 
@@ -349,10 +382,13 @@ impl Drop for SseBody {
             }
         }
         if let Some(completion) = self.completion.take() {
-            complete(
-                &self.recorder,
+            // Detached: the body is gone either way — the drain wait must
+            // not park the dropping worker either.
+            let _ = spawn_complete(
+                self.recorder.clone(),
                 completion,
                 self.terminal_result.unwrap_or("disconnected"),
+                self.admission.take(),
             );
         }
     }
@@ -372,11 +408,13 @@ impl HttpEventStream for EmptyEventStream {
 struct NoopEncoder;
 
 impl StreamEncoder for NoopEncoder {
-    fn encode(
+    fn encode_into(
         &mut self,
         _event: &ResponseEvent,
-    ) -> Result<Vec<crate::protocol::common::SseEvent>, Failure> {
-        Ok(Vec::new())
+        _dst: &mut BytesMut,
+        _frames: &mut Vec<SseFrame>,
+    ) -> Result<(), Failure> {
+        Ok(())
     }
 }
 
@@ -412,32 +450,50 @@ fn committed_response(body: Body, sse: bool) -> Response {
 }
 
 /// Encode one event's SSE frames straight into `dst` — Go's
-/// `batch = protocol.AppendSSE(batch, ...)` shape: no per-event
-/// temporary buffer, no copy into the batch. Returns the number of
-/// bytes appended.
+/// `batch = protocol.AppendSSE(batch, ...)` shape: serialization lands in
+/// the output buffer with no per-event temporaries. `frames` is a
+/// caller-owned scratch the encoder fills with each frame's payload span
+/// for the debug recorder. Returns the number of bytes appended.
 fn append_event(
     encoder: &mut dyn StreamEncoder,
-    protocol: &dyn ProtocolEncoder,
     recorder: &Recorder,
     event: &ResponseEvent,
     dst: &mut BytesMut,
+    frames: &mut Vec<SseFrame>,
 ) -> Result<usize, Failure> {
-    // The disabled recorder is a no-op sink: skip the per-event clone and
-    // the per-chunk data clone it would discard anyway (hot path).
+    // The disabled recorder is a no-op sink: skip the per-event record and
+    // the per-frame payload copies it would discard anyway (hot path).
     let active = recorder.is_active();
     if active {
-        recorder.record_response_event(event.clone());
+        recorder.record_response_event(event);
     }
     let before = dst.len();
-    for encoded in encoder.encode(event)? {
-        if active {
-            recorder.append_jsonl(
-                STAGE_HTTP_RESPONSE,
-                encoded.name,
-                LogValue::Raw(encoded.data.clone()),
-            );
+    frames.clear();
+    if let Err(failure) = encoder.encode_into(event, dst, frames) {
+        // A failed event must not leave half-written frames in the batch —
+        // the old Vec<SseEvent> shape made that structurally impossible.
+        dst.truncate(before);
+        return Err(failure);
+    }
+    if active {
+        for frame in frames.iter() {
+            let data = &dst[frame.data.clone()];
+            if frame.name == SSE_DONE {
+                // Go logs the [DONE] marker as a JSON string, not raw
+                // bytes (stream.go: `AppendJSONL(..., string(data))`).
+                recorder.append_jsonl(
+                    STAGE_HTTP_RESPONSE,
+                    frame.name,
+                    LogValue::text(String::from_utf8_lossy(data).into_owned()),
+                );
+            } else {
+                recorder.append_jsonl(
+                    STAGE_HTTP_RESPONSE,
+                    frame.name,
+                    LogValue::Raw(data.to_vec()),
+                );
+            }
         }
-        protocol.append_sse(dst, encoded.name, &encoded.data);
     }
     Ok(dst.len() - before)
 }
@@ -481,6 +537,30 @@ fn complete(recorder: &Recorder, mut completion: Completion, result: &str) {
     completion.status_code = 200;
     completion.result = result.to_string();
     recorder.complete(completion);
+}
+
+/// `complete` on the blocking pool when a runtime is reachable (the
+/// recorder's `writer_done` wait and meta/index writes are blocking IO);
+/// inline when there is none (tests dropping bodies outside tokio).
+/// Returns the join handle so async callers can preserve Go's
+/// EOF-after-`Complete` ordering; `None` means it already ran inline.
+fn spawn_complete(
+    recorder: Recorder,
+    completion: Completion,
+    result: &'static str,
+    admission: Option<Admission>,
+) -> Option<tokio::task::JoinHandle<()>> {
+    if let Ok(handle) = tokio::runtime::Handle::try_current() {
+        return Some(handle.spawn_blocking(move || {
+            complete(&recorder, completion, result);
+            // The permit releases only after `complete` — Go's
+            // `defer release()` ordering inside the handler.
+            drop(admission);
+        }));
+    }
+    complete(&recorder, completion, result);
+    drop(admission);
+    None
 }
 
 /// Returns `(response, body_owns_completion)`. `true` means the response
@@ -533,8 +613,9 @@ pub async fn sse_response(
                 ..ResponseEvent::default()
             };
             let mut body = BytesMut::new();
-            append_event(&mut *encoder, &*protocol, &recorder, &start, &mut body)?;
-            append_event(&mut *encoder, &*protocol, &recorder, &event, &mut body)?;
+            let mut frames = Vec::new();
+            append_event(&mut *encoder, &recorder, &start, &mut body, &mut frames)?;
+            append_event(&mut *encoder, &recorder, &event, &mut body, &mut frames)?;
             recorder.note_client_latency();
             recorder.write_error("provider_stream", &failure);
             complete(&recorder, completion, "failed");
@@ -557,16 +638,15 @@ pub async fn sse_response(
                 update_completion(&mut completion, message);
             }
             let mut body = BytesMut::new();
-            if append_event(&mut *encoder, &*protocol, &recorder, &event, &mut body)? > 0 {
+            let mut frames = Vec::new();
+            if append_event(&mut *encoder, &recorder, &event, &mut body, &mut frames)? > 0 {
                 recorder.note_client_latency();
                 pending.push_back(body.freeze());
             }
         }
     }
 
-    let mut state = SseBody::new(
-        source, encoder, protocol, recorder, cancel, admission, completion,
-    );
+    let mut state = SseBody::new(source, encoder, recorder, cancel, admission, completion);
     state.pending = pending;
     Ok((committed_response(sse_body_stream(state), true), true))
 }
@@ -587,7 +667,7 @@ async fn collect_final(
                 .ok_or_else(|| Failure::plain("response stream ended without a final message"));
         };
         if recorder.is_active() {
-            recorder.record_response_event(event.clone());
+            recorder.record_response_event(&event);
         }
         match event.kind {
             ResponseEventType::Done => final_message = event.message,
@@ -611,7 +691,8 @@ struct JsonBody {
     model: String,
     recorder: Recorder,
     cancel: CancellationToken,
-    _admission: Admission,
+    /// Same permit-through-`complete` contract as [`SseBody::admission`].
+    admission: Option<Admission>,
     completion: Option<Completion>,
     pending: VecDeque<Bytes>,
     /// Repeating `\n` heartbeat for the collect window (Go's
@@ -631,8 +712,9 @@ struct JsonBody {
 
 impl JsonBody {
     /// Record the terminal outcome once the terminal chunk is queued —
-    /// the producer's `complete()` after its `tx.send`.
-    fn finalize(&mut self) {
+    /// the producer's `complete()` after its `tx.send`. Same blocking-pool
+    /// rationale as [`SseBody::finalize`].
+    async fn finalize(&mut self) {
         if self.finalized {
             return;
         }
@@ -640,8 +722,15 @@ impl JsonBody {
             return;
         };
         self.finalized = true;
-        if let Some(completion) = self.completion.take() {
-            complete(&self.recorder, completion, result);
+        if let Some(completion) = self.completion.take()
+            && let Some(task) = spawn_complete(
+                self.recorder.clone(),
+                completion,
+                result,
+                self.admission.take(),
+            )
+        {
+            let _ = task.await;
         }
     }
 
@@ -650,6 +739,7 @@ impl JsonBody {
             return Some(chunk);
         }
         if self.terminal_result.is_some() {
+            self.finalize().await;
             return None;
         }
         let mut collection = self.collection.take()?;
@@ -678,8 +768,12 @@ impl JsonBody {
                 &Failure::plain("client disconnected"),
             );
             self.terminal_result = Some("disconnected");
-            self.finalize();
-            return self.pending.pop_front();
+            return if let Some(chunk) = self.pending.pop_front() {
+                Some(chunk)
+            } else {
+                self.finalize().await;
+                None
+            };
         }
         match result {
             Ok(message) => {
@@ -721,8 +815,12 @@ impl JsonBody {
                 self.terminal_result = Some("failed");
             }
         }
-        self.finalize();
-        self.pending.pop_front()
+        if let Some(chunk) = self.pending.pop_front() {
+            Some(chunk)
+        } else {
+            self.finalize().await;
+            None
+        }
     }
 }
 
@@ -751,10 +849,11 @@ impl Drop for JsonBody {
             }
         }
         if let Some(completion) = self.completion.take() {
-            complete(
-                &self.recorder,
+            let _ = spawn_complete(
+                self.recorder.clone(),
                 completion,
                 self.terminal_result.unwrap_or("disconnected"),
+                self.admission.take(),
             );
         }
     }
@@ -815,7 +914,7 @@ pub async fn json_response(
             model,
             recorder,
             cancel,
-            _admission: admission,
+            admission: Some(admission),
             completion: Some(completion),
             pending,
             interval,

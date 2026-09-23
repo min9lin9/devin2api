@@ -10,7 +10,8 @@ use serde_json::{Value, json};
 use crate::domain::{AssistantMessage, Failure, ResponseEvent, classify};
 
 use super::common::{
-    SSE_DONE, SseEvent, anthropic_error_type, build_error_payload, go_marshal, openai_error_type,
+    SSE_DONE, SseEvent, SseFrame, anthropic_error_type, build_error_payload, go_marshal,
+    openai_error_type,
 };
 use super::{chat, messages, responses};
 
@@ -37,25 +38,66 @@ pub struct HttpError {
 /// The shared intermediate-event encoding of the three protocols (Go's
 /// `streamEncoder` interface).
 pub trait StreamEncoder: Send {
-    /// Expands one intermediate event into zero or more SSE events.
-    fn encode(&mut self, event: &ResponseEvent) -> Result<Vec<SseEvent>, Failure>;
+    /// Expands one intermediate event into zero or more SSE frames written
+    /// straight into `dst` — Go's `batch = protocol.AppendSSE(batch, ...)`
+    /// shape: serialization lands in the output buffer with no per-event
+    /// `Vec`/`String` intermediates. Each emitted frame's payload span is
+    /// pushed to `frames` so the debug recorder can still log the
+    /// name/payload split.
+    fn encode_into(
+        &mut self,
+        event: &ResponseEvent,
+        dst: &mut BytesMut,
+        frames: &mut Vec<SseFrame>,
+    ) -> Result<(), Failure>;
+
+    /// Expands one intermediate event into owned SSE events — the
+    /// allocation-carrying form kept for tests and diagnostics; the hot
+    /// path uses [`StreamEncoder::encode_into`].
+    fn encode(&mut self, event: &ResponseEvent) -> Result<Vec<SseEvent>, Failure> {
+        let mut dst = BytesMut::new();
+        let mut frames = Vec::new();
+        self.encode_into(event, &mut dst, &mut frames)?;
+        Ok(frames
+            .iter()
+            .map(|frame| SseEvent {
+                name: frame.name,
+                data: dst[frame.data.clone()].to_vec(),
+            })
+            .collect())
+    }
 }
 
 impl StreamEncoder for responses::StreamEncoder {
-    fn encode(&mut self, event: &ResponseEvent) -> Result<Vec<SseEvent>, Failure> {
-        Self::encode(self, event)
+    fn encode_into(
+        &mut self,
+        event: &ResponseEvent,
+        dst: &mut BytesMut,
+        frames: &mut Vec<SseFrame>,
+    ) -> Result<(), Failure> {
+        Self::encode_into(self, event, dst, frames)
     }
 }
 
 impl StreamEncoder for chat::StreamEncoder {
-    fn encode(&mut self, event: &ResponseEvent) -> Result<Vec<SseEvent>, Failure> {
-        Self::encode(self, event)
+    fn encode_into(
+        &mut self,
+        event: &ResponseEvent,
+        dst: &mut BytesMut,
+        frames: &mut Vec<SseFrame>,
+    ) -> Result<(), Failure> {
+        Self::encode_into(self, event, dst, frames)
     }
 }
 
 impl StreamEncoder for messages::StreamEncoder {
-    fn encode(&mut self, event: &ResponseEvent) -> Result<Vec<SseEvent>, Failure> {
-        Self::encode(self, event)
+    fn encode_into(
+        &mut self,
+        event: &ResponseEvent,
+        dst: &mut BytesMut,
+        frames: &mut Vec<SseFrame>,
+    ) -> Result<(), Failure> {
+        Self::encode_into(self, event, dst, frames)
     }
 }
 

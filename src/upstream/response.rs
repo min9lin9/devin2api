@@ -560,8 +560,16 @@ impl ResponseDecoder {
     }
 
     /// The assistant message accumulated so far (test/introspection view;
-    /// the stream layer reads terminal events, not this).
-    pub fn partial(&self) -> &AssistantMessage {
+    /// the stream layer reads terminal events, not this). An open thinking
+    /// block is materialized into `partial` on read — Go syncs it per
+    /// frame, so the introspection view must see the in-flight signature;
+    /// the hot path defers that write to `end_thinking`/`fail` instead.
+    pub fn partial(&mut self) -> &AssistantMessage {
+        if self.thinking_open {
+            self.thinking.thinking_signature = self.thinking_sig_builder.clone();
+            Arc::make_mut(&mut self.partial).content[self.think_idx] =
+                Content::Thinking(self.thinking.clone());
+        }
         &self.partial
     }
 
@@ -638,8 +646,10 @@ impl ResponseDecoder {
             return Vec::new();
         }
         // Most frames produce 1-2 events; one shared vector keeps the
-        // per-frame small allocations near one.
-        let mut events = Vec::with_capacity(4);
+        // per-frame small allocations near one. `Vec::new` defers the
+        // allocation to the first push so metadata-only frames (usage,
+        // latency keepalives) never pay it.
+        let mut events = Vec::new();
         // Upstream sends the signature as a trailing frame after all body
         // content; with the thinking block already closed it must merge
         // back into the last thinking block, not open a new one.
@@ -821,11 +831,126 @@ impl ResponseDecoder {
         self.complete(reason)
     }
 
+    /// Whether the frame would change any `partial` field — the
+    /// `Arc::make_mut` guard: while a prior event still holds the shared
+    /// snapshot (the normal case during burst drains), `make_mut`
+    /// deep-clones the whole accumulated message, so calling it
+    /// unconditionally makes every frame O(total content). Metadata-only
+    /// frames and repeat-value frames skip the clone entirely.
+    fn metadata_changes<F: FrameAccess>(&self, response: &F) -> bool {
+        let partial = &*self.partial;
+        if response
+            .message_id()
+            .is_some_and(|id| partial.response_id != id)
+        {
+            return true;
+        }
+        if response
+            .output_id()
+            .is_some_and(|id| !id.is_empty() && partial.output_id != id)
+        {
+            return true;
+        }
+        if response
+            .request_id()
+            .is_some_and(|id| !id.is_empty() && partial.upstream_request_id.is_empty())
+        {
+            return true;
+        }
+        if response
+            .actual_model_uid()
+            .is_some_and(|uid| partial.response_model != uid)
+        {
+            return true;
+        }
+        if let Some(timestamp) = response.timestamp() {
+            let millis = timestamp
+                .seconds()
+                .saturating_mul(1000)
+                .saturating_add(i64::from(timestamp.nanos()).div_euclid(1_000_000));
+            if partial.timestamp_ms != millis {
+                return true;
+            }
+        }
+        let Some(usage) = response.usage() else {
+            return false;
+        };
+        if partial.response_model.is_empty() && usage.model_uid().is_some_and(|uid| !uid.is_empty())
+        {
+            return true;
+        }
+        // The write conditions mirror `update_metadata` exactly: a counter
+        // writes when the frame value is non-zero or nothing was booked
+        // yet, and only then does a differing value count as a change.
+        let input = u64_as_i64(usage.input_tokens());
+        if (usage.input_tokens() != 0 || partial.usage.input == 0) && partial.usage.input != input {
+            return true;
+        }
+        let output = u64_as_i64(usage.output_tokens());
+        if (usage.output_tokens() != 0 || partial.usage.output == 0)
+            && partial.usage.output != output
+        {
+            return true;
+        }
+        let cache_read = u64_as_i64(usage.cache_read_tokens());
+        if (usage.cache_read_tokens() != 0 || partial.usage.cache_read == 0)
+            && partial.usage.cache_read != cache_read
+        {
+            return true;
+        }
+        let cache_write = u64_as_i64(usage.cache_write_tokens());
+        if (usage.cache_write_tokens() != 0 || partial.usage.cache_write == 0)
+            && partial.usage.cache_write != cache_write
+        {
+            return true;
+        }
+        // Reached only when every counter is already at its post-write
+        // value, so the recomputed total compares against current fields.
+        if partial.usage.total_tokens
+            != partial.usage.input
+                + partial.usage.output
+                + partial.usage.cache_read
+                + partial.usage.cache_write
+        {
+            return true;
+        }
+        // The provider diagnostic is a `partial` write too: it lands once
+        // per stream when the frame carries provider tracing info.
+        if !self.provider_logged {
+            let api_provider = api_provider_name(usage);
+            let api_provider = api_provider
+                .strip_prefix("API_PROVIDER_")
+                .unwrap_or(&api_provider);
+            if usage
+                .response_header_get("x-request-id")
+                .is_some_and(|id| !id.is_empty())
+                || (!api_provider.is_empty() && api_provider != "UNSPECIFIED")
+            {
+                return true;
+            }
+        }
+        false
+    }
+
     /// Flushes frame metadata (id/model/timestamp/usage/diagnostics) into
     /// `partial`; fields only overwrite when they carry a value that is
     /// more complete — upstream reports usage incrementally across frames
-    /// and the first value must not be lost.
+    /// and the first value must not be lost. `Arc::make_mut` runs only
+    /// when a field would actually change ([`Self::metadata_changes`]) —
+    /// while a prior event still holds the shared snapshot, an
+    /// unconditional `make_mut` deep-clones the whole accumulated message
+    /// per frame, the O(frames × content) cost this guard removes.
     fn update_metadata<F: FrameAccess>(&mut self, response: &F) {
+        // `provider_refusal` is decoder state, not a `partial` field: it
+        // must latch even when nothing else changed.
+        if let Some(usage) = response.usage()
+            && usage.provider_refusal()
+        {
+            self.provider_refusal = true;
+        }
+        if !self.metadata_changes(response) {
+            return;
+        }
         let partial = Arc::make_mut(&mut self.partial);
         if let Some(message_id) = response.message_id() {
             partial.response_id = message_id.to_string();
@@ -883,9 +1008,6 @@ impl ResponseDecoder {
                 + partial.usage.output
                 + partial.usage.cache_read
                 + partial.usage.cache_write;
-            if usage.provider_refusal() {
-                self.provider_refusal = true;
-            }
             // Provider-side tracing info (api_provider + the vendor HTTP
             // request id) is recorded once — it can be handed to
             // upstream/provider support directly when debugging.
@@ -966,12 +1088,13 @@ impl ResponseDecoder {
             self.thinking.signature_type = sig_type.to_string();
         }
         self.thinking.redacted = self.thinking.redacted || response.thinking_redacted();
-        // The thinking body materializes at endThinking; signatures are
-        // short, so syncing them per frame keeps startReasoning able to
-        // pick them up.
-        self.thinking.thinking_signature = self.thinking_sig_builder.clone();
-        Arc::make_mut(&mut self.partial).content[self.think_idx] =
-            Content::Thinking(self.thinking.clone());
+        // The thinking body AND signature materialize at endThinking (and
+        // at `fail` for an error mid-block): syncing them into `partial`
+        // per frame costs an `Arc::make_mut` deep clone whenever a prior
+        // event still holds the snapshot — O(frames × content) — while no
+        // reader consumes the in-block copy mid-block (encoders read it
+        // at the start/end boundaries, `decode_late_signature` only runs
+        // after the block closed).
         if !delta.is_empty() {
             events.push(ResponseEvent {
                 kind: ResponseEventType::ThinkingDelta,
@@ -1027,25 +1150,28 @@ impl ResponseDecoder {
     /// set; without a hit the last `max_pattern_len - 1` bytes stay
     /// withheld — they may be an incomplete cross-frame pattern prefix.
     fn scan_text_for_stops(&mut self, events: &mut Vec<ResponseEvent>) {
-        let text = self.text_builder.clone();
+        // Borrow the builder instead of cloning it: the accumulated text
+        // grows over the block, so a per-frame clone was quadratic.
+        let text = &self.text_builder;
         let mut earliest: Option<usize> = None;
+        let mut matched = "";
         for pattern in &self.stop_patterns {
             if let Some(idx) = text[self.text_emitted..].find(pattern.as_str()) {
                 let pos = self.text_emitted + idx;
                 if earliest.is_none_or(|current| pos < current) {
                     earliest = Some(pos);
-                    self.stop_sequence = pattern.clone();
+                    matched = pattern.as_str();
                 }
             }
         }
         if let Some(earliest) = earliest {
+            self.stop_sequence = matched.to_string();
             if earliest > self.text_emitted {
                 let delta = text[self.text_emitted..earliest].to_string();
                 events.push(self.emit_text_delta(delta));
             }
             self.stopped_by_pattern = true;
-            self.text_builder.clear();
-            self.text_builder.push_str(&text[..earliest]);
+            self.text_builder.truncate(earliest);
             self.end_text(events);
             return;
         }
@@ -1167,15 +1293,16 @@ impl ResponseDecoder {
         if has_fragment {
             self.tools[index].arguments.push_str(&fragment);
         }
-        self.decode_native_tool(events, index, &fragment, has_fragment);
+        self.decode_native_tool(events, index, fragment, has_fragment);
     }
 
     /// Preserves Devin's native tool name and argument-delta semantics.
+    /// `fragment` moves into the delta event — one copy total per frame.
     fn decode_native_tool(
         &mut self,
         events: &mut Vec<ResponseEvent>,
         index: usize,
-        fragment: &str,
+        fragment: String,
         has_fragment: bool,
     ) {
         if !self.tools[index].emitted {
@@ -1203,7 +1330,7 @@ impl ResponseDecoder {
                 kind: ResponseEventType::ToolCallDelta,
                 content_index: self.tools[index].content_idx,
                 tool_call_id: self.tools[index].event_id.clone(),
-                delta: fragment.to_string(),
+                delta: fragment,
                 partial: Some(self.snapshot()),
                 ..ResponseEvent::default()
             });
@@ -1300,12 +1427,13 @@ impl ResponseDecoder {
         // Full body and signature materialize only at block end.
         self.thinking.thinking = std::mem::take(&mut self.thinking_builder);
         self.thinking.thinking_signature = std::mem::take(&mut self.thinking_sig_builder);
-        Arc::make_mut(&mut self.partial).content[self.think_idx] =
-            Content::Thinking(self.thinking.clone());
+        let block = std::mem::take(&mut self.thinking);
+        let content = block.thinking.clone();
+        Arc::make_mut(&mut self.partial).content[self.think_idx] = Content::Thinking(block);
         events.push(ResponseEvent {
             kind: ResponseEventType::ThinkingEnd,
             content_index: content_index(self.think_idx),
-            content: self.thinking.thinking.clone(),
+            content,
             partial: Some(self.snapshot()),
             ..ResponseEvent::default()
         });
@@ -1328,13 +1456,16 @@ impl ResponseDecoder {
             events.push(self.emit_text_delta(pending));
         }
         // The complete text materializes only at block end, avoiding
-        // O(n^2) copies.
-        self.text.text = self.text_builder.clone();
-        Arc::make_mut(&mut self.partial).content[self.text_idx] = Content::Text(self.text.clone());
+        // O(n^2) copies; the builder moves into the block (it is cleared
+        // on the next open anyway).
+        self.text.text = std::mem::take(&mut self.text_builder);
+        let block = std::mem::take(&mut self.text);
+        let content = block.text.clone();
+        Arc::make_mut(&mut self.partial).content[self.text_idx] = Content::Text(block);
         events.push(ResponseEvent {
             kind: ResponseEventType::TextEnd,
             content_index: content_index(self.text_idx),
-            content: self.text.text.clone(),
+            content,
             partial: Some(self.snapshot()),
             ..ResponseEvent::default()
         });
@@ -1386,8 +1517,9 @@ impl ResponseDecoder {
         self.end_text(&mut events);
         for index in 0..self.tools.len() {
             // The accumulated fragments become the arguments once, at the
-            // end, avoiding repeated mid-stream parse/copy.
-            let arguments = self.tools[index].arguments.clone();
+            // end, avoiding repeated mid-stream parse/copy; the builder
+            // moves out — it is never read again after this point.
+            let arguments = std::mem::take(&mut self.tools[index].arguments);
             self.tools[index].call.arguments = arguments;
             if self.tools[index].wrapped {
                 // A custom-declared tool's wrapped argument body: unwrap
@@ -1396,7 +1528,7 @@ impl ResponseDecoder {
                 // passes through as freeform text.
                 self.tools[index].call.custom = true;
                 self.tools[index].call.arguments =
-                    unwrap_custom_tool_arguments(&self.tools[index].arguments);
+                    unwrap_custom_tool_arguments(&self.tools[index].call.arguments);
                 // Re-emit one complete delta so downstream state that
                 // accumulates inputs from deltas converges to the same
                 // value.
@@ -1417,7 +1549,7 @@ impl ResponseDecoder {
                 // syntax into arguments_json (observed via CLI): first
                 // try to recover <parameter name="X">v</parameter> back
                 // into JSON, then fall back to {}.
-                match repair_leaked_xml_arguments(&self.tools[index].arguments) {
+                match repair_leaked_xml_arguments(&self.tools[index].call.arguments) {
                     Some(repaired) => self.tools[index].call.arguments = repaired,
                     None => self.tools[index].call.arguments = "{}".to_string(),
                 }
@@ -1452,6 +1584,15 @@ impl ResponseDecoder {
     fn fail(&mut self, err: &(dyn Error + 'static)) -> Vec<ResponseEvent> {
         if self.finished {
             return Vec::new();
+        }
+        // Go's per-frame signature sync means an error mid-thinking-block
+        // carries the accumulated signature in the error snapshot; the
+        // deferred materialization must catch up here (end_thinking is
+        // skipped on the error path).
+        if self.thinking_open {
+            self.thinking.thinking_signature = self.thinking_sig_builder.clone();
+            Arc::make_mut(&mut self.partial).content[self.think_idx] =
+                Content::Thinking(self.thinking.clone());
         }
         {
             let partial = Arc::make_mut(&mut self.partial);

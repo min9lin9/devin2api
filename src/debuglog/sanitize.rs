@@ -43,29 +43,26 @@ const SECRET_KEY_NAMES: &[&str] = &[
 /// in client payloads — a global rule would over-redact.
 const METADATA_SECRET_KEY_NAMES: &[&str] = &["f"];
 
-/// Normalize a JSON key name: strip `_` and `-`, lowercase.
-fn normalize_key(key: &str) -> String {
-    key.chars()
-        .filter(|c| *c != '_' && *c != '-')
-        .flat_map(char::to_lowercase)
-        .collect()
-}
-
-/// Whether `key` is a globally sensitive name.
+/// Whether `key` is a globally sensitive name. `equal_fold_key` does the
+/// `_`/`-` strip + ASCII case fold inline — no per-key allocation (the
+/// name list is pure ASCII, so a non-ASCII key byte can never match and
+/// Unicode folding is unobservable).
 fn secret_key(key: &str) -> bool {
-    let normalized = normalize_key(key);
-    SECRET_KEY_NAMES.contains(&normalized.as_str())
+    SECRET_KEY_NAMES
+        .iter()
+        .any(|name| equal_fold_key(key.as_bytes(), name))
 }
 
 /// Whether `key` is sensitive only inside a `metadata` scope.
 fn metadata_secret_key(key: &str) -> bool {
-    let normalized = normalize_key(key);
-    METADATA_SECRET_KEY_NAMES.contains(&normalized.as_str())
+    METADATA_SECRET_KEY_NAMES
+        .iter()
+        .any(|name| equal_fold_key(key.as_bytes(), name))
 }
 
 /// Whether `key` opens a `metadata` scope.
 fn is_metadata_key(key: &str) -> bool {
-    normalize_key(key) == "metadata"
+    equal_fold_key(key.as_bytes(), "metadata")
 }
 
 /// Prescreen a raw JSON record: only inline images or sensitive key names
@@ -178,21 +175,41 @@ impl Sanitizer<'_> {
                     return JVal::Raw(data);
                 }
                 match gojson::parse(&data) {
-                    Ok(tree) => self.sanitize_value(tree, false),
+                    Ok(mut tree) => {
+                        self.sanitize_value(&mut tree, false);
+                        tree
+                    }
                     Err(err) => serialization_error(&err),
                 }
             }
             LogValue::Serde(thunk) => match thunk() {
-                Ok(data) => match gojson::parse(&data) {
-                    // Go's default path marshals then unmarshals — the tree
-                    // is always rebuilt (sorted keys, float64 numbers).
-                    Ok(tree) => self.sanitize_value(tree, false),
-                    Err(err) => serialization_error(&err),
-                },
+                // Go's `json.Marshaler` arm prescreens before unmarshaling:
+                // clean bytes pass through as `json.RawMessage` verbatim —
+                // no tree build, no number re-spelling.
+                Ok(data) => {
+                    if !raw_needs_sanitize(&data) {
+                        return JVal::Raw(data);
+                    }
+                    match gojson::parse(&data) {
+                        Ok(tree) => {
+                            let mut tree = tree;
+                            self.sanitize_value(&mut tree, false);
+                            tree
+                        }
+                        Err(err) => serialization_error(&err),
+                    }
+                }
                 Err(err) => serialization_error(&err),
             },
-            LogValue::Tree(tree) => self.sanitize_value(tree, false),
-            LogValue::Text(text) => self.sanitize_value(JVal::Str(text), false),
+            LogValue::Tree(mut tree) => {
+                self.sanitize_value(&mut tree, false);
+                tree
+            }
+            LogValue::Text(text) => {
+                let mut value = JVal::Str(text);
+                self.sanitize_value(&mut value, false);
+                value
+            }
             // `eval_deferred` normally unwraps thunks before sanitize; a
             // thunk that yields another thunk evaluates one more level,
             // matching Go's single `evalDeferred` unwrap.
@@ -200,52 +217,49 @@ impl Sanitizer<'_> {
         }
     }
 
-    /// `sanitizeValue`: recursive redaction. `metadata_scope` marks subtrees
-    /// under a `metadata` key where `f` is also sensitive.
-    fn sanitize_value(&mut self, value: JVal, metadata_scope: bool) -> JVal {
+    /// `sanitizeValue`: recursive in-place redaction — Go mutates the
+    /// projected `map[string]any`/`[]any` in place too ("map/slice 输入会被
+    /// 原地改写"), so the tree is walked, not rebuilt. `metadata_scope`
+    /// marks subtrees under a `metadata` key where `f` is also sensitive.
+    fn sanitize_value(&mut self, value: &mut JVal, metadata_scope: bool) {
         match value {
-            JVal::Arr(items) => JVal::Arr(
-                items
-                    .into_iter()
-                    .map(|item| self.sanitize_value(item, metadata_scope))
-                    .collect(),
-            ),
-            JVal::Obj(mut map) => {
-                for (key, item) in &mut map {
+            JVal::Arr(items) => {
+                for item in items {
+                    self.sanitize_value(item, metadata_scope);
+                }
+            }
+            JVal::Obj(map) => {
+                for (key, item) in map.iter_mut() {
                     if secret_key(key) || (metadata_scope && metadata_secret_key(key)) {
                         *item = JVal::Str("<redacted>".to_string());
                     }
                 }
-                if let Some(reference) = self.extract_image(&map) {
-                    return JVal::Raw(reference);
+                if let Some(reference) = self.extract_image(map) {
+                    *value = JVal::Raw(reference);
+                    return;
                 }
-                let map = map
-                    .into_iter()
-                    .map(|(key, item)| {
-                        let scope = metadata_scope || is_metadata_key(&key);
-                        (key, self.sanitize_value(item, scope))
-                    })
-                    .collect::<BTreeMap<_, _>>();
-                JVal::Obj(map)
+                for (key, item) in map.iter_mut() {
+                    let scope = metadata_scope || is_metadata_key(key);
+                    self.sanitize_value(item, scope);
+                }
             }
             JVal::Str(text) => {
                 if text.starts_with("data:image/")
-                    && let Some(reference) = self.write_data_url(&text)
+                    && let Some(reference) = self.write_data_url(text)
                 {
-                    return JVal::Raw(reference);
+                    *value = JVal::Raw(reference);
                 }
-                JVal::Str(text)
             }
             JVal::Raw(raw) => {
-                if !raw_needs_sanitize(&raw) {
-                    return JVal::Raw(raw);
+                if !raw_needs_sanitize(raw) {
+                    return;
                 }
-                match gojson::parse(&raw) {
-                    Ok(tree) => self.sanitize_value(tree, false),
-                    Err(_) => JVal::Raw(raw),
+                if let Ok(mut tree) = gojson::parse(raw) {
+                    self.sanitize_value(&mut tree, false);
+                    *value = tree;
                 }
             }
-            other => other,
+            _ => {}
         }
     }
 

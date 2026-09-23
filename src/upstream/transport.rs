@@ -250,11 +250,10 @@ pub enum CheckedResponseBody {
     Pumped(PumpedBody),
 }
 
-/// Frames the pump may hold ahead of the consumer. Bounded like Go's
-/// `upstreamFrameBuffer` (64 decoded frames); 16 body chunks ≈ 256 KiB
-/// covers far more envelopes while keeping per-request read-ahead memory
-/// bounded.
-const BODY_PUMP_CHUNKS: usize = 16;
+/// Frames the pump may hold ahead of the consumer — Go's
+/// `upstreamFrameBuffer` depth (devin.go `make(chan upstreamFrame, 64)`):
+/// 64 body chunks of read-ahead per request.
+const BODY_PUMP_CHUNKS: usize = 64;
 
 /// The receiving half of the read-ahead pump: `poll_frame` is a channel
 /// receive, so `ServerStream`'s decode loop drains every complete
@@ -378,9 +377,25 @@ impl Body for CheckedResponseBody {
 /// merely "missing `END_STREAM`", losing the distinction connect-go exposes.
 /// Preserve that raw framing fact so the retry layer can emit Go-compatible
 /// protocol errors without buffering or altering delivered bytes.
+///
+/// The tracker is a counting state machine — a 5-byte header scratch plus
+/// a payload skip counter — so body bytes are never copied or drained:
+/// the old `Vec<u8>` buffer paid one full-body copy plus an O(remaining)
+/// `drain` memmove per envelope.
+// The bools mirror the Go envelope parser's flags one-for-one.
+#[allow(clippy::struct_excessive_bools)]
 pub struct EnvelopeCheckedBody {
     inner: Pin<Box<reqwest::Body>>,
-    pending: Vec<u8>,
+    /// Bytes of the in-flight envelope header collected so far (0..5).
+    header: [u8; 5],
+    header_len: usize,
+    /// Payload bytes still owed by the current envelope; 0 with
+    /// `header_len == 0` means the stream sits on an envelope boundary.
+    remaining: usize,
+    /// The in-flight envelope carries the `END_STREAM` flag; latched into
+    /// `saw_end_stream` only once its payload is fully consumed — a
+    /// truncated `END_STREAM` envelope still reports "promised N got M".
+    end_stream_pending: bool,
     saw_end_stream: bool,
     inspect_connect_stream: bool,
     eof_reported: bool,
@@ -390,53 +405,75 @@ impl EnvelopeCheckedBody {
     fn new(body: reqwest::Body, inspect_connect_stream: bool) -> Self {
         Self {
             inner: Box::pin(body),
-            pending: Vec::new(),
+            header: [0; 5],
+            header_len: 0,
+            remaining: 0,
+            end_stream_pending: false,
             saw_end_stream: false,
             inspect_connect_stream,
             eof_reported: false,
         }
     }
 
-    fn observe(&mut self, data: &[u8]) {
+    /// Consume `data` through the envelope state machine: header bytes
+    /// fill the 5-byte scratch, payload bytes only decrement the skip
+    /// counter — nothing is retained.
+    fn observe(&mut self, mut data: &[u8]) {
         if !self.inspect_connect_stream || self.saw_end_stream {
             return;
         }
-        self.pending.extend_from_slice(data);
-        loop {
-            if self.pending.len() < 5 {
-                return;
+        while !data.is_empty() {
+            if self.header_len < 5 {
+                let take = (5 - self.header_len).min(data.len());
+                self.header[self.header_len..self.header_len + take].copy_from_slice(&data[..take]);
+                self.header_len += take;
+                data = &data[take..];
+                if self.header_len < 5 {
+                    return;
+                }
+                self.remaining = u32::from_be_bytes([
+                    self.header[1],
+                    self.header[2],
+                    self.header[3],
+                    self.header[4],
+                ]) as usize;
+                self.end_stream_pending = self.header[0] & 0x02 != 0;
+                continue;
             }
-            let length = u32::from_be_bytes([
-                self.pending[1],
-                self.pending[2],
-                self.pending[3],
-                self.pending[4],
-            ]) as usize;
-            let Some(frame_len) = 5usize.checked_add(length) else {
-                return;
-            };
-            if self.pending.len() < frame_len {
-                return;
+            let take = self.remaining.min(data.len());
+            self.remaining -= take;
+            data = &data[take..];
+            if self.remaining == 0 {
+                // Envelope complete: back to the boundary state; latch
+                // END_STREAM only now so a truncated END_STREAM payload
+                // still reports the promised/got mismatch at EOF.
+                self.header_len = 0;
+                self.saw_end_stream = self.end_stream_pending;
+                self.end_stream_pending = false;
             }
-            if self.pending[0] & 0x02 != 0 {
-                self.saw_end_stream = true;
-            }
-            self.pending.drain(..frame_len);
         }
     }
 
-    fn eof_error(&self) -> String {
-        if self.pending.len() < 5 {
-            return "protocol error: incomplete envelope: unexpected EOF".into();
+    /// The Go-worded protocol error for a body EOF at the current parser
+    /// position; `None` on a clean envelope boundary (handled by the
+    /// caller's "unexpected EOF" arm).
+    fn eof_error(&self) -> Option<String> {
+        if self.header_len == 0 && self.remaining == 0 {
+            return None;
+        }
+        if self.header_len < 5 {
+            return Some("protocol error: incomplete envelope: unexpected EOF".into());
         }
         let promised = u32::from_be_bytes([
-            self.pending[1],
-            self.pending[2],
-            self.pending[3],
-            self.pending[4],
+            self.header[1],
+            self.header[2],
+            self.header[3],
+            self.header[4],
         ]) as usize;
-        let got = self.pending.len().saturating_sub(5);
-        format!("protocol error: promised {promised} bytes in enveloped message, got {got} bytes")
+        let got = promised - self.remaining;
+        Some(format!(
+            "protocol error: promised {promised} bytes in enveloped message, got {got} bytes"
+        ))
     }
 }
 
@@ -462,11 +499,9 @@ impl Body for EnvelopeCheckedBody {
                 if self.inspect_connect_stream && !self.saw_end_stream && !self.eof_reported =>
             {
                 self.eof_reported = true;
-                let message = if self.pending.is_empty() {
-                    "protocol error: unexpected EOF".into()
-                } else {
-                    self.eof_error()
-                };
+                let message = self
+                    .eof_error()
+                    .unwrap_or_else(|| "protocol error: unexpected EOF".into());
                 Poll::Ready(Some(Err(ResponseBodyError::Wire(message))))
             }
             Poll::Ready(None) => Poll::Ready(None),
@@ -511,6 +546,15 @@ impl ClientTransport for UpstreamTransport {
             }
             // Go sets User-Agent to "" which net/http omits entirely.
             headers.remove(http::header::USER_AGENT);
+            // Go's connect-go sends `Accept-Encoding: identity` on
+            // streaming calls (protocol_connect.go); reqwest adds none
+            // when built without compression features. Match the wire.
+            if !headers.contains_key(http::header::ACCEPT_ENCODING) {
+                headers.insert(
+                    http::header::ACCEPT_ENCODING,
+                    HeaderValue::from_static("identity"),
+                );
+            }
 
             let url = reqwest::Url::parse(&parts.uri.to_string()).map_err(|e| {
                 ConnectError::new(
@@ -600,7 +644,12 @@ pub fn upstream_clients(
         .base_url
         .parse()
         .map_err(|_| TransportError::InvalidBaseUrl(cfg.base_url.clone()))?;
-    let config = connectrpc::client::ClientConfig::new(uri);
+    // Go's client never advertises Connect compression
+    // (`connect-accept-encoding` is only sent when CompressionPools is
+    // non-empty, and devin.go sets none): an empty registry drops the
+    // header — a wire-visible parity fix, not just a skipped code path.
+    let config = connectrpc::client::ClientConfig::new(uri)
+        .with_compression(connectrpc::compression::CompressionRegistry::new());
     Ok(UpstreamClients {
         stream: ApiServerServiceClient::new(
             UpstreamTransport::streaming(client.clone(), token_source.clone()),

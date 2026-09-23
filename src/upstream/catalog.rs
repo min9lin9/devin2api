@@ -514,7 +514,11 @@ impl Adapter {
             .base_url
             .parse()
             .map_err(|_| TransportError::InvalidBaseUrl(transport_cfg.base_url.clone()))?;
-        let client_config = connectrpc::client::ClientConfig::new(uri);
+        // Go's client never advertises Connect compression
+        // (`connect-accept-encoding` is only sent when CompressionPools is
+        // non-empty): an empty registry drops the header.
+        let client_config = connectrpc::client::ClientConfig::new(uri)
+            .with_compression(connectrpc::compression::CompressionRegistry::new());
         // The transport re-reads the live token per attempt, so
         // credential repair needs no client rebuild (Go tokenFunc).
         let tokens = Arc::new(TokenStore::new(config.token.clone()));

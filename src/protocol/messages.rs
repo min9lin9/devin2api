@@ -697,7 +697,9 @@ use serde_json::{Value, json};
 use crate::domain::{ResponseEvent, ResponseEventType, StopReason, Usage};
 use crate::randid;
 
-use super::common::{SseEvent, content_at, go_marshal, stream_error};
+use bytes::BytesMut;
+
+use super::common::{SseFrame, content_at, go_marshal, go_marshal_into, stream_error};
 
 /// Per-request Anthropic Messages SSE encoding state.
 pub struct StreamEncoder {
@@ -751,8 +753,13 @@ impl StreamEncoder {
     }
 
     /// Expands one intermediate response event into ordered Anthropic SSE
-    /// events.
-    pub fn encode(&mut self, event: &ResponseEvent) -> Result<Vec<SseEvent>, Failure> {
+    /// events, written straight into `dst`.
+    pub fn encode_into(
+        &mut self,
+        event: &ResponseEvent,
+        dst: &mut BytesMut,
+        frames: &mut Vec<SseFrame>,
+    ) -> Result<(), Failure> {
         if let Err(err) = event.validate() {
             return Err(Failure::plain(format!("validate response event: {err}")));
         }
@@ -760,24 +767,42 @@ impl StreamEncoder {
             return Err(Failure::plain("anthropic message stream is already done"));
         }
         match event.kind {
-            ResponseEventType::Start => Ok(self.start(event)),
-            ResponseEventType::TextStart => Ok(self.start_text(event)),
-            ResponseEventType::TextDelta => self.text_delta(event),
-            ResponseEventType::TextEnd => self.end_text(event),
-            ResponseEventType::ThinkingStart => Ok(self.start_thinking(event)),
-            ResponseEventType::ThinkingDelta => self.thinking_delta(event),
-            ResponseEventType::ThinkingEnd => self.end_thinking(event),
+            ResponseEventType::Start => {
+                self.start(event, dst, frames);
+                Ok(())
+            }
+            ResponseEventType::TextStart => {
+                self.start_text(event, dst, frames);
+                Ok(())
+            }
+            ResponseEventType::TextDelta => self.text_delta(event, dst, frames),
+            ResponseEventType::TextEnd => self.end_text(event, dst, frames),
+            ResponseEventType::ThinkingStart => {
+                self.start_thinking(event, dst, frames);
+                Ok(())
+            }
+            ResponseEventType::ThinkingDelta => self.thinking_delta(event, dst, frames),
+            ResponseEventType::ThinkingEnd => self.end_thinking(event, dst, frames),
             ResponseEventType::ThinkingSignature => self.thinking_signature(event),
-            ResponseEventType::ToolCallStart => Ok(self.start_tool_use(event)),
-            ResponseEventType::ToolCallDelta => self.tool_use_delta(event),
-            ResponseEventType::ToolCallEnd => self.end_tool_use(event),
-            ResponseEventType::Done => Ok(self.finish(event)),
-            ResponseEventType::Error => Ok(self.failed(event)),
+            ResponseEventType::ToolCallStart => {
+                self.start_tool_use(event, dst, frames);
+                Ok(())
+            }
+            ResponseEventType::ToolCallDelta => self.tool_use_delta(event, dst, frames),
+            ResponseEventType::ToolCallEnd => self.end_tool_use(event, dst, frames),
+            ResponseEventType::Done => {
+                self.finish(event, dst, frames);
+                Ok(())
+            }
+            ResponseEventType::Error => {
+                self.failed(event, dst, frames);
+                Ok(())
+            }
         }
     }
 
     /// Emits `message_start`, carrying the first partial's usage snapshot.
-    fn start(&mut self, event: &ResponseEvent) -> Vec<SseEvent> {
+    fn start(&mut self, event: &ResponseEvent, dst: &mut BytesMut, frames: &mut Vec<SseFrame>) {
         // The start event's contract field is `partial` (require_partial);
         // `message` belongs to done — reading the wrong field would pin
         // message_start's usage at zero.
@@ -785,7 +810,7 @@ impl StreamEncoder {
             .partial
             .as_ref()
             .map_or_else(Usage::default, |partial| partial.usage.clone());
-        vec![Self::event(
+        Self::event(
             "message_start",
             &json!({
                 "type": "message_start",
@@ -799,11 +824,18 @@ impl StreamEncoder {
                     "usage": anthropic_usage(&self.usage),
                 },
             }),
-        )]
+            dst,
+            frames,
+        );
     }
 
     /// Registers text block state and emits `content_block_start`.
-    fn start_text(&mut self, event: &ResponseEvent) -> Vec<SseEvent> {
+    fn start_text(
+        &mut self,
+        event: &ResponseEvent,
+        dst: &mut BytesMut,
+        frames: &mut Vec<SseFrame>,
+    ) {
         self.blocks.push(ContentBlockState {
             index: event.content_index,
             kind: "text",
@@ -813,41 +845,56 @@ impl StreamEncoder {
             redacted: false,
             start_deferred: false,
         });
-        vec![Self::event(
+        Self::event(
             "content_block_start",
             &json!({
                 "type": "content_block_start",
                 "index": event.content_index,
                 "content_block": {"type": "text", "text": ""},
             }),
-        )]
+            dst,
+            frames,
+        );
     }
 
     /// Errors explicitly on a missing `text_start`: the decoder contract
     /// guarantees start before delta, and a missing one is a decoder bug —
     /// silently dropping would disguise a shifted sequence as a normal
     /// stream.
-    fn text_delta(&mut self, event: &ResponseEvent) -> Result<Vec<SseEvent>, Failure> {
+    fn text_delta(
+        &mut self,
+        event: &ResponseEvent,
+        dst: &mut BytesMut,
+        frames: &mut Vec<SseFrame>,
+    ) -> Result<(), Failure> {
         if self.block(event.content_index, "text").is_none() {
             return Err(Failure::plain(format!(
                 "text delta at content index {} without text_start",
                 event.content_index
             )));
         }
-        Ok(vec![Self::emit_block_delta(
+        Self::emit_block_delta(
             event.content_index,
             BlockDelta {
                 kind: "text_delta",
-                text: event.delta.clone(),
+                text: event.delta.as_str(),
                 ..BlockDelta::default()
             },
-        )])
+            dst,
+            frames,
+        );
+        Ok(())
     }
 
     /// Emits `content_block_stop`; the body was fully delivered via
     /// `text_delta` and spec's stop frame carries only type/index — no
     /// re-reading `event.content` for an echo.
-    fn end_text(&mut self, event: &ResponseEvent) -> Result<Vec<SseEvent>, Failure> {
+    fn end_text(
+        &mut self,
+        event: &ResponseEvent,
+        dst: &mut BytesMut,
+        frames: &mut Vec<SseFrame>,
+    ) -> Result<(), Failure> {
         if self.block(event.content_index, "text").is_none() {
             return Err(Failure::plain(format!(
                 "text end at content index {} without text_start",
@@ -858,20 +905,28 @@ impl StreamEncoder {
             self.block_mut(event.content_index, "text")
                 .expect("block found")
                 .stop_deferred = true;
-            return Ok(Vec::new());
+            return Ok(());
         }
-        Ok(vec![Self::event(
+        Self::event(
             "content_block_stop",
             &json!({
                 "type": "content_block_stop",
                 "index": event.content_index,
             }),
-        )])
+            dst,
+            frames,
+        );
+        Ok(())
     }
 
     /// Registers thinking block state and emits a `thinking`-type
     /// `content_block_start`.
-    fn start_thinking(&mut self, event: &ResponseEvent) -> Vec<SseEvent> {
+    fn start_thinking(
+        &mut self,
+        event: &ResponseEvent,
+        dst: &mut BytesMut,
+        frames: &mut Vec<SseFrame>,
+    ) {
         let mut state = ContentBlockState {
             index: event.content_index,
             kind: "thinking",
@@ -895,20 +950,27 @@ impl StreamEncoder {
             // a payloadless empty thinking block with no legal channel for
             // the data ever. Defer the start to close-out.
             self.blocks.last_mut().expect("just pushed").start_deferred = true;
-            return Vec::new();
+            return;
         }
-        vec![Self::event(
+        Self::event(
             "content_block_start",
             &json!({
                 "type": "content_block_start",
                 "index": event.content_index,
                 "content_block": {"type": "thinking", "thinking": "", "signature": ""},
             }),
-        )]
+            dst,
+            frames,
+        );
     }
 
     /// Emits a `thinking_delta` increment; redacted blocks never emit body.
-    fn thinking_delta(&mut self, event: &ResponseEvent) -> Result<Vec<SseEvent>, Failure> {
+    fn thinking_delta(
+        &mut self,
+        event: &ResponseEvent,
+        dst: &mut BytesMut,
+        frames: &mut Vec<SseFrame>,
+    ) -> Result<(), Failure> {
         let Some(state) = self.block(event.content_index, "thinking") else {
             return Err(Failure::plain(format!(
                 "thinking delta at content index {} without thinking_start",
@@ -918,21 +980,29 @@ impl StreamEncoder {
         if state.redacted {
             // Hidden thinking must not leak increment bodies (upstream
             // gives none anyway — belt-and-suspenders).
-            return Ok(Vec::new());
+            return Ok(());
         }
-        Ok(vec![Self::emit_block_delta(
+        Self::emit_block_delta(
             event.content_index,
             BlockDelta {
                 kind: "thinking_delta",
-                thinking: event.delta.clone(),
+                thinking: event.delta.as_str(),
                 ..BlockDelta::default()
             },
-        )])
+            dst,
+            frames,
+        );
+        Ok(())
     }
 
     /// Closes a thinking block: with a signature it emits
     /// `content_block_stop`, otherwise stays pending for the signature.
-    fn end_thinking(&mut self, event: &ResponseEvent) -> Result<Vec<SseEvent>, Failure> {
+    fn end_thinking(
+        &mut self,
+        event: &ResponseEvent,
+        dst: &mut BytesMut,
+        frames: &mut Vec<SseFrame>,
+    ) -> Result<(), Failure> {
         if self.block(event.content_index, "thinking").is_none() {
             return Err(Failure::plain(format!(
                 "thinking end at content index {} without thinking_start",
@@ -962,16 +1032,17 @@ impl StreamEncoder {
             self.block_mut(event.content_index, "thinking")
                 .expect("block found")
                 .pending_sig = true;
-            return Ok(Vec::new());
+            return Ok(());
         }
         if redacted {
             if self.earlier_pending(event.content_index) {
                 self.block_mut(event.content_index, "thinking")
                     .expect("block found")
                     .stop_deferred = true;
-                return Ok(Vec::new());
+                return Ok(());
             }
-            return Ok(self.stop_thinking(event.content_index));
+            self.stop_thinking(event.content_index, dst, frames);
+            return Ok(());
         }
         if self.earlier_pending(event.content_index) {
             // The signature is ready but an earlier thinking block is still
@@ -981,28 +1052,29 @@ impl StreamEncoder {
             self.block_mut(event.content_index, "thinking")
                 .expect("block found")
                 .stop_deferred = true;
-            return Ok(Vec::new());
+            return Ok(());
         }
         // The signature arrived complete with thinking_end (including the
         // decodeLateSignature synthesized block's Start+End path — the
         // openai-regime signature is the only thinking product): spec
         // clients accumulate signatures only from signature_delta, so
         // stopping directly would drop the signature into thin air.
-        let signature = self
-            .block(event.content_index, "thinking")
-            .expect("block found")
-            .signature
-            .clone();
-        let mut events = vec![Self::emit_block_delta(
+        Self::emit_block_delta(
             event.content_index,
             BlockDelta {
                 kind: "signature_delta",
-                signature,
+                signature: self
+                    .block(event.content_index, "thinking")
+                    .expect("block found")
+                    .signature
+                    .as_str(),
                 ..BlockDelta::default()
             },
-        )];
-        events.extend(self.stop_thinking(event.content_index));
-        Ok(events)
+            dst,
+            frames,
+        );
+        self.stop_thinking(event.content_index, dst, frames);
+        Ok(())
     }
 
     /// Only accumulates trailing signature increments without emitting per
@@ -1014,7 +1086,7 @@ impl StreamEncoder {
     /// already-closed block (`pending_sig` cleared) lands in the dead buffer
     /// and is naturally dropped — distinct from a missing block (decoder
     /// bug).
-    fn thinking_signature(&mut self, event: &ResponseEvent) -> Result<Vec<SseEvent>, Failure> {
+    fn thinking_signature(&mut self, event: &ResponseEvent) -> Result<(), Failure> {
         let Some(state) = self.block_mut(event.content_index, "thinking") else {
             return Err(Failure::plain(format!(
                 "thinking signature at content index {} without thinking_start",
@@ -1022,7 +1094,7 @@ impl StreamEncoder {
             )));
         };
         state.signature.push_str(&event.delta);
-        Ok(Vec::new())
+        Ok(())
     }
 
     /// Emits pending block close-outs before stream termination
@@ -1039,7 +1111,7 @@ impl StreamEncoder {
     /// `signature_delta` (complete string) before `content_block_stop` —
     /// spec clients assign signatures, so multiple fragments equal keeping
     /// only the last.
-    fn flush_pending_thinking(&mut self) -> Vec<SseEvent> {
+    fn flush_pending_thinking(&mut self, dst: &mut BytesMut, frames: &mut Vec<SseFrame>) {
         let mut pending: Vec<i32> = self
             .blocks
             .iter()
@@ -1047,9 +1119,8 @@ impl StreamEncoder {
             .map(|state| state.index)
             .collect();
         pending.sort_unstable();
-        let mut events = Vec::new();
         for index in pending {
-            let (kind, redacted, signature) = {
+            let (kind, redacted) = {
                 let state = self
                     .blocks
                     .iter_mut()
@@ -1057,31 +1128,41 @@ impl StreamEncoder {
                     .expect("pending block");
                 state.pending_sig = false;
                 state.stop_deferred = false;
-                (state.kind, state.redacted, state.signature.clone())
+                (state.kind, state.redacted)
             };
             if kind == "thinking" {
-                if !redacted && !signature.is_empty() {
-                    events.push(Self::emit_block_delta(
-                        index,
-                        BlockDelta {
-                            kind: "signature_delta",
-                            signature,
-                            ..BlockDelta::default()
-                        },
-                    ));
+                {
+                    let state = self
+                        .blocks
+                        .iter()
+                        .find(|state| state.index == index)
+                        .expect("pending block");
+                    if !redacted && !state.signature.is_empty() {
+                        Self::emit_block_delta(
+                            index,
+                            BlockDelta {
+                                kind: "signature_delta",
+                                signature: state.signature.as_str(),
+                                ..BlockDelta::default()
+                            },
+                            dst,
+                            frames,
+                        );
+                    }
                 }
-                events.extend(self.stop_thinking(index));
+                self.stop_thinking(index, dst, frames);
                 continue;
             }
-            events.push(Self::event(
+            Self::event(
                 "content_block_stop",
                 &json!({
                     "type": "content_block_stop",
                     "index": index,
                 }),
-            ));
+                dst,
+                frames,
+            );
         }
-        events
     }
 
     /// Whether a lower-index pending thinking block has not closed — if so
@@ -1101,7 +1182,7 @@ impl StreamEncoder {
     /// `start{redacted_thinking,data}+stop`; when the start already went out
     /// as thinking (redacted arrived late) the data embeds in the stop
     /// frame, the only channel left.
-    fn stop_thinking(&mut self, index: i32) -> Vec<SseEvent> {
+    fn stop_thinking(&self, index: i32, dst: &mut BytesMut, frames: &mut Vec<SseFrame>) {
         let (redacted, signature, start_deferred) = {
             let state = self
                 .blocks
@@ -1117,52 +1198,65 @@ impl StreamEncoder {
         if redacted && !signature.is_empty() {
             let block = json!({"type": "redacted_thinking", "data": signature});
             if start_deferred {
-                return vec![
-                    Self::event(
-                        "content_block_start",
-                        &json!({
-                            "type": "content_block_start",
-                            "index": index,
-                            "content_block": block,
-                        }),
-                    ),
-                    Self::event(
-                        "content_block_stop",
-                        &json!({
-                            "type": "content_block_stop",
-                            "index": index,
-                        }),
-                    ),
-                ];
+                Self::event(
+                    "content_block_start",
+                    &json!({
+                        "type": "content_block_start",
+                        "index": index,
+                        "content_block": block,
+                    }),
+                    dst,
+                    frames,
+                );
+                Self::event(
+                    "content_block_stop",
+                    &json!({
+                        "type": "content_block_stop",
+                        "index": index,
+                    }),
+                    dst,
+                    frames,
+                );
+                return;
             }
-            return vec![Self::event(
+            Self::event(
                 "content_block_stop",
                 &json!({
                     "type": "content_block_stop",
                     "index": index,
                     "content_block": block,
                 }),
-            )];
+                dst,
+                frames,
+            );
+            return;
         }
         if start_deferred {
             // The start was deferred and no signature ever arrived: the
             // block never opened on the wire and has no data to send — an
             // empty-data redacted_thinking is malformed, so emitting
             // nothing is more compliant (an unused index hole is legal).
-            return Vec::new();
+            return;
         }
-        vec![Self::event(
+        Self::event(
             "content_block_stop",
             &json!({
                 "type": "content_block_stop",
                 "index": index,
             }),
-        )]
+            dst,
+            frames,
+        );
     }
 
     /// Registers tool block state and emits a `tool_use`-type
     /// `content_block_start`.
-    fn start_tool_use(&mut self, event: &ResponseEvent) -> Vec<SseEvent> {
+    fn start_tool_use(
+        &mut self,
+        event: &ResponseEvent,
+        dst: &mut BytesMut,
+        frames: &mut Vec<SseFrame>,
+    ) {
         self.blocks.push(ContentBlockState {
             index: event.content_index,
             kind: "tool_use",
@@ -1172,38 +1266,53 @@ impl StreamEncoder {
             redacted: false,
             start_deferred: false,
         });
-        vec![Self::event(
+        Self::event(
             "content_block_start",
             &json!({
                 "type": "content_block_start",
                 "index": event.content_index,
                 "content_block": {"type": "tool_use", "id": event.tool_call_id, "name": event.tool_name, "input": {}},
             }),
-        )]
+            dst,
+            frames,
+        );
     }
 
     /// Emits an argument increment as `input_json_delta`.
-    fn tool_use_delta(&mut self, event: &ResponseEvent) -> Result<Vec<SseEvent>, Failure> {
+    fn tool_use_delta(
+        &mut self,
+        event: &ResponseEvent,
+        dst: &mut BytesMut,
+        frames: &mut Vec<SseFrame>,
+    ) -> Result<(), Failure> {
         if self.block(event.content_index, "tool_use").is_none() {
             return Err(Failure::plain(format!(
                 "tool use delta at content index {} without toolcall_start",
                 event.content_index
             )));
         }
-        Ok(vec![Self::emit_block_delta(
+        Self::emit_block_delta(
             event.content_index,
             BlockDelta {
                 kind: "input_json_delta",
-                partial_json: event.delta.clone(),
+                partial_json: event.delta.as_str(),
                 ..BlockDelta::default()
             },
-        )])
+            dst,
+            frames,
+        );
+        Ok(())
     }
 
     /// Emits the tool block's `content_block_stop`; the complete input
     /// already arrived via `input_json_delta` increments and spec's stop
     /// frame carries only type/index.
-    fn end_tool_use(&mut self, event: &ResponseEvent) -> Result<Vec<SseEvent>, Failure> {
+    fn end_tool_use(
+        &mut self,
+        event: &ResponseEvent,
+        dst: &mut BytesMut,
+        frames: &mut Vec<SseFrame>,
+    ) -> Result<(), Failure> {
         if self.block(event.content_index, "tool_use").is_none() {
             return Err(Failure::plain(format!(
                 "tool use end at content index {} without toolcall_start",
@@ -1214,20 +1323,23 @@ impl StreamEncoder {
             self.block_mut(event.content_index, "tool_use")
                 .expect("block found")
                 .stop_deferred = true;
-            return Ok(Vec::new());
+            return Ok(());
         }
-        Ok(vec![Self::event(
+        Self::event(
             "content_block_stop",
             &json!({
                 "type": "content_block_stop",
                 "index": event.content_index,
             }),
-        )])
+            dst,
+            frames,
+        );
+        Ok(())
     }
 
     /// Closes out all pending thinking blocks, then emits `message_delta`
     /// and `message_stop`.
-    fn finish(&mut self, event: &ResponseEvent) -> Vec<SseEvent> {
+    fn finish(&mut self, event: &ResponseEvent, dst: &mut BytesMut, frames: &mut Vec<SseFrame>) {
         self.finished = true;
         self.usage = event
             .message
@@ -1244,24 +1356,28 @@ impl StreamEncoder {
             "stop_reason": anthropic_stop_reason(event.reason),
             "stop_sequence": stop_sequence,
         });
-        let mut events = self.flush_pending_thinking();
-        events.extend([
-            Self::event(
-                "message_delta",
-                &json!({
-                    "type": "message_delta",
-                    "delta": delta,
-                    "usage": anthropic_usage(&self.usage),
-                }),
-            ),
-            Self::event("message_stop", &json!({"type": "message_stop"})),
-        ]);
-        events
+        self.flush_pending_thinking(dst, frames);
+        Self::event(
+            "message_delta",
+            &json!({
+                "type": "message_delta",
+                "delta": delta,
+                "usage": anthropic_usage(&self.usage),
+            }),
+            dst,
+            frames,
+        );
+        Self::event(
+            "message_stop",
+            &json!({"type": "message_stop"}),
+            dst,
+            frames,
+        );
     }
 
     /// Closes out pending thinking blocks, then emits an Anthropic-shaped
     /// `error` event and closes the stream.
-    fn failed(&mut self, event: &ResponseEvent) -> Vec<SseEvent> {
+    fn failed(&mut self, event: &ResponseEvent, dst: &mut BytesMut, frames: &mut Vec<SseFrame>) {
         self.finished = true;
         // Anthropic's official streaming error format:
         //   event: error
@@ -1270,16 +1386,17 @@ impl StreamEncoder {
         // HTTP semantics; error.code lets context overflow be recognized as
         // a request-level problem rather than a channel fault.
         let (error_payload, status) = stream_error(event, "anthropic message stream failed", false);
-        let mut events = self.flush_pending_thinking();
-        events.push(Self::event(
+        self.flush_pending_thinking(dst, frames);
+        Self::event(
             "error",
             &json!({
                 "type": "error",
                 "status": status,
                 "error": error_payload,
             }),
-        ));
-        events
+            dst,
+            frames,
+        );
     }
 
     /// Finds a registered content block by index and kind.
@@ -1296,53 +1413,71 @@ impl StreamEncoder {
             .find(|state| state.index == index && state.kind == kind)
     }
 
-    /// Marshals a payload into one SSE frame.
-    fn event(name: &'static str, payload: &Value) -> SseEvent {
-        SseEvent {
+    /// Marshals a payload into one SSE frame written straight into `dst`.
+    fn event(name: &'static str, payload: &Value, dst: &mut BytesMut, frames: &mut Vec<SseFrame>) {
+        let start = dst.len();
+        dst.extend_from_slice(b"event: ");
+        dst.extend_from_slice(name.as_bytes());
+        dst.extend_from_slice(b"\ndata: ");
+        go_marshal_into(dst, payload);
+        dst.extend_from_slice(b"\n\n");
+        frames.push(SseFrame {
             name,
-            data: go_marshal(payload),
-        }
+            data: start + "event: ".len() + name.len() + "\ndata: ".len()..dst.len() - 2,
+        });
     }
 
     /// Struct-encodes the highest-frequency `content_block_delta` frame,
     /// saving one map-reflection marshal per frame.
-    fn emit_block_delta(index: i32, delta: BlockDelta) -> SseEvent {
-        let data = go_marshal(&BlockDeltaEvent {
-            kind: "content_block_delta",
-            index,
-            delta,
-        });
-        SseEvent {
+    fn emit_block_delta(
+        index: i32,
+        delta: BlockDelta<'_>,
+        dst: &mut BytesMut,
+        frames: &mut Vec<SseFrame>,
+    ) {
+        let start = dst.len();
+        dst.extend_from_slice(b"event: content_block_delta\ndata: ");
+        go_marshal_into(
+            dst,
+            &BlockDeltaEvent {
+                kind: "content_block_delta",
+                index,
+                delta,
+            },
+        );
+        dst.extend_from_slice(b"\n\n");
+        frames.push(SseFrame {
             name: "content_block_delta",
-            data,
-        }
+            data: start + "event: content_block_delta\ndata: ".len()..dst.len() - 2,
+        });
     }
 }
 
 /// Covers the four delta shapes of `content_block_delta`; the shapes' keys
 /// are mutually exclusive and `skip_serializing_if` keeps the wire key set
-/// byte-identical with the original map encoding.
+/// byte-identical with the original map encoding. Payload fields borrow —
+/// no per-frame `String` copies.
 #[derive(Serialize, Default)]
-struct BlockDelta {
+struct BlockDelta<'a> {
     #[serde(rename = "type")]
     kind: &'static str,
-    #[serde(skip_serializing_if = "String::is_empty")]
-    text: String,
-    #[serde(skip_serializing_if = "String::is_empty")]
-    thinking: String,
-    #[serde(skip_serializing_if = "String::is_empty")]
-    signature: String,
-    #[serde(skip_serializing_if = "String::is_empty")]
-    partial_json: String,
+    #[serde(skip_serializing_if = "str::is_empty")]
+    text: &'a str,
+    #[serde(skip_serializing_if = "str::is_empty")]
+    thinking: &'a str,
+    #[serde(skip_serializing_if = "str::is_empty")]
+    signature: &'a str,
+    #[serde(skip_serializing_if = "str::is_empty")]
+    partial_json: &'a str,
 }
 
 /// The fixed shell of a `content_block_delta` event.
 #[derive(Serialize)]
-struct BlockDeltaEvent {
+struct BlockDeltaEvent<'a> {
     #[serde(rename = "type")]
     kind: &'static str,
     index: i32,
-    delta: BlockDelta,
+    delta: BlockDelta<'a>,
 }
 
 /// Encodes the final assistant message as non-streaming Anthropic Messages

@@ -651,7 +651,12 @@ use serde_json::{Value, json};
 use crate::domain::{ResponseEvent, ResponseEventType, StopReason, Usage};
 use crate::randid;
 
-use super::common::{SSE_DONE, SseEvent, go_marshal, now_unix_secs, stream_error, usage_totals};
+use bytes::BytesMut;
+
+use super::common::{
+    SSE_DONE, SseFrame, append_data_frame, go_marshal, go_marshal_into, now_unix_secs,
+    stream_error, usage_totals,
+};
 
 /// Per-request Chat Completions SSE encoding state.
 pub struct StreamEncoder {
@@ -700,8 +705,13 @@ impl StreamEncoder {
     }
 
     /// Expands one intermediate response event into zero or more ordered
-    /// Chat Completions SSE chunks.
-    pub fn encode(&mut self, event: &ResponseEvent) -> Result<Vec<SseEvent>, Failure> {
+    /// Chat Completions SSE chunks, written straight into `dst`.
+    pub fn encode_into(
+        &mut self,
+        event: &ResponseEvent,
+        dst: &mut BytesMut,
+        frames: &mut Vec<SseFrame>,
+    ) -> Result<(), Failure> {
         if let Err(err) = event.validate() {
             return Err(Failure::plain(format!("validate response event: {err}")));
         }
@@ -709,39 +719,59 @@ impl StreamEncoder {
             return Err(Failure::plain("chat completion stream is already done"));
         }
         match event.kind {
-            ResponseEventType::Start => Ok(self.start()),
-            ResponseEventType::TextStart => Ok(self.start_text(event)),
-            ResponseEventType::TextDelta => self.text_delta(event),
+            ResponseEventType::Start => {
+                self.start(dst, frames);
+                Ok(())
+            }
+            ResponseEventType::TextStart => {
+                self.start_text(event);
+                Ok(())
+            }
+            ResponseEventType::TextDelta => self.text_delta(event, dst, frames),
             ResponseEventType::TextEnd => self.end_text(event),
-            ResponseEventType::ThinkingStart => Ok(self.start_thinking(event)),
-            ResponseEventType::ThinkingDelta => self.thinking_delta(event),
+            ResponseEventType::ThinkingStart => {
+                self.start_thinking(event);
+                Ok(())
+            }
+            ResponseEventType::ThinkingDelta => self.thinking_delta(event, dst, frames),
             ResponseEventType::ThinkingEnd => self.end_thinking(event),
             ResponseEventType::ThinkingSignature => {
                 // Chat Completions has no signature concept; thinking
                 // signatures only affect the Anthropic/Responses shapes.
-                Ok(Vec::new())
+                Ok(())
             }
-            ResponseEventType::ToolCallStart => Ok(self.start_tool_call(event)),
-            ResponseEventType::ToolCallDelta => self.tool_call_delta(event),
+            ResponseEventType::ToolCallStart => {
+                self.start_tool_call(event, dst, frames);
+                Ok(())
+            }
+            ResponseEventType::ToolCallDelta => self.tool_call_delta(event, dst, frames),
             ResponseEventType::ToolCallEnd => self.end_tool_call(event),
-            ResponseEventType::Done => Ok(self.finish(event)),
-            ResponseEventType::Error => Ok(self.failed(event)),
+            ResponseEventType::Done => {
+                self.finish(event, dst, frames);
+                Ok(())
+            }
+            ResponseEventType::Error => {
+                self.failed(event, dst, frames);
+                Ok(())
+            }
         }
     }
 
     /// Emits the stream's first chunk: a delta carrying only
     /// `role=assistant`.
-    fn start(&mut self) -> Vec<SseEvent> {
-        vec![self.chunk(
-            vec![ChatChoice {
+    fn start(&mut self, dst: &mut BytesMut, frames: &mut Vec<SseFrame>) {
+        self.chunk(
+            &[ChatChoice {
                 delta: ChatDelta {
-                    role: "assistant".to_string(),
+                    role: "assistant",
                     ..ChatDelta::default()
                 },
                 ..ChatChoice::default()
             }],
-            Value::Null,
-        )]
+            &Value::Null,
+            dst,
+            frames,
+        );
     }
 
     /// Marks a text block open; the Chat stream has no separate block-start
@@ -750,34 +780,41 @@ impl StreamEncoder {
     /// and a missing one is a decoder bug, so each handler errors
     /// explicitly instead of auto-completing or silently dropping, same as
     /// the other two protocol encoders.
-    fn start_text(&mut self, event: &ResponseEvent) -> Vec<SseEvent> {
+    fn start_text(&mut self, event: &ResponseEvent) {
         self.text_started.insert(event.content_index, true);
-        Vec::new()
     }
 
     /// Emits one body increment.
-    fn text_delta(&mut self, event: &ResponseEvent) -> Result<Vec<SseEvent>, Failure> {
+    fn text_delta(
+        &mut self,
+        event: &ResponseEvent,
+        dst: &mut BytesMut,
+        frames: &mut Vec<SseFrame>,
+    ) -> Result<(), Failure> {
         if !self.text_started.contains_key(&event.content_index) {
             return Err(Failure::plain(format!(
                 "text delta at content index {} without text_start",
                 event.content_index
             )));
         }
-        Ok(vec![self.chunk(
-            vec![ChatChoice {
+        self.chunk(
+            &[ChatChoice {
                 delta: ChatDelta {
-                    content: event.delta.clone(),
+                    content: event.delta.as_str(),
                     ..ChatDelta::default()
                 },
                 ..ChatChoice::default()
             }],
-            Value::Null,
-        )])
+            &Value::Null,
+            dst,
+            frames,
+        );
+        Ok(())
     }
 
     /// Closes a text block; the Chat stream has no block-end frame, only
     /// state reset.
-    fn end_text(&mut self, event: &ResponseEvent) -> Result<Vec<SseEvent>, Failure> {
+    fn end_text(&mut self, event: &ResponseEvent) -> Result<(), Failure> {
         if !self.text_started.contains_key(&event.content_index) {
             return Err(Failure::plain(format!(
                 "text end at content index {} without text_start",
@@ -785,7 +822,7 @@ impl StreamEncoder {
             )));
         }
         self.text_started.remove(&event.content_index);
-        Ok(Vec::new())
+        Ok(())
     }
 
     /// Marks a thinking block open.
@@ -793,33 +830,40 @@ impl StreamEncoder {
     /// `OpenAI` Chat Completions has no official reasoning field; following
     /// the DeepSeek-style convention, thinking goes out as
     /// `choices[0].delta.reasoning_content`.
-    fn start_thinking(&mut self, event: &ResponseEvent) -> Vec<SseEvent> {
+    fn start_thinking(&mut self, event: &ResponseEvent) {
         self.thinking_started.insert(event.content_index, true);
-        Vec::new()
     }
 
     /// Emits one thinking increment as `reasoning_content`.
-    fn thinking_delta(&mut self, event: &ResponseEvent) -> Result<Vec<SseEvent>, Failure> {
+    fn thinking_delta(
+        &mut self,
+        event: &ResponseEvent,
+        dst: &mut BytesMut,
+        frames: &mut Vec<SseFrame>,
+    ) -> Result<(), Failure> {
         if !self.thinking_started.contains_key(&event.content_index) {
             return Err(Failure::plain(format!(
                 "thinking delta at content index {} without thinking_start",
                 event.content_index
             )));
         }
-        Ok(vec![self.chunk(
-            vec![ChatChoice {
+        self.chunk(
+            &[ChatChoice {
                 delta: ChatDelta {
-                    reasoning_content: event.delta.clone(),
+                    reasoning_content: event.delta.as_str(),
                     ..ChatDelta::default()
                 },
                 ..ChatChoice::default()
             }],
-            Value::Null,
-        )])
+            &Value::Null,
+            dst,
+            frames,
+        );
+        Ok(())
     }
 
     /// Closes a thinking block; only state reset.
-    fn end_thinking(&mut self, event: &ResponseEvent) -> Result<Vec<SseEvent>, Failure> {
+    fn end_thinking(&mut self, event: &ResponseEvent) -> Result<(), Failure> {
         if !self.thinking_started.contains_key(&event.content_index) {
             return Err(Failure::plain(format!(
                 "thinking end at content index {} without thinking_start",
@@ -827,12 +871,17 @@ impl StreamEncoder {
             )));
         }
         self.thinking_started.remove(&event.content_index);
-        Ok(Vec::new())
+        Ok(())
     }
 
     /// Registers tool-call state and emits the first `tool_calls` frame
     /// carrying id/name.
-    fn start_tool_call(&mut self, event: &ResponseEvent) -> Vec<SseEvent> {
+    fn start_tool_call(
+        &mut self,
+        event: &ResponseEvent,
+        dst: &mut BytesMut,
+        frames: &mut Vec<SseFrame>,
+    ) {
         let index = self.tool_calls.len();
         self.tool_calls.push(ToolCallState {
             index,
@@ -841,121 +890,134 @@ impl StreamEncoder {
         });
         self.tool_by_content.insert(event.content_index, index);
         let state = &self.tool_calls[index];
-        vec![self.chunk(
-            vec![ChatChoice {
+        self.chunk(
+            &[ChatChoice {
                 delta: ChatDelta {
-                    tool_calls: vec![ChatToolCall {
+                    tool_calls: Some(&[ChatToolCall {
                         index: state.index,
-                        id: state.id.clone(),
-                        kind: "function".to_string(),
+                        id: state.id.as_str(),
+                        kind: "function",
                         function: ChatToolCallFunction {
-                            name: state.name.clone(),
+                            name: state.name.as_str(),
                             ..ChatToolCallFunction::default()
                         },
-                    }],
+                    }]),
                     ..ChatDelta::default()
                 },
                 ..ChatChoice::default()
             }],
-            Value::Null,
-        )]
+            &Value::Null,
+            dst,
+            frames,
+        );
     }
 
     /// Emits one tool-argument increment.
-    fn tool_call_delta(&mut self, event: &ResponseEvent) -> Result<Vec<SseEvent>, Failure> {
+    fn tool_call_delta(
+        &mut self,
+        event: &ResponseEvent,
+        dst: &mut BytesMut,
+        frames: &mut Vec<SseFrame>,
+    ) -> Result<(), Failure> {
         let Some(state_index) = self.find_tool(&event.tool_call_id, event.content_index) else {
             return Err(Failure::plain(format!(
                 "tool call delta at content index {} (call {:?}) without toolcall_start",
                 event.content_index, event.tool_call_id
             )));
         };
-        Ok(vec![self.chunk(
-            vec![ChatChoice {
+        self.chunk(
+            &[ChatChoice {
                 delta: ChatDelta {
-                    tool_calls: vec![ChatToolCall {
+                    tool_calls: Some(&[ChatToolCall {
                         index: state_index,
                         function: ChatToolCallFunction {
-                            arguments: event.delta.clone(),
+                            arguments: event.delta.as_str(),
                             ..ChatToolCallFunction::default()
                         },
                         ..ChatToolCall::default()
-                    }],
+                    }]),
                     ..ChatDelta::default()
                 },
                 ..ChatChoice::default()
             }],
-            Value::Null,
-        )])
+            &Value::Null,
+            dst,
+            frames,
+        );
+        Ok(())
     }
 
     /// Verifies the block was opened; `OpenAI` Chat Completions streaming
     /// tool calls emit no separate end chunk — `finish_reason` marks the
     /// end.
-    fn end_tool_call(&mut self, event: &ResponseEvent) -> Result<Vec<SseEvent>, Failure> {
+    fn end_tool_call(&mut self, event: &ResponseEvent) -> Result<(), Failure> {
         if !self.tool_by_content.contains_key(&event.content_index) {
             return Err(Failure::plain(format!(
                 "tool call end at content index {} without toolcall_start",
                 event.content_index
             )));
         }
-        Ok(Vec::new())
+        Ok(())
     }
 
     /// Emits the `finish_reason` chunk, the optional usage chunk and the
     /// `[DONE]` terminator.
-    fn finish(&mut self, event: &ResponseEvent) -> Vec<SseEvent> {
+    fn finish(&mut self, event: &ResponseEvent, dst: &mut BytesMut, frames: &mut Vec<SseFrame>) {
         self.finished = true;
         self.final_usage = event
             .message
             .as_ref()
             .map_or_else(Usage::default, |message| message.usage.clone());
         let reason = finish_reason(event.reason);
-        let mut events = vec![self.chunk(
-            vec![ChatChoice {
+        self.chunk(
+            &[ChatChoice {
                 finish_reason: reason,
                 ..ChatChoice::default()
             }],
-            Value::Null,
-        )];
+            &Value::Null,
+            dst,
+            frames,
+        );
         if self.include_usage {
-            events.push(self.chunk(Vec::new(), chat_usage(&self.final_usage)));
+            let usage = chat_usage(&self.final_usage);
+            self.chunk(&[], &usage, dst, frames);
         }
-        events.push(SseEvent {
-            name: SSE_DONE,
-            data: SSE_DONE.as_bytes().to_vec(),
-        });
-        events
+        append_data_frame(dst, frames, SSE_DONE, SSE_DONE.as_bytes());
     }
 
     /// Emits one terminal chunk carrying an `error` field and closes the
     /// stream.
-    fn failed(&mut self, event: &ResponseEvent) -> Vec<SseEvent> {
+    fn failed(&mut self, event: &ResponseEvent, dst: &mut BytesMut, frames: &mut Vec<SseFrame>) {
         self.finished = true;
         // OpenAI Chat Completions has no official unified streaming error
         // format. Emitting a chat.completion.chunk with an error field lets
         // clients like openai-python raise on data.error. The top-level
         // status lets downstream gateways classify by real HTTP semantics.
         let (error_payload, status) = stream_error(event, "chat completion stream failed", true);
-        let data = go_marshal(&json!({
-            "id": self.response_id,
-            "object": "chat.completion.chunk",
-            "created": self.created_at,
-            "model": self.model,
-            "choices": [],
-            "usage": null,
-            "status": status,
-            "error": error_payload,
-        }));
+        let start = dst.len();
+        dst.extend_from_slice(b"data: ");
+        go_marshal_into(
+            dst,
+            &json!({
+                "id": self.response_id,
+                "object": "chat.completion.chunk",
+                "created": self.created_at,
+                "model": self.model,
+                "choices": [],
+                "usage": null,
+                "status": status,
+                "error": error_payload,
+            }),
+        );
+        dst.extend_from_slice(b"\n\n");
+        frames.push(SseFrame {
+            name: "",
+            data: start + "data: ".len()..dst.len() - 2,
+        });
         // Trailing [DONE]: without a terminator some clients read the
         // stream tail as a transport truncation rather than a clean
         // terminal error.
-        vec![
-            SseEvent { name: "", data },
-            SseEvent {
-                name: SSE_DONE,
-                data: SSE_DONE.as_bytes().to_vec(),
-            },
-        ]
+        append_data_frame(dst, frames, SSE_DONE, SSE_DONE.as_bytes());
     }
 
     /// Matches by provider call id first; when the id is absent (upstream
@@ -971,31 +1033,48 @@ impl StreamEncoder {
     }
 
     /// Packs choices/usage into the fixed envelope and marshals one SSE
-    /// frame.
-    fn chunk(&mut self, choices: Vec<ChatChoice>, usage: Value) -> SseEvent {
-        let data = go_marshal(&ChatChunk {
-            id: &self.response_id,
-            object: "chat.completion.chunk",
-            created: self.created_at,
-            model: &self.model,
-            choices,
-            usage,
+    /// frame straight into `dst`. `&self` (not `&mut`) so callers can
+    /// borrow `tool_calls` state into the payload.
+    fn chunk(
+        &self,
+        choices: &[ChatChoice<'_>],
+        usage: &Value,
+        dst: &mut BytesMut,
+        frames: &mut Vec<SseFrame>,
+    ) {
+        let start = dst.len();
+        dst.extend_from_slice(b"data: ");
+        go_marshal_into(
+            dst,
+            &ChatChunk {
+                id: &self.response_id,
+                object: "chat.completion.chunk",
+                created: self.created_at,
+                model: &self.model,
+                choices,
+                usage,
+            },
+        );
+        dst.extend_from_slice(b"\n\n");
+        frames.push(SseFrame {
+            name: "",
+            data: start + "data: ".len()..dst.len() - 2,
         });
-        SseEvent { name: "", data }
     }
 }
 
 /// The fixed envelope of a streaming chunk: five keys always, only
 /// choices/usage vary per event. Struct encoding replaces per-frame map
-/// marshal (measured ~2.7x faster, ~5.7x fewer allocations in Go).
+/// marshal (measured ~2.7x faster, ~5.7x fewer allocations in Go); all
+/// payload fields borrow — no per-frame `String`/`Vec` copies.
 #[derive(Serialize)]
 struct ChatChunk<'a> {
     id: &'a str,
     object: &'static str,
     created: i64,
     model: &'a str,
-    choices: Vec<ChatChoice>,
-    usage: Value,
+    choices: &'a [ChatChoice<'a>],
+    usage: &'a Value,
 }
 
 // The types below declare fields in the alphabetical order Go's map
@@ -1005,42 +1084,42 @@ struct ChatChunk<'a> {
 /// The single-element shape of the `choices` array: `finish_reason` is
 /// always emitted (may be null), `index` is always 0.
 #[derive(Serialize, Default)]
-struct ChatChoice {
-    delta: ChatDelta,
+struct ChatChoice<'a> {
+    delta: ChatDelta<'a>,
     finish_reason: Value,
     index: i32,
 }
 
 /// The union of all delta keys: each event fills exactly one of them.
 #[derive(Serialize, Default)]
-struct ChatDelta {
-    #[serde(skip_serializing_if = "String::is_empty")]
-    content: String,
-    #[serde(skip_serializing_if = "String::is_empty")]
-    reasoning_content: String,
-    #[serde(skip_serializing_if = "String::is_empty")]
-    role: String,
-    #[serde(skip_serializing_if = "Vec::is_empty")]
-    tool_calls: Vec<ChatToolCall>,
+struct ChatDelta<'a> {
+    #[serde(skip_serializing_if = "str::is_empty")]
+    content: &'a str,
+    #[serde(skip_serializing_if = "str::is_empty")]
+    reasoning_content: &'a str,
+    #[serde(skip_serializing_if = "str::is_empty")]
+    role: &'a str,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    tool_calls: Option<&'a [ChatToolCall<'a>]>,
 }
 
 /// An element of `delta.tool_calls`: the start event carries id/type/name,
 /// argument-delta frames only `function.arguments` plus `index`.
 #[derive(Serialize, Default)]
-struct ChatToolCall {
-    function: ChatToolCallFunction,
-    #[serde(skip_serializing_if = "String::is_empty")]
-    id: String,
+struct ChatToolCall<'a> {
+    function: ChatToolCallFunction<'a>,
+    #[serde(skip_serializing_if = "str::is_empty")]
+    id: &'a str,
     index: usize,
-    #[serde(skip_serializing_if = "String::is_empty", rename = "type")]
-    kind: String,
+    #[serde(skip_serializing_if = "str::is_empty", rename = "type")]
+    kind: &'a str,
 }
 
 #[derive(Serialize, Default)]
-struct ChatToolCallFunction {
-    arguments: String,
-    #[serde(skip_serializing_if = "String::is_empty")]
-    name: String,
+struct ChatToolCallFunction<'a> {
+    arguments: &'a str,
+    #[serde(skip_serializing_if = "str::is_empty")]
+    name: &'a str,
 }
 
 /// Encodes the final assistant message as non-streaming Chat Completions

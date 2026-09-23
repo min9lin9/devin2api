@@ -1446,11 +1446,15 @@ impl WCtx<'_> {
     }
 
     fn append_jsonl_inner(&mut self, name: &str, data: &[u8]) -> std::io::Result<()> {
-        if !self.jsonl_files.contains_key(name) {
-            let file = append_file(&self.shared.directory.join(name))?;
-            self.jsonl_files
-                .insert(name.to_string(), BufWriter::new(file));
+        // One map lookup on the steady-state hit path; the file opens once
+        // per name per request.
+        if let Some(writer) = self.jsonl_files.get_mut(name) {
+            writer.write_all(data)?;
+            return writer.write_all(b"\n");
         }
+        let file = append_file(&self.shared.directory.join(name))?;
+        self.jsonl_files
+            .insert(name.to_string(), BufWriter::new(file));
         let writer = self.jsonl_files.get_mut(name).expect("inserted above");
         writer.write_all(data)?;
         writer.write_all(b"\n")
@@ -1696,27 +1700,32 @@ impl Recorder {
     }
 
     /// `AppendJSONL` — append one ordered event to a JSONL file with the
-    /// `JSONLRecord` envelope (`seq/time/elapsed_ms/event/data`).
-    pub fn append_jsonl(&self, name: &str, event: &str, value: LogValue) {
+    /// `JSONLRecord` envelope (`seq/time/elapsed_ms/event/data`). `name`
+    /// and `event` are `&'static str`: every caller passes fixed stage
+    /// constants, so the enqueue path does not allocate for either.
+    pub fn append_jsonl(&self, name: &'static str, event: &'static str, value: LogValue) {
         if self.shared.is_none() || !valid_log_name(name, ".jsonl") {
             return;
         }
-        let name = name.to_string();
-        let event = event.to_string();
         self.enqueue(Box::new(move |ctx| {
-            let seq = ctx.sequences.get(&name).copied().unwrap_or(0) + 1;
-            ctx.sequences.insert(name.clone(), seq);
+            let seq = if let Some(counter) = ctx.sequences.get_mut(name) {
+                *counter += 1;
+                *counter
+            } else {
+                ctx.sequences.insert(name.to_string(), 1);
+                1
+            };
             let data_value = ctx.sanitizer().sanitize(eval_deferred(value));
             let mut w = gojson::ObjWriter::new();
             w.field_int("seq", seq)
                 .field_str("time", &gotime::rfc3339_nano(&gotime::now()))
                 .field_int("elapsed_ms", gotime::since_ms(&ctx.shared.started_at))
-                .field_str_nonempty("event", &event)
+                .field_str_nonempty("event", event)
                 .field("data", &data_value);
             let Ok(data) = w.finish() else {
                 return;
             };
-            ctx.append_jsonl(&name, &data);
+            ctx.append_jsonl(name, &data);
         }));
     }
 

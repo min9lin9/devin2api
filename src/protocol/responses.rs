@@ -690,9 +690,11 @@ use serde_json::{Value, json};
 use crate::domain::{ResponseEvent, ResponseEventType, Usage};
 use crate::randid;
 
+use bytes::BytesMut;
+
 use super::common::{
-    SseEvent, content_at, go_marshal, now_unix_secs, openai_reasoning_items, stream_error,
-    usage_totals,
+    SseFrame, content_at, go_marshal, go_marshal_into, now_unix_secs, openai_reasoning_items,
+    stream_error, usage_totals,
 };
 
 /// Per-request Responses SSE encoding state: protocol state plus the full
@@ -765,8 +767,13 @@ impl StreamEncoder {
     }
 
     /// Expands one intermediate response event into zero or more ordered
-    /// Responses SSE events.
-    pub fn encode(&mut self, event: &ResponseEvent) -> Result<Vec<SseEvent>, Failure> {
+    /// Responses SSE events, written straight into `dst`.
+    pub fn encode_into(
+        &mut self,
+        event: &ResponseEvent,
+        dst: &mut BytesMut,
+        frames: &mut Vec<SseFrame>,
+    ) -> Result<(), Failure> {
         if let Err(err) = event.validate() {
             return Err(Failure::plain(format!("validate response event: {err}")));
         }
@@ -780,34 +787,37 @@ impl StreamEncoder {
         // would write a truncated signature into output_item.done. Close-out
         // is uniformly emitted by the pre-Done fallback flush so a pending
         // item cannot block completion.
-        let mut prefix = Vec::new();
         if event.kind == ResponseEventType::Done {
-            prefix = self.flush_pending_reasoning();
+            self.flush_pending_reasoning(dst, frames);
         }
-        let events = match event.kind {
-            ResponseEventType::Start => Ok(self.start()),
-            ResponseEventType::ThinkingStart => self.start_reasoning(event),
-            ResponseEventType::ThinkingDelta => self.reasoning_delta(event),
-            ResponseEventType::ThinkingEnd => self.end_reasoning(event),
+        match event.kind {
+            ResponseEventType::Start => {
+                self.start(dst, frames);
+                Ok(())
+            }
+            ResponseEventType::ThinkingStart => self.start_reasoning(event, dst, frames),
+            ResponseEventType::ThinkingDelta => self.reasoning_delta(event, dst, frames),
+            ResponseEventType::ThinkingEnd => self.end_reasoning(event, dst, frames),
             ResponseEventType::ThinkingSignature => self.reasoning_signature(event),
-            ResponseEventType::TextStart => self.start_text(event),
-            ResponseEventType::TextDelta => self.text_delta(event),
-            ResponseEventType::TextEnd => self.end_text(event),
-            ResponseEventType::ToolCallStart => self.start_tool_call(event),
-            ResponseEventType::ToolCallDelta => self.tool_call_delta(event),
-            ResponseEventType::ToolCallEnd => self.end_tool_call(event),
-            ResponseEventType::Done => self.done(event),
-            ResponseEventType::Error => Ok(self.failed(event)),
-        }?;
-        prefix.extend(events);
-        Ok(prefix)
+            ResponseEventType::TextStart => self.start_text(event, dst, frames),
+            ResponseEventType::TextDelta => self.text_delta(event, dst, frames),
+            ResponseEventType::TextEnd => self.end_text(event, dst, frames),
+            ResponseEventType::ToolCallStart => self.start_tool_call(event, dst, frames),
+            ResponseEventType::ToolCallDelta => self.tool_call_delta(event, dst, frames),
+            ResponseEventType::ToolCallEnd => self.end_tool_call(event, dst, frames),
+            ResponseEventType::Done => self.done(event, dst, frames),
+            ResponseEventType::Error => {
+                self.failed(event, dst, frames);
+                Ok(())
+            }
+        }
     }
 
     /// Emits the two opening frames: `response.created` and
     /// `response.in_progress`.
-    fn start(&mut self) -> Vec<SseEvent> {
+    fn start(&mut self, dst: &mut BytesMut, frames: &mut Vec<SseFrame>) {
         if self.started {
-            return Vec::new();
+            return;
         }
         self.started = true;
         let created = base_response(
@@ -816,16 +826,29 @@ impl StreamEncoder {
             self.created_at,
             "in_progress",
         );
-        vec![
-            self.emit("response.created", json!({"response": created.clone()})),
-            self.emit("response.in_progress", json!({"response": created})),
-        ]
+        self.emit(
+            "response.created",
+            json!({"response": created.clone()}),
+            dst,
+            frames,
+        );
+        self.emit(
+            "response.in_progress",
+            json!({"response": created}),
+            dst,
+            frames,
+        );
     }
 
     /// Opens a reasoning item and emits `output_item.added` plus
     /// `reasoning_summary_part.added`; openai-type signatures use the inner
     /// real `rs_*` id.
-    fn start_reasoning(&mut self, event: &ResponseEvent) -> Result<Vec<SseEvent>, Failure> {
+    fn start_reasoning(
+        &mut self,
+        event: &ResponseEvent,
+        dst: &mut BytesMut,
+        frames: &mut Vec<SseFrame>,
+    ) -> Result<(), Failure> {
         let (mut id, output_index) = self.new_item(event.content_index, "reasoning", "rs")?;
         let mut encrypted_content = String::new();
         if let Some(thinking) =
@@ -855,44 +878,60 @@ impl StreamEncoder {
         if !encrypted_content.is_empty() {
             added_item["encrypted_content"] = Value::String(encrypted_content);
         }
-        Ok(vec![
-            self.emit(
-                "response.output_item.added",
-                json!({"output_index": output_index, "item": added_item}),
-            ),
-            self.emit(
-                "response.reasoning_summary_part.added",
-                json!({
-                    "item_id": id, "output_index": output_index, "summary_index": 0,
-                    "part": {"type": "summary_text", "text": ""},
-                }),
-            ),
-        ])
+        self.emit(
+            "response.output_item.added",
+            json!({"output_index": output_index, "item": added_item}),
+            dst,
+            frames,
+        );
+        self.emit(
+            "response.reasoning_summary_part.added",
+            json!({
+                "item_id": id, "output_index": output_index, "summary_index": 0,
+                "part": {"type": "summary_text", "text": ""},
+            }),
+            dst,
+            frames,
+        );
+        Ok(())
     }
 
     /// Emits a thinking increment as `reasoning_summary_text.delta`.
-    fn reasoning_delta(&mut self, event: &ResponseEvent) -> Result<Vec<SseEvent>, Failure> {
-        let (id, output_index) = {
-            let item = self.item(event.content_index, "reasoning")?;
-            item.value.push_str(&event.delta);
-            (item.id.clone(), item.output_index)
-        };
-        Ok(vec![self.emit_delta(DeltaEvent {
-            kind: "response.reasoning_summary_text.delta",
-            item_id: id,
-            output_index,
-            summary_index: Some(0),
-            delta: event.delta.clone(),
-            ..DeltaEvent::default()
-        })])
+    fn reasoning_delta(
+        &mut self,
+        event: &ResponseEvent,
+        dst: &mut BytesMut,
+        frames: &mut Vec<SseFrame>,
+    ) -> Result<(), Failure> {
+        let item = item_in(&mut self.items, event.content_index, &["reasoning"])?;
+        item.value.push_str(&event.delta);
+        emit_delta(
+            &mut self.sequence_number,
+            DeltaEvent {
+                kind: "response.reasoning_summary_text.delta",
+                item_id: item.id.as_str(),
+                output_index: item.output_index,
+                summary_index: Some(0),
+                delta: event.delta.as_str(),
+                ..DeltaEvent::default()
+            },
+            dst,
+            frames,
+        );
+        Ok(())
     }
 
     /// Closes a reasoning item: with a signature it closes immediately and
     /// emits the three done frames; without one it stays pending for a
     /// trailing signature frame.
-    fn end_reasoning(&mut self, event: &ResponseEvent) -> Result<Vec<SseEvent>, Failure> {
+    fn end_reasoning(
+        &mut self,
+        event: &ResponseEvent,
+        dst: &mut BytesMut,
+        frames: &mut Vec<SseFrame>,
+    ) -> Result<(), Failure> {
         let (text, mut encrypted_content) = {
-            let item = self.item(event.content_index, "reasoning")?;
+            let item = item_in(&mut self.items, event.content_index, &["reasoning"])?;
             let mut text = event.content.clone();
             if text.is_empty() {
                 text.clone_from(&item.value);
@@ -913,21 +952,27 @@ impl StreamEncoder {
             let item = self
                 .items
                 .get_mut(&event.content_index)
-                .expect("item() found");
+                .expect("item_in found");
             item.pending_text = text;
             item.encrypted_content = encrypted_content;
             // Upstream sends the signature as a trailing frame after the
             // body: with no signature yet, defer the close-out events.
             if item.encrypted_content.is_empty() {
                 item.pending_done = true;
-                return Ok(Vec::new());
+                return Ok(());
             }
         }
-        Ok(self.reasoning_done(event.content_index))
+        self.reasoning_done(event.content_index, dst, frames);
+        Ok(())
     }
 
     /// Emits the three close-out events of a reasoning item.
-    fn reasoning_done(&mut self, content_index: i32) -> Vec<SseEvent> {
+    fn reasoning_done(
+        &mut self,
+        content_index: i32,
+        dst: &mut BytesMut,
+        frames: &mut Vec<SseFrame>,
+    ) {
         let (id, output_index, pending_text, encrypted_content) = {
             let item = self
                 .items
@@ -949,26 +994,30 @@ impl StreamEncoder {
             completed_item["encrypted_content"] = Value::String(encrypted_content);
         }
         self.close_item(content_index, completed_item.clone());
-        vec![
-            self.emit(
-                "response.reasoning_summary_text.done",
-                json!({
-                    "item_id": id, "output_index": output_index, "summary_index": 0,
-                    "text": pending_text,
-                }),
-            ),
-            self.emit(
-                "response.reasoning_summary_part.done",
-                json!({
-                    "item_id": id, "output_index": output_index, "summary_index": 0,
-                    "part": {"type": "summary_text", "text": pending_text},
-                }),
-            ),
-            self.emit(
-                "response.output_item.done",
-                json!({"output_index": output_index, "item": completed_item}),
-            ),
-        ]
+        self.emit(
+            "response.reasoning_summary_text.done",
+            json!({
+                "item_id": id, "output_index": output_index, "summary_index": 0,
+                "text": pending_text,
+            }),
+            dst,
+            frames,
+        );
+        self.emit(
+            "response.reasoning_summary_part.done",
+            json!({
+                "item_id": id, "output_index": output_index, "summary_index": 0,
+                "part": {"type": "summary_text", "text": pending_text},
+            }),
+            dst,
+            frames,
+        );
+        self.emit(
+            "response.output_item.done",
+            json!({"output_index": output_index, "item": completed_item}),
+            dst,
+            frames,
+        );
     }
 
     /// Merges a trailing signature into the reasoning item: Responses has no
@@ -984,7 +1033,7 @@ impl StreamEncoder {
     /// rewritten; no reasoning item at the index is a decoder bug (the
     /// start-before-block-events contract broke) and errors explicitly
     /// rather than being dropped silently.
-    fn reasoning_signature(&mut self, event: &ResponseEvent) -> Result<Vec<SseEvent>, Failure> {
+    fn reasoning_signature(&mut self, event: &ResponseEvent) -> Result<(), Failure> {
         let (closed, output_index) = {
             let Some(item) = self.items.get_mut(&event.content_index) else {
                 return Err(Failure::plain(format!(
@@ -1005,7 +1054,7 @@ impl StreamEncoder {
             completed["encrypted_content"] =
                 Value::String(self.items[&event.content_index].encrypted_content.clone());
         }
-        Ok(Vec::new())
+        Ok(())
     }
 
     /// Emits pending reasoning close-outs before stream termination (Done),
@@ -1013,20 +1062,23 @@ impl StreamEncoder {
     /// signature. Signature frames may arrive after later content blocks;
     /// calling mid-stream would close items early and leave late signatures
     /// nowhere to land.
-    fn flush_pending_reasoning(&mut self) -> Vec<SseEvent> {
-        let mut events = Vec::new();
+    fn flush_pending_reasoning(&mut self, dst: &mut BytesMut, frames: &mut Vec<SseFrame>) {
         let indices: Vec<i32> = self.items.keys().copied().collect();
         for index in indices {
             if self.items[&index].pending_done {
-                events.extend(self.reasoning_done(index));
+                self.reasoning_done(index, dst, frames);
             }
         }
-        events
     }
 
     /// Opens a message item and emits `output_item.added` plus
     /// `content_part.added`.
-    fn start_text(&mut self, event: &ResponseEvent) -> Result<Vec<SseEvent>, Failure> {
+    fn start_text(
+        &mut self,
+        event: &ResponseEvent,
+        dst: &mut BytesMut,
+        frames: &mut Vec<SseFrame>,
+    ) -> Result<(), Failure> {
         let (mut id, output_index) = self.new_item(event.content_index, "message", "msg")?;
         // The upstream output_id is the real OpenAI-side message-item
         // identifier (msg_*); echoing it aligns the client's replayed item
@@ -1047,47 +1099,62 @@ impl StreamEncoder {
                 .clone_from(&id);
         }
         let content_index = self.items[&event.content_index].content_index;
-        Ok(vec![
-            self.emit(
-                "response.output_item.added",
-                json!({
-                    "output_index": output_index,
-                    "item": {"id": id, "type": "message", "status": "in_progress", "role": "assistant", "content": []},
-                }),
-            ),
-            self.emit(
-                "response.content_part.added",
-                json!({
-                    "item_id": id, "output_index": output_index, "content_index": content_index,
-                    "part": {"type": "output_text", "text": "", "annotations": [], "logprobs": []},
-                }),
-            ),
-        ])
+        self.emit(
+            "response.output_item.added",
+            json!({
+                "output_index": output_index,
+                "item": {"id": id, "type": "message", "status": "in_progress", "role": "assistant", "content": []},
+            }),
+            dst,
+            frames,
+        );
+        self.emit(
+            "response.content_part.added",
+            json!({
+                "item_id": id, "output_index": output_index, "content_index": content_index,
+                "part": {"type": "output_text", "text": "", "annotations": [], "logprobs": []},
+            }),
+            dst,
+            frames,
+        );
+        Ok(())
     }
 
     /// Emits a body increment as `output_text.delta`.
-    fn text_delta(&mut self, event: &ResponseEvent) -> Result<Vec<SseEvent>, Failure> {
-        let (id, output_index, content_index) = {
-            let item = self.item(event.content_index, "message")?;
-            item.value.push_str(&event.delta);
-            (item.id.clone(), item.output_index, item.content_index)
-        };
-        Ok(vec![self.emit_delta(DeltaEvent {
-            kind: "response.output_text.delta",
-            item_id: id,
-            output_index,
-            content_index: Some(content_index),
-            delta: event.delta.clone(),
-            logprobs: Vec::new(),
-            ..DeltaEvent::default()
-        })])
+    fn text_delta(
+        &mut self,
+        event: &ResponseEvent,
+        dst: &mut BytesMut,
+        frames: &mut Vec<SseFrame>,
+    ) -> Result<(), Failure> {
+        let item = item_in(&mut self.items, event.content_index, &["message"])?;
+        item.value.push_str(&event.delta);
+        emit_delta(
+            &mut self.sequence_number,
+            DeltaEvent {
+                kind: "response.output_text.delta",
+                item_id: item.id.as_str(),
+                output_index: item.output_index,
+                content_index: Some(item.content_index),
+                delta: event.delta.as_str(),
+                ..DeltaEvent::default()
+            },
+            dst,
+            frames,
+        );
+        Ok(())
     }
 
     /// Closes a message item and emits the `output_text.done`,
     /// `content_part.done`, `output_item.done` close-out triple.
-    fn end_text(&mut self, event: &ResponseEvent) -> Result<Vec<SseEvent>, Failure> {
+    fn end_text(
+        &mut self,
+        event: &ResponseEvent,
+        dst: &mut BytesMut,
+        frames: &mut Vec<SseFrame>,
+    ) -> Result<(), Failure> {
         let (id, output_index, content_index, text) = {
-            let item = self.item(event.content_index, "message")?;
+            let item = item_in(&mut self.items, event.content_index, &["message"])?;
             let mut text = event.content.clone();
             if text.is_empty() {
                 text.clone_from(&item.value);
@@ -1100,31 +1167,41 @@ impl StreamEncoder {
             "content": [part.clone()],
         });
         self.close_item(event.content_index, completed_item.clone());
-        Ok(vec![
-            self.emit(
-                "response.output_text.done",
-                json!({
-                    "item_id": id, "output_index": output_index, "content_index": content_index,
-                    "text": text, "logprobs": [],
-                }),
-            ),
-            self.emit(
-                "response.content_part.done",
-                json!({
-                    "item_id": id, "output_index": output_index, "content_index": content_index,
-                    "part": part,
-                }),
-            ),
-            self.emit(
-                "response.output_item.done",
-                json!({"output_index": output_index, "item": completed_item}),
-            ),
-        ])
+        self.emit(
+            "response.output_text.done",
+            json!({
+                "item_id": id, "output_index": output_index, "content_index": content_index,
+                "text": text, "logprobs": [],
+            }),
+            dst,
+            frames,
+        );
+        self.emit(
+            "response.content_part.done",
+            json!({
+                "item_id": id, "output_index": output_index, "content_index": content_index,
+                "part": part,
+            }),
+            dst,
+            frames,
+        );
+        self.emit(
+            "response.output_item.done",
+            json!({"output_index": output_index, "item": completed_item}),
+            dst,
+            frames,
+        );
+        Ok(())
     }
 
     /// Opens a `function_call`/`custom_tool_call` item and emits
     /// `output_item.added`.
-    fn start_tool_call(&mut self, event: &ResponseEvent) -> Result<Vec<SseEvent>, Failure> {
+    fn start_tool_call(
+        &mut self,
+        event: &ResponseEvent,
+        dst: &mut BytesMut,
+        frames: &mut Vec<SseFrame>,
+    ) -> Result<(), Failure> {
         // Custom/freeform call argument bodies are not JSON (upstream
         // is_custom_tool_call): they go down as Responses custom_tool_call
         // items — an `input` field instead of `arguments`.
@@ -1154,40 +1231,62 @@ impl StreamEncoder {
         } else {
             added_item["arguments"] = Value::String(String::new());
         }
-        Ok(vec![self.emit(
+        self.emit(
             "response.output_item.added",
             json!({"output_index": output_index, "item": added_item}),
-        )])
+            dst,
+            frames,
+        );
+        Ok(())
     }
 
     /// Emits `arguments.delta` or `custom_tool_call_input.delta` per item
     /// kind.
-    fn tool_call_delta(&mut self, event: &ResponseEvent) -> Result<Vec<SseEvent>, Failure> {
-        let (id, output_index, kind) = {
-            let item =
-                self.item_any_kind(event.content_index, &["function_call", "custom_tool_call"])?;
-            (item.id.clone(), item.output_index, item.kind)
-        };
-        let event_name = if kind == "custom_tool_call" {
+    fn tool_call_delta(
+        &mut self,
+        event: &ResponseEvent,
+        dst: &mut BytesMut,
+        frames: &mut Vec<SseFrame>,
+    ) -> Result<(), Failure> {
+        let item = item_in(
+            &mut self.items,
+            event.content_index,
+            &["function_call", "custom_tool_call"],
+        )?;
+        let event_name = if item.kind == "custom_tool_call" {
             "response.custom_tool_call_input.delta"
         } else {
             "response.function_call_arguments.delta"
         };
-        Ok(vec![self.emit_delta(DeltaEvent {
-            kind: event_name,
-            item_id: id,
-            output_index,
-            delta: event.delta.clone(),
-            ..DeltaEvent::default()
-        })])
+        emit_delta(
+            &mut self.sequence_number,
+            DeltaEvent {
+                kind: event_name,
+                item_id: item.id.as_str(),
+                output_index: item.output_index,
+                delta: event.delta.as_str(),
+                ..DeltaEvent::default()
+            },
+            dst,
+            frames,
+        );
+        Ok(())
     }
 
     /// Closes a tool item and emits `*.done` plus `output_item.done`; the
     /// complete arguments prefer the `ToolCall` carried by the end event.
-    fn end_tool_call(&mut self, event: &ResponseEvent) -> Result<Vec<SseEvent>, Failure> {
+    fn end_tool_call(
+        &mut self,
+        event: &ResponseEvent,
+        dst: &mut BytesMut,
+        frames: &mut Vec<SseFrame>,
+    ) -> Result<(), Failure> {
         let (id, output_index, kind) = {
-            let item =
-                self.item_any_kind(event.content_index, &["function_call", "custom_tool_call"])?;
+            let item = item_in(
+                &mut self.items,
+                event.content_index,
+                &["function_call", "custom_tool_call"],
+            )?;
             (item.id.clone(), item.output_index, item.kind)
         };
         // event.validate() guarantees ToolCallEnd carries a ToolCall; the
@@ -1214,21 +1313,29 @@ impl StreamEncoder {
         });
         completed_item[field] = Value::String(arguments.clone());
         self.close_item(event.content_index, completed_item.clone());
-        Ok(vec![
-            self.emit(
-                event_name,
-                json!({"item_id": id, "output_index": output_index, field: arguments}),
-            ),
-            self.emit(
-                "response.output_item.done",
-                json!({"output_index": output_index, "item": completed_item}),
-            ),
-        ])
+        self.emit(
+            event_name,
+            json!({"item_id": id, "output_index": output_index, field: arguments}),
+            dst,
+            frames,
+        );
+        self.emit(
+            "response.output_item.done",
+            json!({"output_index": output_index, "item": completed_item}),
+            dst,
+            frames,
+        );
+        Ok(())
     }
 
     /// Verifies no dangling items, then emits the
     /// `response.completed`/`incomplete` terminal frame.
-    fn done(&mut self, event: &ResponseEvent) -> Result<Vec<SseEvent>, Failure> {
+    fn done(
+        &mut self,
+        event: &ResponseEvent,
+        dst: &mut BytesMut,
+        frames: &mut Vec<SseFrame>,
+    ) -> Result<(), Failure> {
         for item in self.items.values() {
             if !item.closed {
                 return Err(Failure::plain(format!(
@@ -1265,12 +1372,13 @@ impl StreamEncoder {
         } else {
             response["completed_at"] = Value::Number(now_unix_secs().into());
         }
-        Ok(vec![self.emit(event_name, json!({"response": response}))])
+        self.emit(event_name, json!({"response": response}), dst, frames);
+        Ok(())
     }
 
     /// Emits pending reasoning close-outs first, then `response.failed`, and
     /// closes the stream.
-    fn failed(&mut self, event: &ResponseEvent) -> Vec<SseEvent> {
+    fn failed(&mut self, event: &ResponseEvent, dst: &mut BytesMut, frames: &mut Vec<SseFrame>) {
         self.completed = true;
         // In the OpenAI Responses API a streaming failure sends a
         // response.failed event carrying a status="failed" response object
@@ -1286,12 +1394,13 @@ impl StreamEncoder {
         // Pending reasoning items close out before the failure event, same
         // as the Done path — otherwise items waiting for trailing
         // signatures dangle outside the output.
-        let mut events = self.flush_pending_reasoning();
-        events.push(self.emit(
+        self.flush_pending_reasoning(dst, frames);
+        self.emit(
             "response.failed",
             json!({"response": response, "status": status, "error": error_payload}),
-        ));
-        events
+            dst,
+            frames,
+        );
     }
 
     /// Registers a new output item under the llm `content_index`; a
@@ -1327,39 +1436,6 @@ impl StreamEncoder {
         Ok((id, output_index))
     }
 
-    /// The in-flight item at `content_index` of the given kind.
-    fn item(&mut self, content_index: i32, kind: &'static str) -> Result<&mut StreamItem, Failure> {
-        self.item_any_kind(content_index, &[kind])
-    }
-
-    /// The in-flight item at `content_index`; `kind` must be in `kinds` —
-    /// `function_call` and `custom_tool_call` only become distinguishable
-    /// mid-event.
-    fn item_any_kind(
-        &mut self,
-        content_index: i32,
-        kinds: &[&'static str],
-    ) -> Result<&mut StreamItem, Failure> {
-        let Some(item) = self.items.get_mut(&content_index) else {
-            return Err(Failure::plain(format!(
-                "content index {content_index} has no active output item"
-            )));
-        };
-        if kinds.contains(&item.kind) {
-            if item.closed {
-                return Err(Failure::plain(format!(
-                    "content index {content_index} output item is already closed"
-                )));
-            }
-            return Ok(item);
-        }
-        Err(Failure::plain(format!(
-            "content index {content_index} is {:?}, want one of [{}]",
-            item.kind,
-            kinds.join(" ")
-        )))
-    }
-
     /// Closes the item and writes its final shape into the output slot.
     fn close_item(&mut self, content_index: i32, output: Value) {
         let slot = {
@@ -1378,47 +1454,103 @@ impl StreamEncoder {
         self.output.iter().flatten().cloned().collect()
     }
 
-    /// Adds `type`/`sequence_number` and marshals into one SSE frame.
-    fn emit(&mut self, name: &'static str, mut payload: Value) -> SseEvent {
+    /// Adds `type`/`sequence_number` and marshals into one SSE frame
+    /// written straight into `dst`.
+    fn emit(
+        &mut self,
+        name: &'static str,
+        mut payload: Value,
+        dst: &mut BytesMut,
+        frames: &mut Vec<SseFrame>,
+    ) {
         payload["type"] = Value::String(name.to_string());
         payload["sequence_number"] = Value::Number(self.sequence_number.into());
         self.sequence_number += 1;
-        SseEvent {
+        let start = dst.len();
+        dst.extend_from_slice(b"event: ");
+        dst.extend_from_slice(name.as_bytes());
+        dst.extend_from_slice(b"\ndata: ");
+        go_marshal_into(dst, &payload);
+        dst.extend_from_slice(b"\n\n");
+        frames.push(SseFrame {
             name,
-            data: go_marshal(&payload),
-        }
+            data: start + "event: ".len() + name.len() + "\ndata: ".len()..dst.len() - 2,
+        });
     }
+}
 
-    /// Adds `sequence_number` and struct-encodes one delta SSE frame.
-    fn emit_delta(&mut self, mut event: DeltaEvent) -> SseEvent {
-        event.sequence_number = self.sequence_number;
-        self.sequence_number += 1;
-        SseEvent {
-            name: event.kind,
-            data: go_marshal(&event),
+/// The in-flight item at `content_index`; `kind` must be in `kinds` —
+/// `function_call` and `custom_tool_call` only become distinguishable
+/// mid-event. A free function (not a `&mut self` method) so callers can
+/// hold the item borrow while mutating `sequence_number`.
+fn item_in<'m>(
+    items: &'m mut BTreeMap<i32, StreamItem>,
+    content_index: i32,
+    kinds: &[&'static str],
+) -> Result<&'m mut StreamItem, Failure> {
+    let Some(item) = items.get_mut(&content_index) else {
+        return Err(Failure::plain(format!(
+            "content index {content_index} has no active output item"
+        )));
+    };
+    if kinds.contains(&item.kind) {
+        if item.closed {
+            return Err(Failure::plain(format!(
+                "content index {content_index} output item is already closed"
+            )));
         }
+        return Ok(item);
     }
+    Err(Failure::plain(format!(
+        "content index {content_index} is {:?}, want one of [{}]",
+        item.kind,
+        kinds.join(" ")
+    )))
+}
+
+/// Adds `sequence_number` and struct-encodes one delta SSE frame straight
+/// into `dst`. Free function for the same borrow-split reason as
+/// [`item_in`]: callers hold a `&mut items` borrow across the call.
+fn emit_delta(
+    sequence_number: &mut i64,
+    mut event: DeltaEvent<'_>,
+    dst: &mut BytesMut,
+    frames: &mut Vec<SseFrame>,
+) {
+    event.sequence_number = *sequence_number;
+    *sequence_number += 1;
+    let start = dst.len();
+    dst.extend_from_slice(b"event: ");
+    dst.extend_from_slice(event.kind.as_bytes());
+    dst.extend_from_slice(b"\ndata: ");
+    go_marshal_into(dst, &event);
+    dst.extend_from_slice(b"\n\n");
+    frames.push(SseFrame {
+        name: event.kind,
+        data: start + "event: ".len() + event.kind.len() + "\ndata: ".len()..dst.len() - 2,
+    });
 }
 
 /// The fixed encoding shape of high-frequency delta events: the key set
 /// matches `emit(map)` output one-to-one but goes through struct encoding —
 /// one map-reflection marshal less per frame. `skip_serializing_if` on the
 /// optional fields keeps absent keys absent, matching each event's original
-/// map key set. Field order mirrors the Go struct declaration.
+/// map key set. Field order mirrors the Go struct declaration. Payload
+/// fields borrow — no per-frame `String` copies.
 #[derive(Serialize, Default)]
-struct DeltaEvent {
+struct DeltaEvent<'a> {
     #[serde(rename = "type")]
     kind: &'static str,
     sequence_number: i64,
-    item_id: String,
+    item_id: &'a str,
     output_index: usize,
     #[serde(skip_serializing_if = "Option::is_none")]
     content_index: Option<i32>,
     #[serde(skip_serializing_if = "Option::is_none")]
     summary_index: Option<i32>,
-    delta: String,
-    #[serde(skip_serializing_if = "Vec::is_empty")]
-    logprobs: Vec<Value>,
+    delta: &'a str,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    logprobs: Option<&'a [Value]>,
 }
 
 /// Encodes the final assistant message as a non-streaming Responses JSON

@@ -83,20 +83,98 @@ impl Recorder {
     /// `message`/`error`/`tool_call` are terminal values, so moving the
     /// event into the worker is race-free by construction — the hot path
     /// pays only one enqueue.
-    pub fn record_response_event(&self, event: ResponseEvent) {
+    ///
+    /// The thunk captures a field clone, not the event itself: `partial`
+    /// is only projected for `start` events, so delta events do not pin
+    /// the decoder's shared `Arc` — a pinned snapshot would force a
+    /// deep clone at the decoder's next `Arc::make_mut`.
+    pub fn record_response_event(&self, event: &ResponseEvent) {
         if !self.is_active() {
             return;
         }
-        let event_name = event.kind.as_str().to_string();
+        let mut event = event.clone();
+        if event.kind != ResponseEventType::Start {
+            event.partial = None;
+        }
         self.append_jsonl(
             STAGE_RESPONSE_EVENTS,
-            &event_name,
-            LogValue::deferred(move || response_event_projection(&event)),
+            event.kind.as_str(),
+            LogValue::deferred(move || match response_event_projection_bytes(&event) {
+                Ok(bytes) => LogValue::Raw(bytes),
+                // A marshal failure must fail the record like Go's
+                // `json.Marshal` error path: emitting the error text as a
+                // raw payload makes `compact_escape` reject it, so the
+                // worker skips the write exactly as on marshal error.
+                Err(err) => LogValue::Raw(err.into_bytes()),
+            }),
         );
     }
 }
 
+/// `ResponseEventProjection` emitted directly as compact JSON bytes — the
+/// worker's sanitize prescreen then passes it through untouched, so the
+/// hot path never builds a `JVal` tree. Field order is the sorted order
+/// Go's `json.Marshal` gives the projection map; nested projections
+/// (`message`/`error`/`tool_call`) marshal through `JVal` for identical
+/// bytes without duplicating their field lists.
+fn response_event_projection_bytes(event: &ResponseEvent) -> Result<Vec<u8>, String> {
+    let mut w = super::gojson::ObjWriter::new();
+    if !event.content.is_empty() {
+        w.field_str("content", &event.content);
+    }
+    match event.kind {
+        ResponseEventType::TextStart
+        | ResponseEventType::TextDelta
+        | ResponseEventType::TextEnd
+        | ResponseEventType::ThinkingStart
+        | ResponseEventType::ThinkingDelta
+        | ResponseEventType::ThinkingEnd
+        | ResponseEventType::ThinkingSignature
+        | ResponseEventType::ToolCallStart
+        | ResponseEventType::ToolCallDelta
+        | ResponseEventType::ToolCallEnd => {
+            w.field_int("content_index", i64::from(event.content_index));
+        }
+        _ => {}
+    }
+    if !event.delta.is_empty() || event.kind == ResponseEventType::ToolCallDelta {
+        w.field_str("delta", &event.delta);
+    }
+    if let Some(error) = &event.error {
+        w.field("error", &assistant_projection(error));
+    }
+    // Go's map literal assigns `message` twice — `event.Message` wins over
+    // the start-event `partial`; the single emit below mirrors the winner.
+    let message = event.message.as_ref().or_else(|| {
+        if event.kind == ResponseEventType::Start {
+            event.partial.as_deref()
+        } else {
+            None
+        }
+    });
+    if let Some(message) = message {
+        w.field("message", &assistant_projection(message));
+    }
+    if let Some(reason) = event.reason {
+        w.field_str("reason", reason.as_str());
+    }
+    if let Some(call) = &event.tool_call {
+        w.field("tool_call", &tool_call_projection(call));
+    }
+    if !event.tool_call_id.is_empty() {
+        w.field_str("tool_call_id", &event.tool_call_id);
+    }
+    if !event.tool_name.is_empty() {
+        w.field_str("tool_name", &event.tool_name);
+    }
+    w.field_str("type", event.kind.as_str());
+    w.finish()
+}
+
 /// `ResponseEventProjection` — log shape avoiding a repeated full `partial`.
+/// Retained as the tree-form reference: the parity test pins
+/// `response_event_projection_bytes` to its marshaled output byte-for-byte.
+#[cfg(test)]
 fn response_event_projection(event: &ResponseEvent) -> LogValue {
     let mut result = Obj::default().set("type", JVal::Str(event.kind.as_str().to_string()));
     match event.kind {
@@ -127,10 +205,7 @@ fn response_event_projection(event: &ResponseEvent) -> LogValue {
         result = result.set("tool_name", JVal::Str(event.tool_name.clone()));
     }
     if let Some(call) = &event.tool_call {
-        result = result.set(
-            "tool_call",
-            content_projection(&Content::ToolCall(call.clone())),
-        );
+        result = result.set("tool_call", tool_call_projection(call));
     }
     if let Some(reason) = event.reason {
         result = result.set("reason", JVal::Str(reason.as_str().to_string()));
@@ -267,27 +342,168 @@ fn content_projection(content: &Content) -> JVal {
             .set("data", JVal::Str(image.data.clone()))
             .set("mime_type", JVal::Str(image.mime_type.clone()))
             .build(),
-        Content::ToolCall(call) => {
-            // Custom calls carry provider-verbatim non-JSON arguments —
-            // marshaling them as raw JSON would corrupt the output, so they
-            // log as a string flagged `custom`.
-            if call.custom {
-                Obj::default()
-                    .set("type", JVal::Str("toolCall".to_string()))
-                    .set("id", JVal::Str(call.id.clone()))
-                    .set("name", JVal::Str(call.name.clone()))
-                    .set("arguments", JVal::Str(call.arguments.clone()))
-                    .set("custom", JVal::Bool(true))
-                    .build()
-            } else {
-                Obj::default()
-                    .set("type", JVal::Str("toolCall".to_string()))
-                    .set("id", JVal::Str(call.id.clone()))
-                    .set("name", JVal::Str(call.name.clone()))
-                    // Go's Arguments is json.RawMessage — verbatim bytes.
-                    .set("arguments", JVal::Raw(call.arguments.clone().into_bytes()))
-                    .build()
-            }
+        Content::ToolCall(call) => tool_call_projection(call),
+    }
+}
+
+/// The `toolCall` content-block projection, shared by the content list and
+/// the per-event `tool_call` field.
+fn tool_call_projection(call: &crate::domain::ToolCall) -> JVal {
+    // Custom calls carry provider-verbatim non-JSON arguments — marshaling
+    // them as raw JSON would corrupt the output, so they log as a string
+    // flagged `custom`.
+    if call.custom {
+        Obj::default()
+            .set("type", JVal::Str("toolCall".to_string()))
+            .set("id", JVal::Str(call.id.clone()))
+            .set("name", JVal::Str(call.name.clone()))
+            .set("arguments", JVal::Str(call.arguments.clone()))
+            .set("custom", JVal::Bool(true))
+            .build()
+    } else {
+        Obj::default()
+            .set("type", JVal::Str("toolCall".to_string()))
+            .set("id", JVal::Str(call.id.clone()))
+            .set("name", JVal::Str(call.name.clone()))
+            // Go's Arguments is json.RawMessage — verbatim bytes.
+            .set("arguments", JVal::Raw(call.arguments.clone().into_bytes()))
+            .build()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::domain::{
+        AssistantMessage, AssistantMessageDiagnostic, Content, StopReason, TextContent,
+        ThinkingContent, ToolCall, Usage,
+    };
+    use std::sync::Arc;
+
+    fn assistant() -> AssistantMessage {
+        AssistantMessage {
+            content: vec![
+                Content::Text(TextContent {
+                    text: "hello <world> & \"friends\"\u{2028}".to_string(),
+                }),
+                Content::Thinking(ThinkingContent {
+                    thinking: "pondering".to_string(),
+                    thinking_signature: "sig".to_string(),
+                    signature_type: "type".to_string(),
+                    redacted: false,
+                }),
+                Content::ToolCall(ToolCall {
+                    id: "call_1".to_string(),
+                    name: "shell".to_string(),
+                    arguments: "{\"cmd\":\"ls\"}".to_string(),
+                    custom: false,
+                }),
+                Content::ToolCall(ToolCall {
+                    id: "call_2".to_string(),
+                    name: "apply_patch".to_string(),
+                    arguments: "*** patch text".to_string(),
+                    custom: true,
+                }),
+            ],
+            api: "devin".to_string(),
+            provider: "devin".to_string(),
+            model: "m".to_string(),
+            response_model: "m-2".to_string(),
+            response_id: "resp_1".to_string(),
+            output_id: "out_1".to_string(),
+            upstream_request_id: "req_1".to_string(),
+            diagnostics: vec![AssistantMessageDiagnostic {
+                kind: "warn".to_string(),
+                timestamp_ms: 7,
+                details: "{\"a\":1}".to_string(),
+            }],
+            usage: Usage {
+                input: 3,
+                output: 5,
+                cache_read: 1,
+                cache_write: 2,
+                reasoning: Some(4),
+                total_tokens: 15,
+            },
+            stop_reason: Some(StopReason::Stop),
+            stop_sequence: String::new(),
+            error_message: String::new(),
+            failure: None,
+            debug_ref: String::new(),
+            timestamp_ms: 42,
+        }
+    }
+
+    fn base_event(kind: ResponseEventType) -> ResponseEvent {
+        ResponseEvent {
+            kind,
+            content_index: 2,
+            delta: String::new(),
+            content: String::new(),
+            partial: None,
+            tool_call_id: String::new(),
+            tool_name: String::new(),
+            tool_call: None,
+            reason: None,
+            message: None,
+            error: None,
+        }
+    }
+
+    /// The direct-emit writer must produce byte-identical output to the
+    /// tree projection's `json.Marshal` across every field combination the
+    /// encoder can produce — the write path changed, the bytes must not.
+    #[test]
+    fn direct_emit_matches_tree_projection() {
+        let mut events = vec![
+            base_event(ResponseEventType::Start),
+            base_event(ResponseEventType::TextDelta),
+            base_event(ResponseEventType::ToolCallDelta),
+            base_event(ResponseEventType::Done),
+            base_event(ResponseEventType::Error),
+        ];
+        events[0].partial = Some(Arc::new(assistant()));
+        events[1].delta = "chunk <&>\u{2029}".to_string();
+        events[2].delta = "{\"a\":".to_string();
+        events[3].reason = Some(StopReason::Stop);
+        events[3].message = Some(assistant());
+        events[4].reason = Some(StopReason::Error);
+        events[4].error = Some(assistant());
+        let mut full = base_event(ResponseEventType::ToolCallEnd);
+        full.content = "result".to_string();
+        full.delta = "tail".to_string();
+        full.tool_call_id = "call_9".to_string();
+        full.tool_name = "shell".to_string();
+        full.tool_call = Some(ToolCall {
+            id: "call_9".to_string(),
+            name: "shell".to_string(),
+            arguments: "{\"x\": [1, 2]}".to_string(),
+            custom: false,
+        });
+        full.message = Some(assistant());
+        full.error = Some(assistant());
+        events.push(full);
+        let mut custom = base_event(ResponseEventType::ToolCallEnd);
+        custom.tool_call = Some(ToolCall {
+            id: "c".to_string(),
+            name: "apply_patch".to_string(),
+            arguments: "not json".to_string(),
+            custom: true,
+        });
+        events.push(custom);
+
+        for event in &events {
+            let LogValue::Tree(tree) = response_event_projection(event) else {
+                panic!("tree projection must yield a tree");
+            };
+            let want = super::super::gojson::marshal(&tree).expect("tree marshals");
+            let got = response_event_projection_bytes(event).expect("direct emit");
+            assert_eq!(
+                String::from_utf8_lossy(&got),
+                String::from_utf8_lossy(&want),
+                "kind {:?}",
+                event.kind
+            );
         }
     }
 }

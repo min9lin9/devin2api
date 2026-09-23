@@ -222,11 +222,8 @@ impl ObjWriter {
     /// record.
     pub fn field_raw(&mut self, name: &str, raw: &[u8]) -> &mut Self {
         self.key(name);
-        match compact_escape(raw) {
-            Ok(bytes) => self.buf.extend_from_slice(&bytes),
-            Err(err) => {
-                self.err.get_or_insert(err);
-            }
+        if let Err(err) = compact_escape_into(&mut self.buf, raw) {
+            self.err.get_or_insert(err);
         }
         self
     }
@@ -307,7 +304,7 @@ fn marshal_into(out: &mut Vec<u8>, value: &JVal) -> Result<(), String> {
             }
             out.push(b'}');
         }
-        JVal::Raw(raw) => out.extend_from_slice(&compact_escape(raw)?),
+        JVal::Raw(raw) => compact_escape_into(out, raw)?,
     }
     Ok(())
 }
@@ -366,68 +363,262 @@ fn newline_indent(out: &mut Vec<u8>, depth: usize) {
     }
 }
 
-/// Port of Go `appendCompact(src, escape=true)` plus the scanner's validity
-/// check: insignificant whitespace is dropped and `<>&`/U+2028/U+2029 are
-/// escaped anywhere (they can only legally appear inside strings). Invalid
-/// JSON is an error like Go's `json.Marshal`.
-pub fn compact_escape(src: &[u8]) -> Result<Vec<u8>, String> {
-    if !json_valid(src) {
+/// Port of Go `appendCompact(src, escape=true)` fused with the scanner's
+/// validity check — one pass instead of validate-then-copy: insignificant
+/// whitespace is dropped and `<>&`/U+2028/U+2029 are escaped anywhere (they
+/// can only legally appear inside strings). Invalid JSON is an error like
+/// Go's `json.Marshal`. Appends to `out`; on error `out` is truncated back
+/// to its incoming length so a failed field leaves no partial bytes.
+pub fn compact_escape_into(out: &mut Vec<u8>, src: &[u8]) -> Result<(), String> {
+    let start = out.len();
+    if compact_escape_inner(out, src).is_none() {
+        out.truncate(start);
         return Err("invalid JSON payload".to_string());
     }
+    Ok(())
+}
+
+/// `compact_escape` returning the compacted bytes (for paths that need the
+/// intermediate buffer, e.g. `MarshalIndent` re-indenting a raw subtree).
+pub fn compact_escape(src: &[u8]) -> Result<Vec<u8>, String> {
     let mut out = Vec::with_capacity(src.len());
-    let mut in_str = false;
-    let mut esc = false;
-    let mut i = 0;
-    while i < src.len() {
-        let c = src[i];
-        if in_str {
-            if esc {
-                esc = false;
-                out.push(c);
-                i += 1;
-                continue;
-            }
-            match c {
-                b'\\' => {
-                    esc = true;
-                    out.push(c);
-                }
+    compact_escape_into(&mut out, src)?;
+    Ok(out)
+}
+
+/// The fused validate+compact+escape state machine — same frames as
+/// `json_valid_inner`, but every consumed token is emitted in compacted
+/// form. Returns `None` on malformed input.
+// One iterative state machine mirroring Go's scanner; splitting the
+// frame table would obscure the port.
+#[allow(clippy::too_many_lines)]
+fn compact_escape_inner(out: &mut Vec<u8>, src: &[u8]) -> Option<()> {
+    use Frame::{
+        ArrCommaOrEnd, ArrValue, ArrValueOrEnd, ObjColon, ObjCommaOrEnd, ObjKey, ObjKeyOrEnd,
+        ObjValue,
+    };
+    /// Emit one string literal (quotes included) with Go's compact-time
+    /// escaping: escapes pass through verbatim after validation, `<>&` and
+    /// U+2028/U+2029 become `\u00xx`. Returns the position past the
+    /// closing quote.
+    fn scan_string_emit(out: &mut Vec<u8>, src: &[u8], mut i: usize) -> Option<usize> {
+        out.push(b'"');
+        i += 1;
+        while i < src.len() {
+            match src[i] {
                 b'"' => {
-                    in_str = false;
-                    out.push(c);
+                    out.push(b'"');
+                    return Some(i + 1);
                 }
-                b'<' => out.extend_from_slice(b"\\u003c"),
-                b'>' => out.extend_from_slice(b"\\u003e"),
-                b'&' => out.extend_from_slice(b"\\u0026"),
+                b'\\' => {
+                    out.push(b'\\');
+                    i += 1;
+                    if i >= src.len() {
+                        return None;
+                    }
+                    match src[i] {
+                        b'"' | b'\\' | b'/' | b'b' | b'f' | b'n' | b'r' | b't' => {
+                            out.push(src[i]);
+                            i += 1;
+                        }
+                        b'u' => {
+                            if i + 4 >= src.len()
+                                || !src[i + 1..=i + 4].iter().all(u8::is_ascii_hexdigit)
+                            {
+                                return None;
+                            }
+                            out.extend_from_slice(&src[i..i + 5]);
+                            i += 5;
+                        }
+                        _ => return None,
+                    }
+                }
+                b'<' => {
+                    out.extend_from_slice(b"\\u003c");
+                    i += 1;
+                }
+                b'>' => {
+                    out.extend_from_slice(b"\\u003e");
+                    i += 1;
+                }
+                b'&' => {
+                    out.extend_from_slice(b"\\u0026");
+                    i += 1;
+                }
                 0xE2 if i + 2 < src.len() && src[i + 1] == 0x80 && (src[i + 2] & !1) == 0xA8 => {
                     out.extend_from_slice(b"\\u202");
                     out.push(hex_digit(src[i + 2] & 0xF));
-                    i += 2;
+                    i += 3;
                 }
-                _ => out.push(c),
+                c if c < 0x20 => return None,
+                c => {
+                    out.push(c);
+                    i += 1;
+                }
             }
-            i += 1;
-            continue;
         }
-        match c {
-            b'"' => {
-                in_str = true;
-                out.push(c);
-            }
-            b' ' | b'\t' | b'\r' | b'\n' => {}
-            b'<' => out.extend_from_slice(b"\\u003c"),
-            b'>' => out.extend_from_slice(b"\\u003e"),
-            b'&' => out.extend_from_slice(b"\\u0026"),
-            0xE2 if i + 2 < src.len() && src[i + 1] == 0x80 && (src[i + 2] & !1) == 0xA8 => {
-                out.extend_from_slice(b"\\u202");
-                out.push(hex_digit(src[i + 2] & 0xF));
-                i += 2;
-            }
-            _ => out.push(c),
-        }
-        i += 1;
+        None
     }
-    Ok(out)
+    /// Emit one number verbatim; returns the position past it.
+    fn scan_number_emit(out: &mut Vec<u8>, src: &[u8], mut i: usize) -> Option<usize> {
+        let start = i;
+        if i < src.len() && src[i] == b'-' {
+            i += 1;
+        }
+        let digits_start = i;
+        while i < src.len() && src[i].is_ascii_digit() {
+            i += 1;
+        }
+        if i == digits_start {
+            return None;
+        }
+        if i < src.len() && src[i] == b'.' {
+            i += 1;
+            let frac_start = i;
+            while i < src.len() && src[i].is_ascii_digit() {
+                i += 1;
+            }
+            if i == frac_start {
+                return None;
+            }
+        }
+        if i < src.len() && (src[i] == b'e' || src[i] == b'E') {
+            i += 1;
+            if i < src.len() && (src[i] == b'+' || src[i] == b'-') {
+                i += 1;
+            }
+            let exp_start = i;
+            while i < src.len() && src[i].is_ascii_digit() {
+                i += 1;
+            }
+            if i == exp_start {
+                return None;
+            }
+        }
+        out.extend_from_slice(&src[start..i]);
+        Some(i)
+    }
+    fn scan_literal_emit(out: &mut Vec<u8>, src: &[u8], i: usize, lit: &[u8]) -> Option<usize> {
+        if src.len() - i >= lit.len() && &src[i..i + lit.len()] == lit {
+            out.extend_from_slice(lit);
+            Some(i + lit.len())
+        } else {
+            None
+        }
+    }
+    /// Emit one scalar or container-open at `i`; returns the new position.
+    /// Container opens push their "expect key-or-end / value-or-end" frame.
+    fn scan_value_emit(
+        out: &mut Vec<u8>,
+        src: &[u8],
+        i: usize,
+        stack: &mut Vec<Frame>,
+    ) -> Option<usize> {
+        match *src.get(i)? {
+            b'"' => scan_string_emit(out, src, i),
+            b'{' => {
+                stack.push(ObjKeyOrEnd);
+                out.push(b'{');
+                Some(i + 1)
+            }
+            b'[' => {
+                stack.push(ArrValueOrEnd);
+                out.push(b'[');
+                Some(i + 1)
+            }
+            b't' => scan_literal_emit(out, src, i, b"true"),
+            b'f' => scan_literal_emit(out, src, i, b"false"),
+            b'n' => scan_literal_emit(out, src, i, b"null"),
+            b'-' | b'0'..=b'9' => scan_number_emit(out, src, i),
+            _ => None,
+        }
+    }
+
+    let mut stack: Vec<Frame> = Vec::new();
+    let mut i = 0usize;
+    macro_rules! skip_ws {
+        () => {
+            while i < src.len() && matches!(src[i], b' ' | b'\t' | b'\r' | b'\n') {
+                i += 1;
+            }
+        };
+    }
+    // Top-level: exactly one value then EOF.
+    skip_ws!();
+    i = scan_value_emit(out, src, i, &mut stack)?;
+    loop {
+        skip_ws!();
+        let Some(&top) = stack.last() else {
+            return (i == src.len()).then_some(());
+        };
+        if i >= src.len() {
+            return None;
+        }
+        match top {
+            ObjKeyOrEnd | ObjKey => match src[i] {
+                b'"' => {
+                    i = scan_string_emit(out, src, i)?;
+                    *stack.last_mut().expect("top checked") = ObjColon;
+                }
+                b'}' if top == ObjKeyOrEnd => {
+                    stack.pop();
+                    out.push(b'}');
+                    i += 1;
+                }
+                _ => return None,
+            },
+            ObjColon => {
+                if src[i] != b':' {
+                    return None;
+                }
+                out.push(b':');
+                i += 1;
+                *stack.last_mut().expect("top checked") = ObjValue;
+            }
+            ObjValue => {
+                // Mark the value consumed before scanning: a container open
+                // pushes its own frame on top of this one.
+                *stack.last_mut().expect("top checked") = ObjCommaOrEnd;
+                i = scan_value_emit(out, src, i, &mut stack)?;
+            }
+            ObjCommaOrEnd => match src[i] {
+                b',' => {
+                    *stack.last_mut().expect("top checked") = ObjKey;
+                    out.push(b',');
+                    i += 1;
+                }
+                b'}' => {
+                    stack.pop();
+                    out.push(b'}');
+                    i += 1;
+                }
+                _ => return None,
+            },
+            ArrValueOrEnd | ArrValue => {
+                if src[i] == b']' && top == ArrValueOrEnd {
+                    stack.pop();
+                    out.push(b']');
+                    i += 1;
+                    continue;
+                }
+                *stack.last_mut().expect("top checked") = ArrCommaOrEnd;
+                i = scan_value_emit(out, src, i, &mut stack)?;
+            }
+            ArrCommaOrEnd => match src[i] {
+                b',' => {
+                    *stack.last_mut().expect("top checked") = ArrValue;
+                    out.push(b',');
+                    i += 1;
+                }
+                b']' => {
+                    stack.pop();
+                    out.push(b']');
+                    i += 1;
+                }
+                _ => return None,
+            },
+        }
+    }
 }
 
 /// Port of Go `appendIndent(src, "", "  ")` applied at base `depth`: each
@@ -495,6 +686,28 @@ pub fn indent_bytes(out: &mut Vec<u8>, src: &[u8], depth: usize) {
     }
 }
 
+/// What the container top expects next — shared by the validate-only and
+/// validate+compact+escape scanners.
+#[derive(Clone, Copy, PartialEq)]
+enum Frame {
+    /// `{` seen: a `"key"` or `}`.
+    ObjKeyOrEnd,
+    /// key seen: a `:`.
+    ObjColon,
+    /// `:` seen: a value.
+    ObjValue,
+    /// value seen: a `,` or `}`.
+    ObjCommaOrEnd,
+    /// `,` seen in an object: a `"key"` (no trailing comma).
+    ObjKey,
+    /// `[` seen: a value or `]`.
+    ArrValueOrEnd,
+    /// `,` seen in an array: a value (no trailing comma).
+    ArrValue,
+    /// value seen: a `,` or `]`.
+    ArrCommaOrEnd,
+}
+
 /// Iterative JSON validity check — Go's scanner has no depth limit, so a
 /// recursive parser (`serde_json` caps at 128) would wrongly reject deep
 /// payloads the reference accepts. Returns false on any malformed input.
@@ -502,26 +715,10 @@ pub fn indent_bytes(out: &mut Vec<u8>, src: &[u8], depth: usize) {
 // frame table would obscure the port.
 #[allow(clippy::too_many_lines)]
 fn json_valid_inner(src: &[u8]) -> Option<()> {
-    /// What the container top expects next.
-    #[derive(Clone, Copy, PartialEq)]
-    enum Frame {
-        /// `{` seen: a `"key"` or `}`.
-        ObjKeyOrEnd,
-        /// key seen: a `:`.
-        ObjColon,
-        /// `:` seen: a value.
+    use Frame::{
+        ArrCommaOrEnd, ArrValue, ArrValueOrEnd, ObjColon, ObjCommaOrEnd, ObjKey, ObjKeyOrEnd,
         ObjValue,
-        /// value seen: a `,` or `}`.
-        ObjCommaOrEnd,
-        /// `,` seen in an object: a `"key"` (no trailing comma).
-        ObjKey,
-        /// `[` seen: a value or `]`.
-        ArrValueOrEnd,
-        /// `,` seen in an array: a value (no trailing comma).
-        ArrValue,
-        /// value seen: a `,` or `]`.
-        ArrCommaOrEnd,
-    }
+    };
     fn scan_string(src: &[u8], mut i: usize) -> Option<usize> {
         i += 1; // opening quote
         while i < src.len() {
@@ -636,33 +833,33 @@ fn json_valid_inner(src: &[u8]) -> Option<()> {
             return None;
         }
         match top {
-            Frame::ObjKeyOrEnd | Frame::ObjKey => match src[i] {
+            ObjKeyOrEnd | ObjKey => match src[i] {
                 b'"' => {
                     i = scan_string(src, i)?;
-                    *stack.last_mut().expect("top checked") = Frame::ObjColon;
+                    *stack.last_mut().expect("top checked") = ObjColon;
                 }
-                b'}' if top == Frame::ObjKeyOrEnd => {
+                b'}' if top == ObjKeyOrEnd => {
                     stack.pop();
                     i += 1;
                 }
                 _ => return None,
             },
-            Frame::ObjColon => {
+            ObjColon => {
                 if src[i] != b':' {
                     return None;
                 }
                 i += 1;
-                *stack.last_mut().expect("top checked") = Frame::ObjValue;
+                *stack.last_mut().expect("top checked") = ObjValue;
             }
-            Frame::ObjValue => {
+            ObjValue => {
                 // Mark the value consumed before scanning: a container open
                 // pushes its own frame on top of this one.
-                *stack.last_mut().expect("top checked") = Frame::ObjCommaOrEnd;
+                *stack.last_mut().expect("top checked") = ObjCommaOrEnd;
                 i = scan_value(src, i, &mut stack)?;
             }
-            Frame::ObjCommaOrEnd => match src[i] {
+            ObjCommaOrEnd => match src[i] {
                 b',' => {
-                    *stack.last_mut().expect("top checked") = Frame::ObjKey;
+                    *stack.last_mut().expect("top checked") = ObjKey;
                     i += 1;
                 }
                 b'}' => {
@@ -671,18 +868,18 @@ fn json_valid_inner(src: &[u8]) -> Option<()> {
                 }
                 _ => return None,
             },
-            Frame::ArrValueOrEnd | Frame::ArrValue => {
-                if src[i] == b']' && top == Frame::ArrValueOrEnd {
+            ArrValueOrEnd | ArrValue => {
+                if src[i] == b']' && top == ArrValueOrEnd {
                     stack.pop();
                     i += 1;
                     continue;
                 }
-                *stack.last_mut().expect("top checked") = Frame::ArrCommaOrEnd;
+                *stack.last_mut().expect("top checked") = ArrCommaOrEnd;
                 i = scan_value(src, i, &mut stack)?;
             }
-            Frame::ArrCommaOrEnd => match src[i] {
+            ArrCommaOrEnd => match src[i] {
                 b',' => {
-                    *stack.last_mut().expect("top checked") = Frame::ArrValue;
+                    *stack.last_mut().expect("top checked") = ArrValue;
                     i += 1;
                 }
                 b']' => {

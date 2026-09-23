@@ -737,6 +737,12 @@ async fn websocket_turn_logs_use_responses_ws_api_label() {
     assert_eq!(meta["api"], "responses-ws");
     client.until(&["response.completed"]).await;
     stop.cancel();
+    // `complete` runs after the last frame reaches the client (Go's
+    // handler-return ordering): wait for the admission release — the
+    // drain/index writes are done by then — before removing the tree.
+    tokio::time::timeout(Duration::from_secs(5), app.wait_idle())
+        .await
+        .expect("turn finalized");
     std::fs::remove_dir_all(root).unwrap();
 }
 

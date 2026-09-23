@@ -422,6 +422,7 @@ dependencies = [
  "hyper",
  "hyper-util",
  "jiff",
+ "memchr",
  "rand 0.10.2",
  "regex-automata",
  "reqwest",

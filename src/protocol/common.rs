@@ -7,10 +7,12 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
+use std::ops::Range;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use base64::Engine as _;
 use base64::engine::general_purpose::{STANDARD, STANDARD_NO_PAD, URL_SAFE, URL_SAFE_NO_PAD};
+use bytes::{BufMut, BytesMut};
 use serde::Deserialize;
 use serde_json::value::RawValue;
 use serde_json::{Map, Value, json};
@@ -53,6 +55,18 @@ pub struct SseEvent {
     pub name: &'static str,
     /// JSON-encoded SSE `data:` payload.
     pub data: Vec<u8>,
+}
+
+/// Where one SSE frame's `data:` payload landed inside the output buffer
+/// an `encode_into` call wrote to. The stream layer replays these spans to
+/// the debug recorder, which needs the per-frame name/payload split that
+/// direct-to-batch encoding no longer materializes as `SseEvent`s.
+#[derive(Debug, Clone)]
+pub struct SseFrame {
+    /// SSE `event:` field value (same domain as [`SseEvent::name`]).
+    pub name: &'static str,
+    /// Byte range of the `data:` payload inside the destination buffer.
+    pub data: Range<usize>,
 }
 
 // ---------------------------------------------------------------------------
@@ -317,79 +331,135 @@ pub fn content_at(message: Option<&AssistantMessage>, index: i32) -> Option<&Con
 /// the same bytes except inside string literals, where Go additionally
 /// escapes `<`, `>`, `&` (its HTML-safe default), U+2028/U+2029, and writes
 /// `\u0008`/`\u000c` where serde emits `\b`/`\f`.
-/// [`go_escape_strings`] rewrites serde's output to Go's byte shape so SSE
-/// frames and response bodies are wire-identical, not merely semantically
-/// equal. Marshal errors are impossible for the map/struct/Value shapes
-/// encoded here; like Go's `data, _ := json.Marshal(...)`, a failure would
-/// yield empty data.
+/// [`GoFormatter`] applies those rules inline during serialization so the
+/// output is wire-identical without a second pass. Marshal errors are
+/// impossible for the map/struct/Value shapes encoded here; like Go's
+/// `data, _ := json.Marshal(...)`, a failure would yield empty data.
 pub fn go_marshal<T: serde::Serialize + ?Sized>(value: &T) -> Vec<u8> {
-    let raw = serde_json::to_vec(value).unwrap_or_default();
-    go_escape_strings(&raw)
+    let mut out = Vec::new();
+    go_marshal_into(&mut out, value);
+    out
 }
 
-/// Rewrites `serde_json` output to Go `encoding/json` byte shape. Only bytes
-/// inside string literals are transformed: raw `<`/`>`/`&` become
-/// `\u003c`/`\u003e`/`\u0026`, the U+2028/U+2029 UTF-8 sequences become
-/// `\u2028`/`\u2029`, and serde's `\b`/`\f` shorthand becomes Go's
-/// `\u0008`/`\u000c`. Structural bytes and other escapes pass through
-/// untouched.
-fn go_escape_strings(input: &[u8]) -> Vec<u8> {
-    let mut out = Vec::with_capacity(input.len() + 16);
-    let mut in_string = false;
-    let mut i = 0;
-    while i < input.len() {
-        let byte = input[i];
-        if !in_string {
-            out.push(byte);
-            if byte == b'"' {
-                in_string = true;
-            }
-            i += 1;
-            continue;
-        }
-        match byte {
-            b'"' => {
-                out.push(byte);
-                in_string = false;
-                i += 1;
-            }
-            b'\\' => {
-                match input.get(i + 1) {
-                    Some(b'b') => out.extend_from_slice(b"\\u0008"),
-                    Some(b'f') => out.extend_from_slice(b"\\u000c"),
-                    _ => out.extend_from_slice(&input[i..i + 2]),
+/// [`go_marshal`] writing straight into `dst` — no intermediate buffer,
+/// no escape pass. `dst` is untouched when serialization fails (the same
+/// empty-data outcome `go_marshal` produces).
+pub fn go_marshal_into<T, B>(dst: &mut B, value: &T)
+where
+    T: serde::Serialize + ?Sized,
+    B: BufMut,
+{
+    let mut serializer = serde_json::Serializer::with_formatter(dst.writer(), GoFormatter);
+    if serde::Serialize::serialize(value, &mut serializer).is_err() {
+        // Unreachable for the shapes encoded here (a `BufMut` writer
+        // cannot fail); mirror go_marshal's empty-data outcome.
+    }
+}
+
+/// `serde_json` formatter emitting Go `encoding/json`'s byte shape: the
+/// compact layout plus Go's HTML-safe string escaping (`<`/`>`/`&` →
+/// `\u003c`/`\u003e`/`\u0026`, U+2028/U+2029 → `\u2028`/`\u2029`) and Go's
+/// `\u0008`/`\u000c` spellings where serde emits `\b`/`\f`.
+struct GoFormatter;
+
+impl serde_json::ser::Formatter for GoFormatter {
+    fn write_string_fragment<W>(&mut self, writer: &mut W, fragment: &str) -> std::io::Result<()>
+    where
+        W: ?Sized + std::io::Write,
+    {
+        // serde hands raw UTF-8 runs here; Go escapes three ASCII bytes
+        // and the two U+202x separators inside them.
+        let fragment = fragment.as_bytes();
+        let mut start = 0;
+        let mut i = 0;
+        while i < fragment.len() {
+            let (escape, consumed): (&[u8], usize) = match fragment[i] {
+                b'<' => (b"\\u003c", 1),
+                b'>' => (b"\\u003e", 1),
+                b'&' => (b"\\u0026", 1),
+                0xE2 if fragment.get(i + 1) == Some(&0x80)
+                    && matches!(fragment.get(i + 2), Some(&0xA8 | &0xA9)) =>
+                {
+                    if fragment[i + 2] == 0xA8 {
+                        (b"\\u2028", 3)
+                    } else {
+                        (b"\\u2029", 3)
+                    }
                 }
-                i += 2;
-            }
-            b'<' => {
-                out.extend_from_slice(b"\\u003c");
-                i += 1;
-            }
-            b'>' => {
-                out.extend_from_slice(b"\\u003e");
-                i += 1;
-            }
-            b'&' => {
-                out.extend_from_slice(b"\\u0026");
-                i += 1;
-            }
-            0xE2 if input.get(i + 1) == Some(&0x80)
-                && matches!(input.get(i + 2), Some(&0xA8 | &0xA9)) =>
-            {
-                out.extend_from_slice(if input[i + 2] == 0xA8 {
-                    b"\\u2028"
-                } else {
-                    b"\\u2029"
-                });
-                i += 3;
-            }
-            _ => {
-                out.push(byte);
-                i += 1;
-            }
+                _ => {
+                    i += 1;
+                    continue;
+                }
+            };
+            writer.write_all(&fragment[start..i])?;
+            writer.write_all(escape)?;
+            i += consumed;
+            start = i;
+        }
+        writer.write_all(&fragment[start..])
+    }
+
+    fn write_char_escape<W>(
+        &mut self,
+        writer: &mut W,
+        char_escape: serde_json::ser::CharEscape,
+    ) -> std::io::Result<()>
+    where
+        W: ?Sized + std::io::Write,
+    {
+        use serde_json::ser::CharEscape;
+        match char_escape {
+            // Go's encoding/json has no \b/\f shorthand.
+            CharEscape::Backspace => writer.write_all(b"\\u0008"),
+            CharEscape::FormFeed => writer.write_all(b"\\u000c"),
+            other => serde_json::ser::CompactFormatter.write_char_escape(writer, other),
         }
     }
-    out
+}
+
+/// Appends one named SSE frame (`event:` + `data:`) to `dst` — the
+/// Responses/Anthropic framing — and records the payload span for the
+/// debug recorder. Direct concatenation instead of `fmt.Appendf` (which
+/// would parse a format string and reflect-box per frame).
+pub fn append_named_frame(
+    dst: &mut BytesMut,
+    frames: &mut Vec<SseFrame>,
+    name: &'static str,
+    payload: &[u8],
+) {
+    dst.extend_from_slice(b"event: ");
+    dst.extend_from_slice(name.as_bytes());
+    dst.extend_from_slice(b"\ndata: ");
+    append_data_payload(dst, frames, name, payload);
+}
+
+/// Appends one data-only SSE frame to `dst` — the Chat Completions
+/// framing — and records the payload span.
+pub fn append_data_frame(
+    dst: &mut BytesMut,
+    frames: &mut Vec<SseFrame>,
+    name: &'static str,
+    payload: &[u8],
+) {
+    dst.extend_from_slice(b"data: ");
+    append_data_payload(dst, frames, name, payload);
+}
+
+/// The shared `data:` tail of both SSE framings: payload bytes, the
+/// terminating blank line, then the span record.
+fn append_data_payload(
+    dst: &mut BytesMut,
+    frames: &mut Vec<SseFrame>,
+    name: &'static str,
+    payload: &[u8],
+) {
+    let start = dst.len();
+    dst.extend_from_slice(payload);
+    dst.extend_from_slice(b"\n\n");
+    frames.push(SseFrame {
+        name,
+        data: start..start + payload.len(),
+    });
 }
 
 // ---------------------------------------------------------------------------

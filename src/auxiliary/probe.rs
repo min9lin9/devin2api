@@ -181,7 +181,11 @@ pub fn build_client(cfg: &config::Config, token: &str) -> anyhow::Result<Client>
         .map_err(|_| anyhow!("invalid devin.base_url: {}", transport_cfg.base_url))?;
     Ok(Client::new(
         UpstreamTransport::streaming(http, static_token(token.to_string())),
-        connectrpc::client::ClientConfig::new(uri),
+        // Go's client never advertises Connect compression
+        // (`connect-accept-encoding` is only sent when CompressionPools is
+        // non-empty): an empty registry drops the header.
+        connectrpc::client::ClientConfig::new(uri)
+            .with_compression(connectrpc::compression::CompressionRegistry::new()),
     ))
 }
 

@@ -1238,6 +1238,60 @@ struct TrackedBody {
     status: u16,
     bytes: u64,
     stream_failed: bool,
+    /// Tail of the previous chunk kept for cross-chunk needle matches —
+    /// the longest needle minus one byte. Lazily allocated on the first
+    /// observed chunk.
+    scan_tail: Vec<u8>,
+}
+
+impl TrackedBody {
+    /// Incremental terminal-error scan: one anchored pass per chunk
+    /// (needles start only with `e` or `"`) instead of four `windows()`
+    /// substring scans, plus a small straddle window so a needle split
+    /// across chunks still matches.
+    fn observe_chunk(&mut self, data: &[u8]) {
+        if self.stream_failed {
+            return;
+        }
+        let had_tail = !self.scan_tail.is_empty();
+        if had_tail {
+            // Needles starting inside the previous tail can complete in
+            // this chunk's head: scan tail + head once.
+            let head = data.len().min(TERMINAL_ERROR_STRADDLE);
+            let mut joined = std::mem::take(&mut self.scan_tail);
+            joined.extend_from_slice(&data[..head]);
+            let hit = anchored_terminal_error_scan(&joined);
+            // Carry the last needle-len-1 bytes of the joined window — a
+            // needle may still start there and finish in a later chunk
+            // (three-chunk straddle).
+            let keep = joined.len().min(TERMINAL_ERROR_STRADDLE);
+            self.scan_tail
+                .extend_from_slice(&joined[joined.len() - keep..]);
+            if hit {
+                self.stream_failed = true;
+                return;
+            }
+        }
+        if anchored_terminal_error_scan(data) {
+            self.stream_failed = true;
+            return;
+        }
+        // Keep the last needle-len-1 bytes as the next chunk's straddle
+        // prefix (of the tail+data concatenation when data is short).
+        if data.len() >= TERMINAL_ERROR_STRADDLE {
+            self.scan_tail.clear();
+            self.scan_tail
+                .extend_from_slice(&data[data.len() - TERMINAL_ERROR_STRADDLE..]);
+        } else if !had_tail {
+            // No prior tail: accumulate this short chunk so a needle can
+            // still straddle into the next one.
+            self.scan_tail.extend_from_slice(data);
+            let overflow = self.scan_tail.len().saturating_sub(TERMINAL_ERROR_STRADDLE);
+            self.scan_tail.drain(..overflow);
+        }
+        // had_tail && data < STRADDLE: scan_tail already holds the last
+        // STRADDLE bytes of (old tail + data) — the correct carry-over.
+    }
 }
 
 impl TrackedBody {
@@ -1267,7 +1321,7 @@ impl HttpBody for TrackedBody {
             Poll::Ready(Some(Ok(frame))) => {
                 if let Some(data) = frame.data_ref() {
                     this.bytes = this.bytes.saturating_add(data.len() as u64);
-                    this.stream_failed |= body_chunk_is_terminal_error(data);
+                    this.observe_chunk(data);
                 }
                 Poll::Ready(Some(Ok(frame)))
             }
@@ -1297,15 +1351,37 @@ impl HttpBody for TrackedBody {
     }
 }
 
-fn body_chunk_is_terminal_error(data: &[u8]) -> bool {
-    [
-        b"event: response.failed".as_slice(),
-        b"event: error".as_slice(),
-        br#""type":"error""#.as_slice(),
-        br#""error":{"#.as_slice(),
-    ]
-    .iter()
-    .any(|needle| data.windows(needle.len()).any(|window| window == *needle))
+/// Needles marking a terminal in-stream error frame (SSE `event:` lines
+/// and the JSON error shapes of all three protocols).
+const TERMINAL_ERROR_NEEDLES: &[&[u8]] = &[
+    b"event: response.failed",
+    b"event: error",
+    br#""type":"error""#,
+    br#""error":{"#,
+];
+
+/// Longest needle minus one — the straddle window kept between chunks.
+const TERMINAL_ERROR_STRADDLE: usize = 21;
+
+/// One anchored pass over `data`: every needle starts with `e` or `"`, so
+/// only those positions are probed — the old 4× `windows()` substring
+/// scan was a measured per-chunk cost on the SSE hot path.
+fn anchored_terminal_error_scan(data: &[u8]) -> bool {
+    // SIMD needle prescreen: every needle starts with `e` or `"`, so
+    // `memchr2` skips the bulk of each chunk and only anchor positions
+    // pay the `starts_with` probe.
+    let mut offset = 0;
+    while let Some(i) = memchr::memchr2(b'e', b'"', &data[offset..]) {
+        let at = offset + i;
+        if TERMINAL_ERROR_NEEDLES
+            .iter()
+            .any(|needle| data[at..].starts_with(needle))
+        {
+            return true;
+        }
+        offset = at + 1;
+    }
+    false
 }
 
 fn track_response(response: Response, request: RequestMetrics) -> Response {
@@ -1316,6 +1392,7 @@ fn track_response(response: Response, request: RequestMetrics) -> Response {
         status: parts.status.as_u16(),
         bytes: 0,
         stream_failed: false,
+        scan_tail: Vec::new(),
     };
     Response::from_parts(parts, Body::new(tracked))
 }
