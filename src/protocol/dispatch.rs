@@ -4,6 +4,7 @@
 //! encoding plus SSE framing, behind one trait so the HTTP stream pump
 //! needs no per-protocol adaptation.
 
+use bytes::BytesMut;
 use serde_json::{Value, json};
 
 use crate::domain::{AssistantMessage, Failure, ResponseEvent, classify};
@@ -96,7 +97,8 @@ pub trait ProtocolEncoder {
     fn stream_error_events(&self) -> bool;
     /// Appends one SSE event to `dst`; the writer owns `dst`, avoiding a
     /// temporary slice per frame copied wholesale into the batch buffer.
-    fn append_sse(&self, dst: &mut Vec<u8>, name: &str, data: &[u8]);
+    /// `BytesMut` so the SSE body's batch flushes zero-copy.
+    fn append_sse(&self, dst: &mut BytesMut, name: &str, data: &[u8]);
 }
 
 /// Encodes the OpenAI-family (chat/responses shared) `{"error":{...}}`
@@ -139,7 +141,7 @@ fn openai_error_body(err: &(dyn std::error::Error + 'static), debug_ref: &str) -
 /// Appends one named SSE frame to `dst` — `fmt.Appendf` would parse a
 /// format string and reflect-box per frame; direct concatenation skips
 /// that layer.
-fn append_named_sse(dst: &mut Vec<u8>, name: &str, data: &[u8]) {
+fn append_named_sse(dst: &mut BytesMut, name: &str, data: &[u8]) {
     dst.extend_from_slice(b"event: ");
     dst.extend_from_slice(name.as_bytes());
     dst.extend_from_slice(b"\ndata: ");
@@ -175,7 +177,7 @@ impl ProtocolEncoder for ResponsesProtocol {
         true
     }
 
-    fn append_sse(&self, dst: &mut Vec<u8>, name: &str, data: &[u8]) {
+    fn append_sse(&self, dst: &mut BytesMut, name: &str, data: &[u8]) {
         append_named_sse(dst, name, data);
     }
 }
@@ -208,7 +210,7 @@ impl ProtocolEncoder for ChatProtocol {
         true
     }
 
-    fn append_sse(&self, dst: &mut Vec<u8>, name: &str, data: &[u8]) {
+    fn append_sse(&self, dst: &mut BytesMut, name: &str, data: &[u8]) {
         // OpenAI Chat Completions uses data-only SSE; [DONE] is the stream
         // terminator.
         if name == SSE_DONE {
@@ -271,7 +273,7 @@ impl ProtocolEncoder for AnthropicProtocol {
         false
     }
 
-    fn append_sse(&self, dst: &mut Vec<u8>, name: &str, data: &[u8]) {
+    fn append_sse(&self, dst: &mut BytesMut, name: &str, data: &[u8]) {
         append_named_sse(dst, name, data);
     }
 }

@@ -275,11 +275,18 @@ fn record_proto_json<M: serde::Serialize + Send + 'static>(
     name: &str,
     message: M,
 ) {
+    record_proto_json_value(recorder, name, LogValue::serde(message));
+}
+
+/// The `.jsonl`-append vs whole-file dispatch of `recordProtoJSON`,
+/// taking an already-wrapped value so callers can defer more than the
+/// serialization itself (e.g. the owned-message materialization).
+fn record_proto_json_value(recorder: &Recorder, name: &str, value: LogValue) {
     if name.len() >= 6 && name[name.len() - 6..].eq_ignore_ascii_case(".jsonl") {
-        recorder.append_value_jsonl(name, LogValue::serde(message));
+        recorder.append_value_jsonl(name, value);
         return;
     }
-    recorder.write_json(name, LogValue::serde(message));
+    recorder.write_json(name, value);
 }
 
 /// `emptyEndTurn` — whether `finish`'s events are "normal stop with zero
@@ -465,7 +472,13 @@ impl DevinStream {
                 }, if self.pending_reopen.is_none() => {
                     match frame {
                         Ok(Some(response)) => {
-                            self.absorb_data(&response);
+                            self.absorb_data(response);
+                            // One wakeup, every ready envelope: drain the
+                            // pump's buffered frames into the event queue
+                            // before returning so a burst decodes in this
+                            // poll cycle instead of one envelope per
+                            // wakeup (Go's pump channel drain shape).
+                            self.drain_ready();
                         }
                         Ok(None) => {
                             self.resolve_end(None);
@@ -577,21 +590,26 @@ impl DevinStream {
     /// Absorb one data frame: gate release, deferred proto logging,
     /// decode, progress feed and queueing — the synchronous half of the
     /// pump receive arm, shared by `recv` and `try_recv_event`.
-    fn absorb_data(&mut self, response: &connectrpc::StreamMessage<pb::GetChatMessageResponse>) {
+    fn absorb_data(&mut self, response: connectrpc::StreamMessage<pb::GetChatMessageResponse>) {
         if !self.upstream_confirmed {
             self.upstream_confirmed = true;
             self.adapter.gate().note_upstream_success();
         }
+        let events = self.decoder.decode(response.view());
         // The disabled recorder discards the deferred thunk: skip the
-        // per-frame owned materialization it would carry (hot path).
+        // per-frame owned materialization it would carry (hot path). When
+        // active, the owned message is materialized inside the log worker
+        // — Go's `json.Marshaler` thunk shape — so the decode path never
+        // pays the clone either. Enqueue order is unchanged: decode
+        // writes nothing, so the record still lands before any later
+        // event's log writes.
         if self.recorder.is_active() {
-            record_proto_json(
+            record_proto_json_value(
                 &self.recorder,
                 debuglog::STAGE_DEVIN_RESPONSE,
-                response.to_owned_message(),
+                LogValue::deferred(move || LogValue::serde(response.to_owned_message())),
             );
         }
-        let events = self.decoder.decode(response.view());
         if !events.is_empty() {
             self.produced_events = true;
             if let Some(progress) = &mut self.progress {
@@ -639,13 +657,50 @@ impl DevinStream {
         self.finished = true;
     }
 
+    /// Synchronously absorb every frame the transport has already
+    /// delivered: `message()` is polled with a noop waker until it pends,
+    /// so one wakeup decodes the whole buffered envelope run into the
+    /// event queue instead of one envelope per poll. Cancel-safe like
+    /// `try_recv_event`'s single poll — partial frames stay in the
+    /// stream buffer, the terminal record replays, and the real waker is
+    /// registered by the next blocking `recv` before the consumer sleeps.
+    /// A terminal outcome (EOF/error) resolves the stream end exactly as
+    /// the awaited receive arm does; an armed reopen stops the drain.
+    fn drain_ready(&mut self) {
+        while self.stream.is_some() && self.pending_reopen.is_none() && !self.finished {
+            let outcome = {
+                let Some(stream) = &mut self.stream else {
+                    return;
+                };
+                let waker = Waker::noop();
+                let mut cx = Context::from_waker(waker);
+                let mut message = std::pin::pin!(stream.message::<pb::GetChatMessageResponse>());
+                message.as_mut().poll(&mut cx)
+            };
+            match outcome {
+                Poll::Ready(Ok(Some(response))) => self.absorb_data(response),
+                Poll::Ready(Ok(None)) => {
+                    self.resolve_end(None);
+                    return;
+                }
+                Poll::Ready(Err(err)) => {
+                    let err = normalize_wire_error(err);
+                    self.resolve_end(Some(Box::new(err) as BoxedError));
+                    return;
+                }
+                Poll::Pending => return,
+            }
+        }
+    }
+
     /// Cancel-safe non-blocking receive: pop an already-decoded event, or
-    /// synchronously absorb a frame the transport has already delivered.
-    /// `None` means "nothing ready" — never end-of-stream. `message()` is
-    /// polled once with a noop waker: it is cancel-safe (partial frames
-    /// stay in the stream buffer, the terminal record replays), so a
-    /// Pending poll loses nothing and the real waker is registered by the
-    /// next blocking `recv` before the consumer ever sleeps.
+    /// synchronously drain every frame the transport has already
+    /// delivered, then pop. `None` means "nothing ready" — never
+    /// end-of-stream. `message()` is only polled with a noop waker: it is
+    /// cancel-safe (partial frames stay in the stream buffer, the
+    /// terminal record replays), so a Pending poll loses nothing and the
+    /// real waker is registered by the next blocking `recv` before the
+    /// consumer ever sleeps.
     pub fn try_recv_event(&mut self) -> Option<ResponseEvent> {
         if let Some(event) = self.queue.pop_front() {
             return Some(event);
@@ -653,31 +708,8 @@ impl DevinStream {
         if self.finished || !self.started || self.pending_reopen.is_some() {
             return None;
         }
-        let outcome = {
-            let Some(stream) = &mut self.stream else {
-                return None;
-            };
-            let waker = Waker::noop();
-            let mut cx = Context::from_waker(waker);
-            let mut message = std::pin::pin!(stream.message::<pb::GetChatMessageResponse>());
-            message.as_mut().poll(&mut cx)
-        };
-        match outcome {
-            Poll::Ready(Ok(Some(response))) => {
-                self.absorb_data(&response);
-                self.queue.pop_front()
-            }
-            Poll::Ready(Ok(None)) => {
-                self.resolve_end(None);
-                self.queue.pop_front()
-            }
-            Poll::Ready(Err(err)) => {
-                let err = normalize_wire_error(err);
-                self.resolve_end(Some(Box::new(err) as BoxedError));
-                self.queue.pop_front()
-            }
-            Poll::Pending => None,
-        }
+        self.drain_ready();
+        self.queue.pop_front()
     }
 
     /// `tryReopen` — resend the whole request once while upstream failed

@@ -4,7 +4,7 @@
 
 devin-2api is an unofficial protocol adapter that exposes the models available to your Devin account ([app.devin.ai](https://app.devin.ai/)) behind OpenAI- and Anthropic-compatible endpoints — so standard clients (Codex, Claude Code, any SDK) can call them through familiar APIs.
 
-This repository is a Rust port of the original Go [devin2api](https://github.com/WncFht/devin2api). It targets functional parity; the only intentional differences are the five approved exceptions listed in the [compatibility document](docs/compatibility.md).
+Written in Rust and shipped as a single static binary.
 
 > **Disclaimer**: this project is not affiliated with or endorsed by Cognition. It authenticates with your own Devin session token against an internal RPC surface. It is intended for personal use with your own account; you are responsible for complying with Devin's terms of service.
 
@@ -190,24 +190,24 @@ Notes:
 - if `devin.token` is empty, requests still go upstream and return a normalized upstream-auth failure — once a token shows up in any discovery source the next request succeeds, no restart needed;
 - `config.yaml` is gitignored — keep real tokens out of git anyway.
 
-## Compatibility with the Go original
+## Compatibility with the Go implementation
 
-This Rust port **shares the config file, state directory and log formats** with the Go reference. Migration rules, the one-writer state rule, the rollback procedure and the five approved behavioral differences are in [docs/compatibility.md](docs/compatibility.md). Summary:
+The config file, state directory and log formats are **shared as-is** with the Go implementation ([WncFht/devin2api](https://github.com/WncFht/devin2api)). Migration rules, the one-writer state rule, the rollback procedure and the five approved behavioral differences are in [docs/compatibility.md](docs/compatibility.md). Summary:
 
 - Existing `config.yaml`, `credentials.toml` and `logs/` history are read as-is — no migration.
-- **One writer per state directory at a time** — never run the Go and Rust daemons against the same state dir concurrently.
+- **One writer per state directory at a time** — never run two daemons against the same state dir concurrently.
 - Rollback restores a separate backed-up copy of the state directory (procedure in [docs/deployment.md](docs/deployment.md)).
 
 ## Measured performance
 
-Same-host comparison against the Go reference (4-core Ryzen 5 5600G, loopback stub, paired 30-second samples, bootstrap CIs). Full numbers and methodology in [docs/perf.md](docs/perf.md).
+Same-host comparison against the Go implementation (4-core Ryzen 5 5600G, loopback stub, paired 30-second samples, bootstrap CIs). Full numbers and methodology in [docs/perf.md](docs/perf.md).
 
 - **SSE streaming throughput is lower than Go**: 0.45–1.03× on Chat SSE cells (the gap widens with concurrency and debug logging; c1 debug-on favors Rust). Responses/Messages SSE share the same path.
 - **Buffered JSON and WebSocket are faster**: chat JSON 1.28×, WebSocket turns 1.47×.
 - **Memory use is much lower**: peak RSS is 0.22–0.75× of Go in every cell.
 - All reliability gates pass: zero unexpected failures/duplicate/missing terminal events/leaked permits across 100k stub-backed requests, cancellation p99 15ms.
 
-This port does not claim to be faster on the SSE path — the measurements say otherwise.
+No claim of being faster on the SSE path — the measurements say otherwise.
 
 ## Platform support status
 
@@ -233,18 +233,18 @@ The release matrix is six targets: Linux amd64/arm64 (static musl), macOS amd64/
 **What is devin2api?**
 A local proxy that exposes the models on a Devin account behind OpenAI- and Anthropic-compatible APIs. Codex, Claude Code, and any SDK can call Devin models through familiar endpoints.
 
-**How does it differ from the Go original?**
-Functional parity is the goal; the only intentional differences are the five approved exceptions in the [compatibility document](docs/compatibility.md). It ships as a single static binary with no Go runtime dependency.
+**How does it differ from the Go implementation?**
+Behavioral differences are limited to the five approved exceptions in the [compatibility document](docs/compatibility.md). It ships as a single static binary with no Go runtime dependency.
 
 **How do I install it?**
 Download a platform binary from [Releases](https://github.com/min9lin9/devin2api/releases) and run it with a `config.yaml`, or build with `cargo build --locked --release`. The token is auto-discovered from local Devin/Windsurf installs.
 
 **Why two names?**
-The repository/project is `devin2api`; the binary and release artifacts are `devin-2api` — following the Go original's naming.
+The repository/project is `devin2api`; the binary and release artifacts are `devin-2api`.
 
 **Is it affiliated with Cognition/Devin?**
-No. It is an unofficial port, not endorsed. Compliance with Devin's terms of service is the user's responsibility.
+No. It is an unofficial project, not endorsed. Compliance with Devin's terms of service is the user's responsibility.
 
 ## Acknowledgments
 
-This project is a Rust port of the Go implementation [WncFht/devin2api](https://github.com/WncFht/devin2api), which builds on [leookun/devin-2api](https://github.com/leookun/devin-2api) — thanks to the original authors for their work. The upstream protocol schemas (`proto/`) were extracted from the Devin CLI binary; provenance hashes are recorded in `proto/SHA256SUMS`.
+This project is a Rust reimplementation of the Go implementation [WncFht/devin2api](https://github.com/WncFht/devin2api), which builds on [leookun/devin-2api](https://github.com/leookun/devin-2api) — thanks to the original authors for their work. The upstream protocol schemas (`proto/`) were extracted from the Devin CLI binary; provenance hashes are recorded in `proto/SHA256SUMS`.

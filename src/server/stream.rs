@@ -14,7 +14,7 @@ use std::time::Duration;
 
 use axum::body::Body;
 use axum::response::Response;
-use bytes::Bytes;
+use bytes::{Bytes, BytesMut};
 use futures_util::stream;
 use http::header::{CACHE_CONTROL, CONNECTION, CONTENT_TYPE};
 use http::{HeaderValue, StatusCode};
@@ -91,8 +91,10 @@ struct SseBody {
     /// Encoded bytes accumulate while upstream keeps supplying events;
     /// the batch flushes when the event source is momentarily empty —
     /// Go's `writeProtocolStream` batching rule (idle path = per-event
-    /// writes, bursts amortize the socket write).
-    batch: Vec<u8>,
+    /// writes, bursts amortize the socket write). `BytesMut` so a flush
+    /// is a zero-copy `split().freeze()` that keeps the spare tail
+    /// capacity — Go's `batch = batch[:0]` reuse.
+    batch: BytesMut,
     /// Chunks committed to the wire but not yet pulled by hyper.
     pending: VecDeque<Bytes>,
     /// The stream's terminal outcome once known; `None` while live.
@@ -130,7 +132,7 @@ impl SseBody {
             _admission: admission,
             completion: Some(completion),
             interval,
-            batch: Vec::new(),
+            batch: BytesMut::new(),
             pending: VecDeque::new(),
             terminal_result: None,
             finalized: false,
@@ -151,7 +153,7 @@ impl SseBody {
             _admission: admission,
             completion: None,
             interval: tokio::time::interval(KEEPALIVE_INTERVAL),
-            batch: Vec::new(),
+            batch: BytesMut::new(),
             pending: VecDeque::from([chunk]),
             terminal_result: None,
             finalized: true,
@@ -222,7 +224,10 @@ impl SseBody {
                     None => {
                         // Source momentarily empty: flush the batch (Go
                         // flushes when the pump channel would block).
-                        return Some(Bytes::from(std::mem::take(&mut self.batch)));
+                        // `split().freeze()` emits the accumulated bytes
+                        // zero-copy and keeps the tail capacity — Go's
+                        // `batch = batch[:0]` reuse across the stream.
+                        return Some(self.batch.split().freeze());
                     }
                 }
             };
@@ -254,17 +259,21 @@ impl SseBody {
                             message,
                         );
                     }
-                    match append_event(&mut *self.encoder, &*self.protocol, &self.recorder, &event)
-                    {
-                        Ok(body) => {
-                            self.batch.extend_from_slice(&body);
+                    match append_event(
+                        &mut *self.encoder,
+                        &*self.protocol,
+                        &self.recorder,
+                        &event,
+                        &mut self.batch,
+                    ) {
+                        Ok(_) => {
                             if event.kind == ResponseEventType::Error {
                                 // The producer flushed the batch before
                                 // recording the failure — keep that order
                                 // (client-latency note precedes the error
                                 // record in the log queue).
                                 if !self.batch.is_empty() {
-                                    let batch = Bytes::from(std::mem::take(&mut self.batch));
+                                    let batch = self.batch.split().freeze();
                                     self.emit(batch);
                                 }
                                 self.recorder.write_error(
@@ -288,14 +297,19 @@ impl SseBody {
                 }
                 Err(failure) => {
                     let event = terminal_error_event(failure.clone());
-                    match append_event(&mut *self.encoder, &*self.protocol, &self.recorder, &event)
+                    let before = self.batch.len();
+                    if append_event(
+                        &mut *self.encoder,
+                        &*self.protocol,
+                        &self.recorder,
+                        &event,
+                        &mut self.batch,
+                    )
+                    .is_ok()
+                        && self.batch.len() > before
                     {
-                        Ok(body) if !body.is_empty() => {
-                            self.batch.extend_from_slice(&body);
-                            let batch = Bytes::from(std::mem::take(&mut self.batch));
-                            self.emit(batch);
-                        }
-                        _ => {}
+                        let batch = self.batch.split().freeze();
+                        self.emit(batch);
                     }
                     self.recorder.write_error("provider_stream", &failure);
                     self.terminal_result = Some("failed");
@@ -306,7 +320,7 @@ impl SseBody {
         // Terminal paths flush the accumulated batch before ending (the
         // producer's post-loop `tx.send(batch)`).
         if !self.batch.is_empty() {
-            let batch = Bytes::from(std::mem::take(&mut self.batch));
+            let batch = self.batch.split().freeze();
             self.emit(batch);
         }
         self.finalize();
@@ -397,19 +411,24 @@ fn committed_response(body: Body, sse: bool) -> Response {
     response
 }
 
+/// Encode one event's SSE frames straight into `dst` — Go's
+/// `batch = protocol.AppendSSE(batch, ...)` shape: no per-event
+/// temporary buffer, no copy into the batch. Returns the number of
+/// bytes appended.
 fn append_event(
     encoder: &mut dyn StreamEncoder,
     protocol: &dyn ProtocolEncoder,
     recorder: &Recorder,
     event: &ResponseEvent,
-) -> Result<Vec<u8>, Failure> {
+    dst: &mut BytesMut,
+) -> Result<usize, Failure> {
     // The disabled recorder is a no-op sink: skip the per-event clone and
     // the per-chunk data clone it would discard anyway (hot path).
     let active = recorder.is_active();
     if active {
         recorder.record_response_event(event.clone());
     }
-    let mut output = Vec::new();
+    let before = dst.len();
     for encoded in encoder.encode(event)? {
         if active {
             recorder.append_jsonl(
@@ -418,9 +437,9 @@ fn append_event(
                 LogValue::Raw(encoded.data.clone()),
             );
         }
-        protocol.append_sse(&mut output, encoded.name, &encoded.data);
+        protocol.append_sse(dst, encoded.name, &encoded.data);
     }
-    Ok(output)
+    Ok(dst.len() - before)
 }
 
 fn terminal_error_event(failure: Failure) -> ResponseEvent {
@@ -513,14 +532,15 @@ pub async fn sse_response(
                 partial: event.error.clone().map(Arc::new),
                 ..ResponseEvent::default()
             };
-            let mut body = append_event(&mut *encoder, &*protocol, &recorder, &start)?;
-            body.extend(append_event(&mut *encoder, &*protocol, &recorder, &event)?);
+            let mut body = BytesMut::new();
+            append_event(&mut *encoder, &*protocol, &recorder, &start, &mut body)?;
+            append_event(&mut *encoder, &*protocol, &recorder, &event, &mut body)?;
             recorder.note_client_latency();
             recorder.write_error("provider_stream", &failure);
             complete(&recorder, completion, "failed");
             return Ok((
                 committed_response(
-                    sse_body_stream(SseBody::terminal(Bytes::from(body), cancel, admission)),
+                    sse_body_stream(SseBody::terminal(body.freeze(), cancel, admission)),
                     true,
                 ),
                 true,
@@ -536,10 +556,10 @@ pub async fn sse_response(
             {
                 update_completion(&mut completion, message);
             }
-            let body = append_event(&mut *encoder, &*protocol, &recorder, &event)?;
-            if !body.is_empty() {
+            let mut body = BytesMut::new();
+            if append_event(&mut *encoder, &*protocol, &recorder, &event, &mut body)? > 0 {
                 recorder.note_client_latency();
-                pending.push_back(Bytes::from(body));
+                pending.push_back(body.freeze());
             }
         }
     }

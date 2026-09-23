@@ -62,6 +62,47 @@ impl HttpEventStream for StubStream {
     }
 }
 
+/// A stream whose `try_recv` drains a preloaded burst — the shape the
+/// upstream pump produces under load: many events ready at once. Pins
+/// the SSE write-coalescing contract (task-24 P1+P2): one drain cycle
+/// emits one body frame, events stay ordered, and the terminal frame is
+/// never held back waiting for more input.
+struct BurstStream(VecDeque<ResponseEvent>);
+
+impl HttpEventStream for BurstStream {
+    fn recv(&mut self) -> BoxFuture<Result<Option<ResponseEvent>, Failure>> {
+        let item = self.0.pop_front();
+        Box::pin(async move { Ok(item) })
+    }
+
+    fn try_recv(&mut self) -> Option<ResponseEvent> {
+        self.0.pop_front()
+    }
+}
+
+struct BurstBackend {
+    events: Vec<ResponseEvent>,
+}
+
+impl HttpBackend for BurstBackend {
+    fn list_models(
+        &self,
+        _cancel: CancellationToken,
+    ) -> BoxFuture<Result<Vec<ModelInfo>, Failure>> {
+        Box::pin(async { Ok(Vec::new()) })
+    }
+
+    fn stream(
+        &self,
+        _request: devin2api::domain::RequestMessages,
+        _cancel: CancellationToken,
+        _recorder: devin2api::debuglog::Recorder,
+    ) -> BoxFuture<Result<Box<dyn HttpEventStream>, Failure>> {
+        let events = VecDeque::from(self.events.clone());
+        Box::pin(async move { Ok(Box::new(BurstStream(events)) as Box<dyn HttpEventStream>) })
+    }
+}
+
 #[derive(Clone)]
 struct DelayedErrorBackend {
     entered: Arc<Notify>,
@@ -489,6 +530,114 @@ async fn all_three_protocols_support_json_and_sse_with_protocol_headers() {
             String::from_utf8_lossy(&body)
         );
     }
+}
+
+/// SSE write coalescing (task-24 P1+P2): a burst of ready events must
+/// coalesce into one body frame per drain cycle, in order, and the
+/// terminal `[DONE]` must ride the last data frame — never delayed past
+/// what Go's flush-on-empty would emit.
+#[tokio::test]
+async fn sse_burst_coalesces_without_reordering_or_delaying_terminal() {
+    let partial = || {
+        Arc::new(AssistantMessage {
+            model: "stub-model".into(),
+            ..AssistantMessage::default()
+        })
+    };
+    let mut events = vec![ResponseEvent {
+        kind: ResponseEventType::Start,
+        reason: Some(StopReason::Pending),
+        partial: Some(partial()),
+        ..ResponseEvent::default()
+    }];
+    events.push(ResponseEvent {
+        kind: ResponseEventType::TextStart,
+        content_index: 0,
+        partial: Some(partial()),
+        ..ResponseEvent::default()
+    });
+    for i in 0..8 {
+        events.push(ResponseEvent {
+            kind: ResponseEventType::TextDelta,
+            content_index: 0,
+            delta: format!("d{i}"),
+            partial: Some(partial()),
+            ..ResponseEvent::default()
+        });
+    }
+    events.push(done_event("stub-model", "d0d1d2d3d4d5d6d7"));
+
+    let app = App::with_backend(BurstBackend { events }, HttpConfig::default());
+    let response = app
+        .router()
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/v1/chat/completions")
+                .header("content-type", "application/json")
+                .body(Body::from(
+                    r#"{"model":"stub-model","stream":true,"messages":[{"role":"user","content":"hi"}]}"#,
+                ))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(response.status(), StatusCode::OK);
+    let (parts, mut body) = response.into_parts();
+    assert_eq!(
+        parts.headers["content-type"].to_str().unwrap(),
+        "text/event-stream"
+    );
+
+    let mut frames = Vec::new();
+    while let Some(frame) = body.frame().await {
+        let frame = frame.unwrap();
+        if let Ok(data) = frame.into_data() {
+            frames.push(data);
+        }
+    }
+    assert!(!frames.is_empty(), "SSE body produced no frames");
+
+    // Order: concatenated frames must carry the deltas in emission order
+    // and terminate with [DONE] — batching must not reorder events.
+    let all: Vec<u8> = frames.iter().flat_map(|f| f.iter().copied()).collect();
+    let text = String::from_utf8(all).unwrap();
+    let mut cursor = 0usize;
+    for i in 0..8 {
+        let needle = format!("\"content\":\"d{i}\"");
+        let at = text[cursor..]
+            .find(&needle)
+            .unwrap_or_else(|| panic!("delta d{i} missing or out of order:\n{text}"));
+        cursor += at + needle.len();
+    }
+    let done_at = text.find("data: [DONE]").expect("missing [DONE]");
+    assert!(
+        done_at >= cursor,
+        "[DONE] arrived before the last delta:\n{text}"
+    );
+    assert!(
+        text[done_at..].trim_end() == "data: [DONE]",
+        "frames after [DONE]:\n{text}"
+    );
+
+    // Coalescing: the drain cycle must emit more than one SSE payload per
+    // body frame — a per-event frame stream would mean P2 regressed.
+    let multi = frames
+        .iter()
+        .filter(|f| f.windows(6).filter(|w| *w == b"data: ").count() > 1)
+        .count();
+    assert!(
+        multi > 0,
+        "no body frame carried more than one SSE payload; batching never engaged:\n{text}"
+    );
+
+    // Terminal frame not delayed: the last frame carries [DONE] (the
+    // flush-on-empty rule emits it with the final batch, not later).
+    let last = String::from_utf8_lossy(&frames[frames.len() - 1]);
+    assert!(
+        last.contains("data: [DONE]"),
+        "terminal frame not in the last body frame:\n{text}"
+    );
 }
 
 #[tokio::test]

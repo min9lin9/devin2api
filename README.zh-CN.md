@@ -4,7 +4,7 @@
 
 devin-2api 是一个非官方协议适配器，把你 Devin 账号（[app.devin.ai](https://app.devin.ai/)）可用的模型包装在 OpenAI / Anthropic 兼容接口后面——让标准客户端（Codex、Claude Code、任意 SDK）通过熟悉的 API 调用它们。
 
-本仓库是 Go 原版 [devin2api](https://github.com/WncFht/devin2api) 的 Rust 移植，目标是功能对等；与原版的有意差异只有[兼容性文档](docs/compatibility.md)中列出的五项已批准例外。
+以 Rust 编写，交付为单一静态二进制。
 
 > **声明**：本项目与 Cognition 无任何关联、未获其背书。它使用你自己的 Devin 会话 token 调用内部 RPC 接口，仅供个人账号自用；请自行遵守 Devin 的服务条款。
 
@@ -190,24 +190,24 @@ curl http://localhost:8080/v1/messages \
 - `devin.token` 留空时请求照常发往上层并返回归一化的上游鉴权失败——任一发现来源出现 token 后下一个请求即成功，无需重启；
 - `config.yaml` 已 gitignore——但无论如何别把真实 token 提交进 git。
 
-## 与 Go 原版的兼容性
+## 与 Go 实现的兼容性
 
-本 Rust 移植与 Go 参考实现**共享配置文件、状态目录和日志格式**。迁移规则、单 writer 状态约定、回滚流程和五项已批准的行为差异见 [docs/compatibility.md](docs/compatibility.md)。摘要：
+与 Go 实现（[WncFht/devin2api](https://github.com/WncFht/devin2api)）**共享配置文件、状态目录和日志格式**。迁移规则、单 writer 状态约定、回滚流程和五项已批准的行为差异见 [docs/compatibility.md](docs/compatibility.md)。摘要：
 
 - 现有 `config.yaml`、`credentials.toml`、`logs/` 历史原样可读——无需迁移。
-- **同一 state 目录同一时刻只允许一个 writer**——不要让 Go 与 Rust 守护进程同时写同一个 state 目录。
+- **同一 state 目录同一时刻只允许一个 writer**——不要让两个守护进程同时写同一个 state 目录。
 - 回滚通过恢复单独备份的 state 副本完成（流程见 [docs/deployment.md](docs/deployment.md)）。
 
 ## 实测性能
 
-与 Go 参考实现的同机对比（4 核 Ryzen 5 5600G、回环 stub、配对 30 秒采样、bootstrap 置信区间）。完整数据与方法见 [docs/perf.md](docs/perf.md)。
+与 Go 实现的同机对比（4 核 Ryzen 5 5600G、回环 stub、配对 30 秒采样、bootstrap 置信区间）。完整数据与方法见 [docs/perf.md](docs/perf.md)。
 
 - **SSE 流式吞吐低于 Go**：Chat SSE 各 cell 为 0.45–1.03×（并发与 debug 日志越高差距越大；c1 debug-on 为 Rust 占优）。Responses/Messages SSE 走同一条路径。
 - **缓冲 JSON 与 WebSocket 更快**：chat JSON 1.28×，WebSocket 回合 1.47×。
 - **内存占用显著更低**：所有 cell 的峰值 RSS 为 Go 的 0.22–0.75×。
 - 可靠性门槛全部通过：10 万 stub 请求零意外失败/重复/缺失终止事件/泄漏 permit，取消 p99 15ms。
 
-本移植不声称在 SSE 路径上更快——实测数据不支持。
+不声称在 SSE 路径上更快——实测数据不支持。
 
 ## 平台支持状态
 
@@ -233,18 +233,18 @@ curl http://localhost:8080/v1/messages \
 **devin2api 是什么？**
 一个本地代理，把 Devin 账号可用的模型暴露在 OpenAI/Anthropic 兼容 API 之后。Codex、Claude Code 和任意 SDK 都能用熟悉的端点调用 Devin 模型。
 
-**与 Go 原版有什么区别？**
-目标是功能对等；有意差异只有[兼容性文档](docs/compatibility.md)中列出的五项已批准例外。交付为无 Go 运行时依赖的单一静态二进制。
+**与 Go 实现有什么区别？**
+行为差异只有[兼容性文档](docs/compatibility.md)中列出的五项已批准例外。交付为无 Go 运行时依赖的单一静态二进制。
 
 **如何安装？**
 从 [Releases](https://github.com/min9lin9/devin2api/releases) 下载平台二进制并配合 `config.yaml` 运行，或用 `cargo build --locked --release` 构建。token 会从本地 Devin/Windsurf 安装自动发现。
 
 **为什么有两个名字？**
-仓库/项目名是 `devin2api`；二进制和发布产物名是 `devin-2api`——沿用 Go 原版的命名。
+仓库/项目名是 `devin2api`；二进制和发布产物名是 `devin-2api`。
 
 **与 Cognition/Devin 有关系吗？**
-没有。非官方移植，未获背书。遵守 Devin 服务条款的责任在用户。
+没有。非官方项目，未获背书。遵守 Devin 服务条款的责任在用户。
 
 ## 致谢
 
-本项目是 Go 实现 [WncFht/devin2api](https://github.com/WncFht/devin2api) 的 Rust 移植，后者基于 [leookun/devin-2api](https://github.com/leookun/devin-2api)——感谢原作者们的工作。上游协议 schema（`proto/`）提取自 Devin CLI 二进制，出处哈希记录在 `proto/SHA256SUMS`。
+本项目是 Go 实现 [WncFht/devin2api](https://github.com/WncFht/devin2api) 的 Rust 重实现，后者基于 [leookun/devin-2api](https://github.com/leookun/devin-2api)——感谢原作者们的工作。上游协议 schema（`proto/`）提取自 Devin CLI 二进制，出处哈希记录在 `proto/SHA256SUMS`。

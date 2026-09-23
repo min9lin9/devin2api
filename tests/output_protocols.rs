@@ -1216,21 +1216,21 @@ fn protocol_encode_http_error_bodies() {
 /// pairs for responses/messages, data-only plus `[DONE]` for chat.
 #[test]
 fn protocol_append_sse_framing() {
-    let mut dst = Vec::new();
+    let mut dst = bytes::BytesMut::new();
     ResponsesProtocol.append_sse(&mut dst, "response.created", b"{}");
-    assert_eq!(dst, b"event: response.created\ndata: {}\n\n");
+    assert_eq!(&dst[..], b"event: response.created\ndata: {}\n\n");
 
-    let mut dst = Vec::new();
+    let mut dst = bytes::BytesMut::new();
     AnthropicProtocol.append_sse(&mut dst, "message_stop", b"{\"type\":\"message_stop\"}");
     assert_eq!(
-        dst,
+        &dst[..],
         b"event: message_stop\ndata: {\"type\":\"message_stop\"}\n\n"
     );
 
-    let mut dst = Vec::new();
+    let mut dst = bytes::BytesMut::new();
     ChatProtocol.append_sse(&mut dst, "", b"{}");
     ChatProtocol.append_sse(&mut dst, common::SSE_DONE, common::SSE_DONE.as_bytes());
-    assert_eq!(dst, b"data: {}\n\ndata: [DONE]\n\n");
+    assert_eq!(&dst[..], b"data: {}\n\ndata: [DONE]\n\n");
 }
 
 /// `G/internal/app/protocols.go` `StreamErrorEvents`: only the `OpenAI`-family
