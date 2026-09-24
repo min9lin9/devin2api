@@ -197,13 +197,13 @@ impl HttpEventStream for GateStream {
             Ok(Some(ResponseEvent {
                 kind: ResponseEventType::Done,
                 reason: Some(StopReason::Stop),
-                message: Some(AssistantMessage {
+                message: Some(std::sync::Arc::new(AssistantMessage {
                     content: vec![Content::Text(TextContent {
                         text: "pong".to_string(),
                     })],
                     stop_reason: Some(StopReason::Stop),
                     ..AssistantMessage::default()
-                }),
+                })),
                 ..ResponseEvent::default()
             }))
         })

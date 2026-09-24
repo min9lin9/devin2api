@@ -21,7 +21,7 @@ pub fn request_messages_projection(request: &RequestMessages) -> JVal {
                 .set("name", JVal::Str(tool.name.clone()))
                 .set("description", JVal::Str(tool.description.clone()))
                 // Go's InputSchema is json.RawMessage — verbatim bytes.
-                .set("input_schema", JVal::Raw(tool.input_schema.clone().into_bytes()))
+                .set("input_schema", JVal::Raw(tool.input_schema.clone().into_bytes().into()))
                 .build()
         })
         .collect();
@@ -84,28 +84,42 @@ impl Recorder {
     /// event into the worker is race-free by construction — the hot path
     /// pays only one enqueue.
     ///
-    /// The thunk captures a field clone, not the event itself: `partial`
-    /// is only projected for `start` events, so delta events do not pin
-    /// the decoder's shared `Arc` — a pinned snapshot would force a
-    /// deep clone at the decoder's next `Arc::make_mut`.
+    /// The thunk captures only the fields the projection reads, not a
+    /// whole-event clone: `partial` is only projected for `start`
+    /// events, so delta events do not pin the decoder's shared `Arc` — a
+    /// pinned snapshot would force a deep clone at the decoder's next
+    /// `Arc::make_mut`.
     pub fn record_response_event(&self, event: &ResponseEvent) {
         if !self.is_active() {
             return;
         }
-        let mut event = event.clone();
-        if event.kind != ResponseEventType::Start {
-            event.partial = None;
-        }
+        let event = ResponseEvent {
+            kind: event.kind,
+            content_index: event.content_index,
+            delta: event.delta.clone(),
+            content: event.content.clone(),
+            partial: if event.kind == ResponseEventType::Start {
+                event.partial.clone()
+            } else {
+                None
+            },
+            tool_call_id: event.tool_call_id.clone(),
+            tool_name: event.tool_name.clone(),
+            tool_call: event.tool_call.clone(),
+            reason: event.reason,
+            message: event.message.clone(),
+            error: event.error.clone(),
+        };
         self.append_jsonl(
             STAGE_RESPONSE_EVENTS,
             event.kind.as_str(),
             LogValue::deferred(move || match response_event_projection_bytes(&event) {
-                Ok(bytes) => LogValue::Raw(bytes),
+                Ok(bytes) => LogValue::Raw(bytes.into()),
                 // A marshal failure must fail the record like Go's
                 // `json.Marshal` error path: emitting the error text as a
                 // raw payload makes `compact_escape` reject it, so the
                 // worker skips the write exactly as on marshal error.
-                Err(err) => LogValue::Raw(err.into_bytes()),
+                Err(err) => LogValue::Raw(err.into_bytes().into()),
             }),
         );
     }
@@ -147,7 +161,7 @@ fn response_event_projection_bytes(event: &ResponseEvent) -> Result<Vec<u8>, Str
     // the start-event `partial`; the single emit below mirrors the winner.
     let message = event.message.as_ref().or_else(|| {
         if event.kind == ResponseEventType::Start {
-            event.partial.as_deref()
+            event.partial.as_ref()
         } else {
             None
         }
@@ -283,7 +297,7 @@ fn assistant_projection(message: &AssistantMessage) -> JVal {
                         w.field_str("Type", &d.kind)
                             .field_int("TimestampMS", d.timestamp_ms)
                             .field_raw("Details", d.details.as_bytes());
-                        JVal::Raw(w.finish().unwrap_or_else(|_| b"{}".to_vec()))
+                        JVal::Raw(w.finish().unwrap_or_else(|_| b"{}".to_vec()).into())
                     })
                     .collect(),
             ),
@@ -310,7 +324,7 @@ fn usage_projection(usage: &crate::domain::Usage) -> JVal {
         .field_int("CacheWrite", usage.cache_write)
         .field_opt_int("Reasoning", usage.reasoning)
         .field_int("TotalTokens", usage.total_tokens);
-    JVal::Raw(w.finish().unwrap_or_else(|_| b"{}".to_vec()))
+    JVal::Raw(w.finish().unwrap_or_else(|_| b"{}".to_vec()).into())
 }
 
 /// `contentListProjection` — block-by-block projection.
@@ -366,7 +380,7 @@ fn tool_call_projection(call: &crate::domain::ToolCall) -> JVal {
             .set("id", JVal::Str(call.id.clone()))
             .set("name", JVal::Str(call.name.clone()))
             // Go's Arguments is json.RawMessage — verbatim bytes.
-            .set("arguments", JVal::Raw(call.arguments.clone().into_bytes()))
+            .set("arguments", JVal::Raw(call.arguments.clone().into_bytes().into()))
             .build()
     }
 }
@@ -466,30 +480,30 @@ mod tests {
         events[1].delta = "chunk <&>\u{2029}".to_string();
         events[2].delta = "{\"a\":".to_string();
         events[3].reason = Some(StopReason::Stop);
-        events[3].message = Some(assistant());
+        events[3].message = Some(Arc::new(assistant()));
         events[4].reason = Some(StopReason::Error);
-        events[4].error = Some(assistant());
+        events[4].error = Some(Arc::new(assistant()));
         let mut full = base_event(ResponseEventType::ToolCallEnd);
         full.content = "result".to_string();
         full.delta = "tail".to_string();
         full.tool_call_id = "call_9".to_string();
         full.tool_name = "shell".to_string();
-        full.tool_call = Some(ToolCall {
+        full.tool_call = Some(Box::new(ToolCall {
             id: "call_9".to_string(),
             name: "shell".to_string(),
             arguments: "{\"x\": [1, 2]}".to_string(),
             custom: false,
-        });
-        full.message = Some(assistant());
-        full.error = Some(assistant());
+        }));
+        full.message = Some(Arc::new(assistant()));
+        full.error = Some(Arc::new(assistant()));
         events.push(full);
         let mut custom = base_event(ResponseEventType::ToolCallEnd);
-        custom.tool_call = Some(ToolCall {
+        custom.tool_call = Some(Box::new(ToolCall {
             id: "c".to_string(),
             name: "apply_patch".to_string(),
             arguments: "not json".to_string(),
             custom: true,
-        });
+        }));
         events.push(custom);
 
         for event in &events {

@@ -346,14 +346,14 @@ fn done_event(model: &str, text: &str) -> ResponseEvent {
     ResponseEvent {
         kind: ResponseEventType::Done,
         reason: Some(StopReason::Stop),
-        message: Some(AssistantMessage {
+        message: Some(Arc::new(AssistantMessage {
             content: vec![Content::Text(TextContent { text: text.into() })],
             model: model.into(),
             response_model: model.into(),
             response_id: "resp_test".into(),
             stop_reason: Some(StopReason::Stop),
             ..AssistantMessage::default()
-        }),
+        })),
         ..ResponseEvent::default()
     }
 }

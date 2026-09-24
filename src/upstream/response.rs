@@ -1561,7 +1561,7 @@ impl ResponseDecoder {
             events.push(ResponseEvent {
                 kind: ResponseEventType::ToolCallEnd,
                 content_index: self.tools[index].content_idx,
-                tool_call: Some(self.tools[index].call.clone()),
+                tool_call: Some(Box::new(self.tools[index].call.clone())),
                 partial: Some(self.snapshot()),
                 ..ResponseEvent::default()
             });
@@ -1569,7 +1569,7 @@ impl ResponseDecoder {
         events.push(ResponseEvent {
             kind: ResponseEventType::Done,
             reason: Some(reason),
-            message: Some(self.partial.as_ref().clone()),
+            message: Some(self.snapshot()),
             ..ResponseEvent::default()
         });
         self.finished = true;
@@ -1604,7 +1604,7 @@ impl ResponseDecoder {
         vec![ResponseEvent {
             kind: ResponseEventType::Error,
             reason: Some(StopReason::Error),
-            error: Some(self.partial.as_ref().clone()),
+            error: Some(self.snapshot()),
             ..ResponseEvent::default()
         }]
     }

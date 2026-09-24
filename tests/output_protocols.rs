@@ -338,10 +338,10 @@ fn to_event(event: &FixtureEvent) -> Option<ResponseEvent> {
         partial: event.partial.as_ref().map(|m| Arc::new(to_message(m))),
         tool_call_id: event.tool_call_id.clone(),
         tool_name: event.tool_name.clone(),
-        tool_call: event.tool_call.as_ref().map(to_tool_call),
+        tool_call: event.tool_call.as_ref().map(|c| Box::new(to_tool_call(c))),
         reason: stop_reason(&event.reason),
-        message: event.message.as_ref().map(to_message),
-        error: event.error.as_ref().map(to_message),
+        message: event.message.as_ref().map(|m| Arc::new(to_message(m))),
+        error: event.error.as_ref().map(|m| Arc::new(to_message(m))),
     })
 }
 
@@ -966,7 +966,7 @@ fn stream_encoder_emits_error() {
     let event = ResponseEvent {
         kind: ResponseEventType::Error,
         reason: Some(StopReason::Error),
-        error: Some(failed),
+        error: Some(Arc::new(failed)),
         ..ResponseEvent::default()
     };
     assert!(encoder.encode(&event).is_ok());
@@ -1137,7 +1137,7 @@ fn messages_stream_encoder_emits_error() {
     let event = ResponseEvent {
         kind: ResponseEventType::Error,
         reason: Some(StopReason::Error),
-        error: Some(failed),
+        error: Some(Arc::new(failed)),
         ..ResponseEvent::default()
     };
     assert!(encoder.encode(&event).is_ok());

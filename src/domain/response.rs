@@ -261,14 +261,19 @@ pub struct ResponseEvent {
     pub tool_call_id: String,
     /// Tool name declared by the tool-call start event.
     pub tool_name: String,
-    /// Fully parsed call when a tool-call event ends.
-    pub tool_call: Option<ToolCall>,
+    /// Fully parsed call when a tool-call event ends. Terminal-only and
+    /// boxed: keeping it out of line shrinks the event so queue moves and
+    /// debug clones do not memcpy a rare field per delta.
+    pub tool_call: Option<Box<ToolCall>>,
     /// Stop reason of done/error events; `None` mirrors Go's unset reason.
     pub reason: Option<StopReason>,
-    /// Final assistant message on normal completion.
-    pub message: Option<AssistantMessage>,
+    /// Final assistant message on normal completion. Terminal-only; shared
+    /// through `Arc` like `partial` (Go hands out the same
+    /// `*AssistantMessage` pointer) so done/error events are refcount
+    /// bumps, not deep clones.
+    pub message: Option<Arc<AssistantMessage>>,
     /// Final error assistant message on failure or abort.
-    pub error: Option<AssistantMessage>,
+    pub error: Option<Arc<AssistantMessage>>,
 }
 
 impl ResponseEvent {

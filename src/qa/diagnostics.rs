@@ -52,7 +52,7 @@ impl HttpBackend for Backend {
             Ok(Box::new(OneEvent(Some(ResponseEvent {
                 kind: ResponseEventType::Done,
                 reason: Some(StopReason::Stop),
-                message: Some(AssistantMessage {
+                message: Some(Arc::new(AssistantMessage {
                     content: vec![Content::Text(TextContent {
                         text: "pong".into(),
                     })],
@@ -61,7 +61,7 @@ impl HttpBackend for Backend {
                     response_id: "resp_diagnostics_qa".into(),
                     stop_reason: Some(StopReason::Stop),
                     ..AssistantMessage::default()
-                }),
+                })),
                 ..ResponseEvent::default()
             }))) as Box<dyn HttpEventStream>)
         })

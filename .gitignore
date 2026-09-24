@@ -22,3 +22,9 @@ config.yaml
 /node_modules
 
 .DS_Store
+
+# PGO working dirs (merged.profdata + profile.meta are checked in)
+/pgo/profraw/
+/pgo/qa-stress/
+/pgo/work/
+/pgo/pgo-warnings.log

@@ -254,7 +254,7 @@ pub fn upstream_error_details(failure: &Failure) -> Map<String, Value> {
 /// `"param":null`); `false` selects the Anthropic dialect. Each encoder
 /// only packs the payload into its own wire frame.
 pub fn stream_error(event: &ResponseEvent, fallback_message: &str, openai: bool) -> (Value, u16) {
-    let failure = failure_of(event.error.as_ref());
+    let failure = failure_of(event.error.as_deref());
     let mut message = fallback_message.to_string();
     if !failure.to_string().is_empty() {
         message = retry_after_hint(&failure, SystemTime::now());
@@ -331,7 +331,7 @@ pub fn content_at(message: Option<&AssistantMessage>, index: i32) -> Option<&Con
 /// the same bytes except inside string literals, where Go additionally
 /// escapes `<`, `>`, `&` (its HTML-safe default), U+2028/U+2029, and writes
 /// `\u0008`/`\u000c` where serde emits `\b`/`\f`.
-/// [`GoFormatter`] applies those rules inline during serialization so the
+/// [`GoSerializer`] applies those rules inline during serialization so the
 /// output is wire-identical without a second pass. Marshal errors are
 /// impossible for the map/struct/Value shapes encoded here; like Go's
 /// `data, _ := json.Marshal(...)`, a failure would yield empty data.
@@ -349,71 +349,940 @@ where
     T: serde::Serialize + ?Sized,
     B: BufMut,
 {
-    let mut serializer = serde_json::Serializer::with_formatter(dst.writer(), GoFormatter);
+    let mut serializer = GoSerializer { w: dst.writer() };
     if serde::Serialize::serialize(value, &mut serializer).is_err() {
         // Unreachable for the shapes encoded here (a `BufMut` writer
         // cannot fail); mirror go_marshal's empty-data outcome.
     }
 }
 
-/// `serde_json` formatter emitting Go `encoding/json`'s byte shape: the
-/// compact layout plus Go's HTML-safe string escaping (`<`/`>`/`&` →
-/// `\u003c`/`\u003e`/`\u0026`, U+2028/U+2029 → `\u2028`/`\u2029`) and Go's
-/// `\u0008`/`\u000c` spellings where serde emits `\b`/`\f`.
-struct GoFormatter;
+/// `serde::Serializer` emitting Go `encoding/json`'s byte shape. String
+/// contents are escaped in ONE fused pass — serde's `"`/`\`/control
+/// escapes plus Go's `<`/`>`/`&` → `\u00xx`, U+2028/U+2029 and the
+/// `\u0008`/`\u000c` spellings — replacing the old shape where serde's
+/// escape scan ran first and a `Formatter::write_string_fragment`
+/// override re-scanned every fragment for Go's extra escapes (two passes
+/// per string per SSE frame). `serde_json` 1.0.151's
+/// `format_escaped_str_contents` is a private free function, not a
+/// `Formatter` method, so the fusion lives at the `Serializer` layer:
+/// strings (and `collect_str` pieces) take the fused scan; every other
+/// scalar delegates to `serde_json`'s compact writer verbatim, and the
+/// compound/key state machines mirror `serde_json::ser::Compound` /
+/// `MapKeySerializer` one-for-one.
+struct GoSerializer<W> {
+    w: W,
+}
 
-impl serde_json::ser::Formatter for GoFormatter {
-    fn write_string_fragment<W>(&mut self, writer: &mut W, fragment: &str) -> std::io::Result<()>
-    where
-        W: ?Sized + std::io::Write,
-    {
-        // serde hands raw UTF-8 runs here; Go escapes three ASCII bytes
-        // and the two U+202x separators inside them.
-        let fragment = fragment.as_bytes();
-        let mut start = 0;
-        let mut i = 0;
-        while i < fragment.len() {
-            let (escape, consumed): (&[u8], usize) = match fragment[i] {
-                b'<' => (b"\\u003c", 1),
-                b'>' => (b"\\u003e", 1),
-                b'&' => (b"\\u0026", 1),
-                0xE2 if fragment.get(i + 1) == Some(&0x80)
-                    && matches!(fragment.get(i + 2), Some(&0xA8 | &0xA9)) =>
-                {
-                    if fragment[i + 2] == 0xA8 {
-                        (b"\\u2028", 3)
-                    } else {
-                        (b"\\u2029", 3)
-                    }
-                }
-                _ => {
-                    i += 1;
-                    continue;
-                }
-            };
-            writer.write_all(&fragment[start..i])?;
-            writer.write_all(escape)?;
-            i += consumed;
-            start = i;
-        }
-        writer.write_all(&fragment[start..])
+impl<W: std::io::Write> GoSerializer<W> {
+    /// `"` + fused-escaped contents + `"`.
+    fn write_string(&mut self, value: &str) -> std::io::Result<()> {
+        self.w.write_all(b"\"")?;
+        write_go_escaped_contents(&mut self.w, value)?;
+        self.w.write_all(b"\"")
     }
 
-    fn write_char_escape<W>(
+    /// Non-string scalars are byte-identical under any formatter — hand
+    /// them to `serde_json`'s own writer rather than re-rolling itoa/zmij.
+    fn delegate<T: serde::Serialize + ?Sized>(
         &mut self,
-        writer: &mut W,
-        char_escape: serde_json::ser::CharEscape,
-    ) -> std::io::Result<()>
-    where
-        W: ?Sized + std::io::Write,
-    {
-        use serde_json::ser::CharEscape;
-        match char_escape {
+        value: &T,
+    ) -> Result<(), serde_json::Error> {
+        serde_json::to_writer(&mut self.w, value)
+    }
+}
+
+/// `io::Result` → `serde_json::Error` (the `Error::io` wrapper `serde_json`
+/// uses internally).
+fn io<T>(result: std::io::Result<T>) -> Result<T, serde_json::Error> {
+    result.map_err(serde_json::Error::io)
+}
+
+/// One fused pass over a JSON string's contents: `serde_json`'s escape set
+/// (`"`, `\`, `\n`, `\r`, `\t`, other C0 controls → `\u00xx`) with Go's
+/// spellings (`\u0008`/`\u000c` for `\b`/`\f`) and Go's extra escapes
+/// (`<`/`>`/`&` → `\u003c`/`\u003e`/`\u0026`, U+2028/U+2029 →
+/// `\u2028`/`\u2029`) applied in the same scan. Byte-identical to the
+/// old serde-scan + `write_string_fragment` second pass.
+fn write_go_escaped_contents<W: std::io::Write>(w: &mut W, value: &str) -> std::io::Result<()> {
+    const HEX: &[u8; 16] = b"0123456789abcdef";
+    let bytes = value.as_bytes();
+    let mut start = 0;
+    let mut i = 0;
+    while i < bytes.len() {
+        let byte = bytes[i];
+        let mut consumed = 1;
+        let escape: &[u8] = match byte {
+            b'"' => b"\\\"",
+            b'\\' => b"\\\\",
+            b'\n' => b"\\n",
+            b'\r' => b"\\r",
+            b'\t' => b"\\t",
             // Go's encoding/json has no \b/\f shorthand.
-            CharEscape::Backspace => writer.write_all(b"\\u0008"),
-            CharEscape::FormFeed => writer.write_all(b"\\u000c"),
-            other => serde_json::ser::CompactFormatter.write_char_escape(writer, other),
+            0x08 => b"\\u0008",
+            0x0C => b"\\u000c",
+            b'<' => b"\\u003c",
+            b'>' => b"\\u003e",
+            b'&' => b"\\u0026",
+            0x00..=0x1F => {
+                w.write_all(&bytes[start..i])?;
+                w.write_all(&[
+                    b'\\',
+                    b'u',
+                    b'0',
+                    b'0',
+                    HEX[(byte >> 4) as usize],
+                    HEX[(byte & 0xF) as usize],
+                ])?;
+                i += 1;
+                start = i;
+                continue;
+            }
+            0xE2 if bytes.get(i + 1) == Some(&0x80)
+                && matches!(bytes.get(i + 2), Some(&0xA8 | &0xA9)) =>
+            {
+                consumed = 3;
+                if bytes[i + 2] == 0xA8 {
+                    b"\\u2028"
+                } else {
+                    b"\\u2029"
+                }
+            }
+            _ => {
+                i += 1;
+                continue;
+            }
+        };
+        w.write_all(&bytes[start..i])?;
+        w.write_all(escape)?;
+        i += consumed;
+        start = i;
+    }
+    w.write_all(&bytes[start..])
+}
+
+/// Compound state mirroring `serde_json::ser::Compound`'s `Map` arm —
+/// `Empty` means the delimiters were already written eagerly
+/// (`len == Some(0)`), `First`/`Rest` drive the `,` separators. `Raw`
+/// mirrors the `RawValue` arm: the single field's string payload is
+/// written verbatim.
+enum GoCompound<'a, W: std::io::Write> {
+    Map {
+        ser: &'a mut GoSerializer<W>,
+        state: u8,
+    },
+    Raw {
+        ser: &'a mut GoSerializer<W>,
+    },
+}
+
+const STATE_EMPTY: u8 = 0;
+const STATE_FIRST: u8 = 1;
+const STATE_REST: u8 = 2;
+
+/// `serde_json::value::RawValue`'s private struct/field token (the
+/// `serialize_struct` name and `serialize_field` key it uses).
+const RAW_VALUE_TOKEN: &str = "$serde_json::private::RawValue";
+
+impl<W: std::io::Write> GoCompound<'_, W> {
+    fn ser(&mut self) -> &mut GoSerializer<W> {
+        match self {
+            Self::Map { ser, .. } | Self::Raw { ser } => ser,
         }
+    }
+}
+
+impl<W: std::io::Write> serde::ser::SerializeSeq for GoCompound<'_, W> {
+    type Ok = ();
+    type Error = serde_json::Error;
+
+    fn serialize_element<T>(&mut self, value: &T) -> Result<(), serde_json::Error>
+    where
+        T: ?Sized + serde::Serialize,
+    {
+        let Self::Map { ser, state } = self else {
+            unreachable!("RawValue compound has no elements")
+        };
+        if *state == STATE_FIRST {
+            *state = STATE_REST;
+        } else {
+            io(ser.w.write_all(b","))?;
+        }
+        value.serialize(&mut **ser)
+    }
+
+    fn end(self) -> Result<(), serde_json::Error> {
+        match self {
+            Self::Map { ser, state } => match state {
+                STATE_EMPTY => Ok(()),
+                _ => io(ser.w.write_all(b"]")),
+            },
+            Self::Raw { .. } => unreachable!("RawValue compound has no elements"),
+        }
+    }
+}
+
+impl<W: std::io::Write> serde::ser::SerializeTuple for GoCompound<'_, W> {
+    type Ok = ();
+    type Error = serde_json::Error;
+
+    fn serialize_element<T>(&mut self, value: &T) -> Result<(), serde_json::Error>
+    where
+        T: ?Sized + serde::Serialize,
+    {
+        serde::ser::SerializeSeq::serialize_element(self, value)
+    }
+
+    fn end(self) -> Result<(), serde_json::Error> {
+        serde::ser::SerializeSeq::end(self)
+    }
+}
+
+impl<W: std::io::Write> serde::ser::SerializeTupleStruct for GoCompound<'_, W> {
+    type Ok = ();
+    type Error = serde_json::Error;
+
+    fn serialize_field<T>(&mut self, value: &T) -> Result<(), serde_json::Error>
+    where
+        T: ?Sized + serde::Serialize,
+    {
+        serde::ser::SerializeSeq::serialize_element(self, value)
+    }
+
+    fn end(self) -> Result<(), serde_json::Error> {
+        serde::ser::SerializeSeq::end(self)
+    }
+}
+
+impl<W: std::io::Write> serde::ser::SerializeTupleVariant for GoCompound<'_, W> {
+    type Ok = ();
+    type Error = serde_json::Error;
+
+    fn serialize_field<T>(&mut self, value: &T) -> Result<(), serde_json::Error>
+    where
+        T: ?Sized + serde::Serialize,
+    {
+        serde::ser::SerializeSeq::serialize_element(self, value)
+    }
+
+    fn end(self) -> Result<(), serde_json::Error> {
+        match self {
+            Self::Map { ser, state } => {
+                if state != STATE_EMPTY {
+                    io(ser.w.write_all(b"]"))?;
+                }
+                io(ser.w.write_all(b"}"))
+            }
+            Self::Raw { .. } => unreachable!("RawValue compound has no elements"),
+        }
+    }
+}
+
+impl<W: std::io::Write> serde::ser::SerializeMap for GoCompound<'_, W> {
+    type Ok = ();
+    type Error = serde_json::Error;
+
+    fn serialize_key<T>(&mut self, key: &T) -> Result<(), serde_json::Error>
+    where
+        T: ?Sized + serde::Serialize,
+    {
+        let Self::Map { ser, state } = self else {
+            unreachable!("RawValue compound has no entries")
+        };
+        if *state == STATE_FIRST {
+            *state = STATE_REST;
+        } else {
+            io(ser.w.write_all(b","))?;
+        }
+        key.serialize(GoKeySerializer { ser: &mut **ser })?;
+        io(ser.w.write_all(b":"))
+    }
+
+    fn serialize_value<T>(&mut self, value: &T) -> Result<(), serde_json::Error>
+    where
+        T: ?Sized + serde::Serialize,
+    {
+        value.serialize(self.ser())
+    }
+
+    fn end(self) -> Result<(), serde_json::Error> {
+        match self {
+            Self::Map { ser, state } => match state {
+                STATE_EMPTY => Ok(()),
+                _ => io(ser.w.write_all(b"}")),
+            },
+            Self::Raw { .. } => unreachable!("RawValue compound has no entries"),
+        }
+    }
+}
+
+impl<W: std::io::Write> serde::ser::SerializeStruct for GoCompound<'_, W> {
+    type Ok = ();
+    type Error = serde_json::Error;
+
+    fn serialize_field<T>(&mut self, key: &'static str, value: &T) -> Result<(), serde_json::Error>
+    where
+        T: ?Sized + serde::Serialize,
+    {
+        match self {
+            Self::Map { .. } => serde::ser::SerializeMap::serialize_entry(self, key, value),
+            // `RawValue`'s Serialize impl: the field payload is the raw
+            // JSON text — emit it verbatim, never quoted/escaped.
+            Self::Raw { ser } => {
+                if key == RAW_VALUE_TOKEN {
+                    value.serialize(GoRawEmitter { ser: &mut **ser })
+                } else {
+                    Err(serde::ser::Error::custom("expected RawValue"))
+                }
+            }
+        }
+    }
+
+    fn end(self) -> Result<(), serde_json::Error> {
+        match self {
+            Self::Map { .. } => serde::ser::SerializeMap::end(self),
+            Self::Raw { .. } => Ok(()),
+        }
+    }
+}
+
+impl<W: std::io::Write> serde::ser::SerializeStructVariant for GoCompound<'_, W> {
+    type Ok = ();
+    type Error = serde_json::Error;
+
+    fn serialize_field<T>(&mut self, key: &'static str, value: &T) -> Result<(), serde_json::Error>
+    where
+        T: ?Sized + serde::Serialize,
+    {
+        serde::ser::SerializeStruct::serialize_field(self, key, value)
+    }
+
+    fn end(self) -> Result<(), serde_json::Error> {
+        match self {
+            Self::Map { ser, state } => {
+                if state != STATE_EMPTY {
+                    io(ser.w.write_all(b"}"))?;
+                }
+                io(ser.w.write_all(b"}"))
+            }
+            Self::Raw { .. } => unreachable!("RawValue compound has no fields"),
+        }
+    }
+}
+
+/// Map-key serializer mirroring `serde_json::ser::MapKeySerializer`:
+/// strings/chars/unit variants quote+escape, integers/bools/finite
+/// floats quote their digits, everything else is `key must be a string`.
+struct GoKeySerializer<'a, W: std::io::Write> {
+    ser: &'a mut GoSerializer<W>,
+}
+
+macro_rules! key_via_delegate {
+    ($name:ident, $ty:ty) => {
+        fn $name(self, value: $ty) -> Result<(), serde_json::Error> {
+            io(self.ser.w.write_all(b"\""))?;
+            self.ser.delegate(&value)?;
+            io(self.ser.w.write_all(b"\""))
+        }
+    };
+}
+
+impl<W: std::io::Write> serde::Serializer for GoKeySerializer<'_, W> {
+    type Ok = ();
+    type Error = serde_json::Error;
+    type SerializeSeq = serde::ser::Impossible<(), serde_json::Error>;
+    type SerializeTuple = serde::ser::Impossible<(), serde_json::Error>;
+    type SerializeTupleStruct = serde::ser::Impossible<(), serde_json::Error>;
+    type SerializeTupleVariant = serde::ser::Impossible<(), serde_json::Error>;
+    type SerializeMap = serde::ser::Impossible<(), serde_json::Error>;
+    type SerializeStruct = serde::ser::Impossible<(), serde_json::Error>;
+    type SerializeStructVariant = serde::ser::Impossible<(), serde_json::Error>;
+
+    fn serialize_str(self, value: &str) -> Result<(), serde_json::Error> {
+        io(self.ser.write_string(value))
+    }
+
+    fn serialize_unit_variant(
+        self,
+        _name: &'static str,
+        _variant_index: u32,
+        variant: &'static str,
+    ) -> Result<(), serde_json::Error> {
+        self.serialize_str(variant)
+    }
+
+    fn serialize_newtype_struct<T>(
+        self,
+        _name: &'static str,
+        value: &T,
+    ) -> Result<(), serde_json::Error>
+    where
+        T: ?Sized + serde::Serialize,
+    {
+        value.serialize(self)
+    }
+
+    key_via_delegate!(serialize_bool, bool);
+    key_via_delegate!(serialize_i8, i8);
+    key_via_delegate!(serialize_i16, i16);
+    key_via_delegate!(serialize_i32, i32);
+    key_via_delegate!(serialize_i64, i64);
+    key_via_delegate!(serialize_i128, i128);
+    key_via_delegate!(serialize_u8, u8);
+    key_via_delegate!(serialize_u16, u16);
+    key_via_delegate!(serialize_u32, u32);
+    key_via_delegate!(serialize_u64, u64);
+    key_via_delegate!(serialize_u128, u128);
+
+    fn serialize_f32(self, value: f32) -> Result<(), serde_json::Error> {
+        if !value.is_finite() {
+            return Err(serde::ser::Error::custom("float key must be finite"));
+        }
+        io(self.ser.w.write_all(b"\""))?;
+        self.ser.delegate(&value)?;
+        io(self.ser.w.write_all(b"\""))
+    }
+
+    fn serialize_f64(self, value: f64) -> Result<(), serde_json::Error> {
+        if !value.is_finite() {
+            return Err(serde::ser::Error::custom("float key must be finite"));
+        }
+        io(self.ser.w.write_all(b"\""))?;
+        self.ser.delegate(&value)?;
+        io(self.ser.w.write_all(b"\""))
+    }
+
+    fn serialize_char(self, value: char) -> Result<(), serde_json::Error> {
+        self.serialize_str(value.encode_utf8(&mut [0u8; 4]))
+    }
+
+    fn serialize_bytes(self, _value: &[u8]) -> Result<(), serde_json::Error> {
+        Err(serde::ser::Error::custom("key must be a string"))
+    }
+
+    fn serialize_unit(self) -> Result<(), serde_json::Error> {
+        Err(serde::ser::Error::custom("key must be a string"))
+    }
+
+    fn serialize_unit_struct(self, _name: &'static str) -> Result<(), serde_json::Error> {
+        Err(serde::ser::Error::custom("key must be a string"))
+    }
+
+    fn serialize_newtype_variant<T>(
+        self,
+        _name: &'static str,
+        _variant_index: u32,
+        _variant: &'static str,
+        _value: &T,
+    ) -> Result<(), serde_json::Error>
+    where
+        T: ?Sized + serde::Serialize,
+    {
+        Err(serde::ser::Error::custom("key must be a string"))
+    }
+
+    fn serialize_none(self) -> Result<(), serde_json::Error> {
+        Err(serde::ser::Error::custom("key must be a string"))
+    }
+
+    fn serialize_some<T>(self, _value: &T) -> Result<(), serde_json::Error>
+    where
+        T: ?Sized + serde::Serialize,
+    {
+        Err(serde::ser::Error::custom("key must be a string"))
+    }
+
+    fn serialize_seq(self, _len: Option<usize>) -> Result<Self::SerializeSeq, serde_json::Error> {
+        Err(serde::ser::Error::custom("key must be a string"))
+    }
+
+    fn serialize_tuple(self, _len: usize) -> Result<Self::SerializeTuple, serde_json::Error> {
+        Err(serde::ser::Error::custom("key must be a string"))
+    }
+
+    fn serialize_tuple_struct(
+        self,
+        _name: &'static str,
+        _len: usize,
+    ) -> Result<Self::SerializeTupleStruct, serde_json::Error> {
+        Err(serde::ser::Error::custom("key must be a string"))
+    }
+
+    fn serialize_tuple_variant(
+        self,
+        _name: &'static str,
+        _variant_index: u32,
+        _variant: &'static str,
+        _len: usize,
+    ) -> Result<Self::SerializeTupleVariant, serde_json::Error> {
+        Err(serde::ser::Error::custom("key must be a string"))
+    }
+
+    fn serialize_map(self, _len: Option<usize>) -> Result<Self::SerializeMap, serde_json::Error> {
+        Err(serde::ser::Error::custom("key must be a string"))
+    }
+
+    fn serialize_struct(
+        self,
+        _name: &'static str,
+        _len: usize,
+    ) -> Result<Self::SerializeStruct, serde_json::Error> {
+        Err(serde::ser::Error::custom("key must be a string"))
+    }
+
+    fn serialize_struct_variant(
+        self,
+        _name: &'static str,
+        _variant_index: u32,
+        _variant: &'static str,
+        _len: usize,
+    ) -> Result<Self::SerializeStructVariant, serde_json::Error> {
+        Err(serde::ser::Error::custom("key must be a string"))
+    }
+}
+
+/// `serde_json::ser::RawValueStrEmitter` mirror: the `RawValue` payload
+/// string is written verbatim (no quotes, no escaping).
+struct GoRawEmitter<'a, W: std::io::Write> {
+    ser: &'a mut GoSerializer<W>,
+}
+
+impl<W: std::io::Write> serde::Serializer for GoRawEmitter<'_, W> {
+    type Ok = ();
+    type Error = serde_json::Error;
+    type SerializeSeq = serde::ser::Impossible<(), serde_json::Error>;
+    type SerializeTuple = serde::ser::Impossible<(), serde_json::Error>;
+    type SerializeTupleStruct = serde::ser::Impossible<(), serde_json::Error>;
+    type SerializeTupleVariant = serde::ser::Impossible<(), serde_json::Error>;
+    type SerializeMap = serde::ser::Impossible<(), serde_json::Error>;
+    type SerializeStruct = serde::ser::Impossible<(), serde_json::Error>;
+    type SerializeStructVariant = serde::ser::Impossible<(), serde_json::Error>;
+
+    fn serialize_str(self, value: &str) -> Result<(), serde_json::Error> {
+        io(self.ser.w.write_all(value.as_bytes()))
+    }
+
+    fn serialize_bytes(self, _value: &[u8]) -> Result<(), serde_json::Error> {
+        Err(serde::ser::Error::custom("expected RawValue"))
+    }
+
+    fn serialize_bool(self, _v: bool) -> Result<(), serde_json::Error> {
+        Err(serde::ser::Error::custom("expected RawValue"))
+    }
+
+    fn serialize_i8(self, _v: i8) -> Result<(), serde_json::Error> {
+        Err(serde::ser::Error::custom("expected RawValue"))
+    }
+
+    fn serialize_i16(self, _v: i16) -> Result<(), serde_json::Error> {
+        Err(serde::ser::Error::custom("expected RawValue"))
+    }
+
+    fn serialize_i32(self, _v: i32) -> Result<(), serde_json::Error> {
+        Err(serde::ser::Error::custom("expected RawValue"))
+    }
+
+    fn serialize_i64(self, _v: i64) -> Result<(), serde_json::Error> {
+        Err(serde::ser::Error::custom("expected RawValue"))
+    }
+
+    fn serialize_i128(self, _v: i128) -> Result<(), serde_json::Error> {
+        Err(serde::ser::Error::custom("expected RawValue"))
+    }
+
+    fn serialize_u8(self, _v: u8) -> Result<(), serde_json::Error> {
+        Err(serde::ser::Error::custom("expected RawValue"))
+    }
+
+    fn serialize_u16(self, _v: u16) -> Result<(), serde_json::Error> {
+        Err(serde::ser::Error::custom("expected RawValue"))
+    }
+
+    fn serialize_u32(self, _v: u32) -> Result<(), serde_json::Error> {
+        Err(serde::ser::Error::custom("expected RawValue"))
+    }
+
+    fn serialize_u64(self, _v: u64) -> Result<(), serde_json::Error> {
+        Err(serde::ser::Error::custom("expected RawValue"))
+    }
+
+    fn serialize_u128(self, _v: u128) -> Result<(), serde_json::Error> {
+        Err(serde::ser::Error::custom("expected RawValue"))
+    }
+
+    fn serialize_f32(self, _v: f32) -> Result<(), serde_json::Error> {
+        Err(serde::ser::Error::custom("expected RawValue"))
+    }
+
+    fn serialize_f64(self, _v: f64) -> Result<(), serde_json::Error> {
+        Err(serde::ser::Error::custom("expected RawValue"))
+    }
+
+    fn serialize_char(self, _v: char) -> Result<(), serde_json::Error> {
+        Err(serde::ser::Error::custom("expected RawValue"))
+    }
+
+    fn serialize_unit(self) -> Result<(), serde_json::Error> {
+        Err(serde::ser::Error::custom("expected RawValue"))
+    }
+
+    fn serialize_unit_struct(self, _name: &'static str) -> Result<(), serde_json::Error> {
+        Err(serde::ser::Error::custom("expected RawValue"))
+    }
+
+    fn serialize_unit_variant(
+        self,
+        _name: &'static str,
+        _variant_index: u32,
+        _variant: &'static str,
+    ) -> Result<(), serde_json::Error> {
+        Err(serde::ser::Error::custom("expected RawValue"))
+    }
+
+    fn serialize_newtype_struct<T>(
+        self,
+        _name: &'static str,
+        _value: &T,
+    ) -> Result<(), serde_json::Error>
+    where
+        T: ?Sized + serde::Serialize,
+    {
+        Err(serde::ser::Error::custom("expected RawValue"))
+    }
+
+    fn serialize_newtype_variant<T>(
+        self,
+        _name: &'static str,
+        _variant_index: u32,
+        _variant: &'static str,
+        _value: &T,
+    ) -> Result<(), serde_json::Error>
+    where
+        T: ?Sized + serde::Serialize,
+    {
+        Err(serde::ser::Error::custom("expected RawValue"))
+    }
+
+    fn serialize_none(self) -> Result<(), serde_json::Error> {
+        Err(serde::ser::Error::custom("expected RawValue"))
+    }
+
+    fn serialize_some<T>(self, _value: &T) -> Result<(), serde_json::Error>
+    where
+        T: ?Sized + serde::Serialize,
+    {
+        Err(serde::ser::Error::custom("expected RawValue"))
+    }
+
+    fn serialize_seq(self, _len: Option<usize>) -> Result<Self::SerializeSeq, serde_json::Error> {
+        Err(serde::ser::Error::custom("expected RawValue"))
+    }
+
+    fn serialize_tuple(self, _len: usize) -> Result<Self::SerializeTuple, serde_json::Error> {
+        Err(serde::ser::Error::custom("expected RawValue"))
+    }
+
+    fn serialize_tuple_struct(
+        self,
+        _name: &'static str,
+        _len: usize,
+    ) -> Result<Self::SerializeTupleStruct, serde_json::Error> {
+        Err(serde::ser::Error::custom("expected RawValue"))
+    }
+
+    fn serialize_tuple_variant(
+        self,
+        _name: &'static str,
+        _variant_index: u32,
+        _variant: &'static str,
+        _len: usize,
+    ) -> Result<Self::SerializeTupleVariant, serde_json::Error> {
+        Err(serde::ser::Error::custom("expected RawValue"))
+    }
+
+    fn serialize_map(self, _len: Option<usize>) -> Result<Self::SerializeMap, serde_json::Error> {
+        Err(serde::ser::Error::custom("expected RawValue"))
+    }
+
+    fn serialize_struct(
+        self,
+        _name: &'static str,
+        _len: usize,
+    ) -> Result<Self::SerializeStruct, serde_json::Error> {
+        Err(serde::ser::Error::custom("expected RawValue"))
+    }
+
+    fn serialize_struct_variant(
+        self,
+        _name: &'static str,
+        _variant_index: u32,
+        _variant: &'static str,
+        _len: usize,
+    ) -> Result<Self::SerializeStructVariant, serde_json::Error> {
+        Err(serde::ser::Error::custom("expected RawValue"))
+    }
+}
+
+impl<'a, W: std::io::Write> serde::Serializer for &'a mut GoSerializer<W> {
+    type Ok = ();
+    type Error = serde_json::Error;
+    type SerializeSeq = GoCompound<'a, W>;
+    type SerializeTuple = GoCompound<'a, W>;
+    type SerializeTupleStruct = GoCompound<'a, W>;
+    type SerializeTupleVariant = GoCompound<'a, W>;
+    type SerializeMap = GoCompound<'a, W>;
+    type SerializeStruct = GoCompound<'a, W>;
+    type SerializeStructVariant = GoCompound<'a, W>;
+
+    fn serialize_bool(self, value: bool) -> Result<(), serde_json::Error> {
+        io(self.w.write_all(if value { b"true" } else { b"false" }))
+    }
+
+    fn serialize_i8(self, value: i8) -> Result<(), serde_json::Error> {
+        self.delegate(&value)
+    }
+
+    fn serialize_i16(self, value: i16) -> Result<(), serde_json::Error> {
+        self.delegate(&value)
+    }
+
+    fn serialize_i32(self, value: i32) -> Result<(), serde_json::Error> {
+        self.delegate(&value)
+    }
+
+    fn serialize_i64(self, value: i64) -> Result<(), serde_json::Error> {
+        self.delegate(&value)
+    }
+
+    fn serialize_i128(self, value: i128) -> Result<(), serde_json::Error> {
+        self.delegate(&value)
+    }
+
+    fn serialize_u8(self, value: u8) -> Result<(), serde_json::Error> {
+        self.delegate(&value)
+    }
+
+    fn serialize_u16(self, value: u16) -> Result<(), serde_json::Error> {
+        self.delegate(&value)
+    }
+
+    fn serialize_u32(self, value: u32) -> Result<(), serde_json::Error> {
+        self.delegate(&value)
+    }
+
+    fn serialize_u64(self, value: u64) -> Result<(), serde_json::Error> {
+        self.delegate(&value)
+    }
+
+    fn serialize_u128(self, value: u128) -> Result<(), serde_json::Error> {
+        self.delegate(&value)
+    }
+
+    fn serialize_f32(self, value: f32) -> Result<(), serde_json::Error> {
+        self.delegate(&value)
+    }
+
+    fn serialize_f64(self, value: f64) -> Result<(), serde_json::Error> {
+        self.delegate(&value)
+    }
+
+    fn serialize_char(self, value: char) -> Result<(), serde_json::Error> {
+        self.serialize_str(value.encode_utf8(&mut [0u8; 4]))
+    }
+
+    fn serialize_str(self, value: &str) -> Result<(), serde_json::Error> {
+        io(self.write_string(value))
+    }
+
+    fn serialize_bytes(self, value: &[u8]) -> Result<(), serde_json::Error> {
+        // serde_json's default: an array of byte numbers. Delegate so the
+        // shape stays identical (Go's base64 string is a known, accepted
+        // divergence of the old path too).
+        struct Bytes<'a>(&'a [u8]);
+        impl serde::Serialize for Bytes<'_> {
+            fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+                serializer.serialize_bytes(self.0)
+            }
+        }
+        self.delegate(&Bytes(value))
+    }
+
+    fn serialize_unit(self) -> Result<(), serde_json::Error> {
+        io(self.w.write_all(b"null"))
+    }
+
+    fn serialize_unit_struct(self, _name: &'static str) -> Result<(), serde_json::Error> {
+        self.serialize_unit()
+    }
+
+    fn serialize_unit_variant(
+        self,
+        _name: &'static str,
+        _variant_index: u32,
+        variant: &'static str,
+    ) -> Result<(), serde_json::Error> {
+        self.serialize_str(variant)
+    }
+
+    fn serialize_newtype_struct<T>(
+        self,
+        _name: &'static str,
+        value: &T,
+    ) -> Result<(), serde_json::Error>
+    where
+        T: ?Sized + serde::Serialize,
+    {
+        value.serialize(self)
+    }
+
+    fn serialize_newtype_variant<T>(
+        self,
+        _name: &'static str,
+        _variant_index: u32,
+        variant: &'static str,
+        value: &T,
+    ) -> Result<(), serde_json::Error>
+    where
+        T: ?Sized + serde::Serialize,
+    {
+        // serde_json's `{"VARIANT":value}` envelope.
+        io(self.w.write_all(b"{"))?;
+        self.serialize_str(variant)?;
+        io(self.w.write_all(b":"))?;
+        value.serialize(&mut *self)?;
+        io(self.w.write_all(b"}"))
+    }
+
+    fn serialize_none(self) -> Result<(), serde_json::Error> {
+        self.serialize_unit()
+    }
+
+    fn serialize_some<T>(self, value: &T) -> Result<(), serde_json::Error>
+    where
+        T: ?Sized + serde::Serialize,
+    {
+        value.serialize(self)
+    }
+
+    fn serialize_seq(self, len: Option<usize>) -> Result<GoCompound<'a, W>, serde_json::Error> {
+        io(self.w.write_all(b"["))?;
+        if len == Some(0) {
+            io(self.w.write_all(b"]"))?;
+            Ok(GoCompound::Map {
+                ser: self,
+                state: STATE_EMPTY,
+            })
+        } else {
+            Ok(GoCompound::Map {
+                ser: self,
+                state: STATE_FIRST,
+            })
+        }
+    }
+
+    fn serialize_tuple(self, len: usize) -> Result<GoCompound<'a, W>, serde_json::Error> {
+        self.serialize_seq(Some(len))
+    }
+
+    fn serialize_tuple_struct(
+        self,
+        _name: &'static str,
+        len: usize,
+    ) -> Result<GoCompound<'a, W>, serde_json::Error> {
+        self.serialize_seq(Some(len))
+    }
+
+    fn serialize_tuple_variant(
+        self,
+        _name: &'static str,
+        _variant_index: u32,
+        variant: &'static str,
+        len: usize,
+    ) -> Result<GoCompound<'a, W>, serde_json::Error> {
+        io(self.w.write_all(b"{"))?;
+        self.serialize_str(variant)?;
+        io(self.w.write_all(b":"))?;
+        self.serialize_seq(Some(len))
+    }
+
+    fn serialize_map(self, len: Option<usize>) -> Result<GoCompound<'a, W>, serde_json::Error> {
+        io(self.w.write_all(b"{"))?;
+        if len == Some(0) {
+            io(self.w.write_all(b"}"))?;
+            Ok(GoCompound::Map {
+                ser: self,
+                state: STATE_EMPTY,
+            })
+        } else {
+            Ok(GoCompound::Map {
+                ser: self,
+                state: STATE_FIRST,
+            })
+        }
+    }
+
+    fn serialize_struct(
+        self,
+        name: &'static str,
+        len: usize,
+    ) -> Result<GoCompound<'a, W>, serde_json::Error> {
+        if name == RAW_VALUE_TOKEN {
+            return Ok(GoCompound::Raw { ser: self });
+        }
+        self.serialize_map(Some(len))
+    }
+
+    fn serialize_struct_variant(
+        self,
+        _name: &'static str,
+        _variant_index: u32,
+        variant: &'static str,
+        len: usize,
+    ) -> Result<GoCompound<'a, W>, serde_json::Error> {
+        io(self.w.write_all(b"{"))?;
+        self.serialize_str(variant)?;
+        io(self.w.write_all(b":"))?;
+        self.serialize_map(Some(len))
+    }
+
+    fn collect_str<T>(self, value: &T) -> Result<(), serde_json::Error>
+    where
+        T: ?Sized + std::fmt::Display,
+    {
+        // serde_json's collect_str writes each Display piece through the
+        // escape pass without materializing the string; same here with
+        // the fused escaper (piece boundaries are char boundaries, so
+        // the output is identical to escaping the whole string).
+        struct Adapter<'a, W: std::io::Write> {
+            w: &'a mut W,
+            error: Option<std::io::Error>,
+        }
+        impl<W: std::io::Write> std::fmt::Write for Adapter<'_, W> {
+            fn write_str(&mut self, s: &str) -> std::fmt::Result {
+                match write_go_escaped_contents(self.w, s) {
+                    Ok(()) => Ok(()),
+                    Err(err) => {
+                        self.error = Some(err);
+                        Err(std::fmt::Error)
+                    }
+                }
+            }
+        }
+        io(self.w.write_all(b"\""))?;
+        let mut adapter = Adapter {
+            w: &mut self.w,
+            error: None,
+        };
+        match std::fmt::Write::write_fmt(&mut adapter, format_args!("{value}")) {
+            Ok(()) => {}
+            Err(_) => {
+                return Err(serde_json::Error::io(
+                    adapter
+                        .error
+                        .unwrap_or_else(|| std::io::Error::other("fmt error")),
+                ));
+            }
+        }
+        io(self.w.write_all(b"\""))
     }
 }
 

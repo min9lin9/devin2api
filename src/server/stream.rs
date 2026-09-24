@@ -10,6 +10,7 @@ use std::collections::VecDeque;
 use std::convert::Infallible;
 use std::pin::Pin;
 use std::sync::Arc;
+use std::sync::atomic::{AtomicU8, Ordering};
 use std::time::Duration;
 
 use axum::body::Body;
@@ -35,6 +36,37 @@ use super::http::{Admission, HttpEventStream};
 pub const KEEPALIVE_INTERVAL: Duration = Duration::from_secs(10);
 pub const SSE_KEEPALIVE: &[u8] = b": keepalive\n\n";
 pub const JSON_HEARTBEAT: &[u8] = b"\n";
+
+/// Shared terminal-outcome cell: the body that knows the stream's result
+/// writes it at the terminal transition, and `TrackedBody` reads it when
+/// the wire body ends — Go's `completion.Result` derived from the
+/// handler's own error value, never from scanning written bytes. Only
+/// `completed`/`failed` are ever stored; an unset cell at drop means the
+/// body was abandoned mid-stream (`disconnected`).
+#[derive(Clone, Default)]
+pub(crate) struct TerminalCell(Arc<AtomicU8>);
+
+impl TerminalCell {
+    const COMPLETED: u8 = 1;
+    const FAILED: u8 = 2;
+
+    fn set(&self, result: &'static str) {
+        let code = match result {
+            "completed" => Self::COMPLETED,
+            _ => Self::FAILED,
+        };
+        self.0.store(code, Ordering::Release);
+    }
+
+    /// The recorded outcome, `None` while the stream is still live.
+    pub(crate) fn get(&self) -> Option<&'static str> {
+        match self.0.load(Ordering::Acquire) {
+            Self::COMPLETED => Some("completed"),
+            Self::FAILED => Some("failed"),
+            _ => None,
+        }
+    }
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ProtocolKind {
@@ -106,6 +138,19 @@ struct SseBody {
     frames: Vec<SseFrame>,
     /// The stream's terminal outcome once known; `None` while live.
     terminal_result: Option<&'static str>,
+    /// Shared with `TrackedBody`: written at every `terminal_result`
+    /// transition so the metrics layer reads the body's own verdict
+    /// instead of re-scanning egress bytes (Go derives `Result` from the
+    /// handler error, not the wire).
+    result_cell: TerminalCell,
+    /// Last message-bearing event seen (Go's `latest` in
+    /// `writeProtocolStream`): an `Arc` bump per event, with the
+    /// `updateCompletionIdentity` field copies deferred to `finalize`.
+    last_message: Option<Arc<AssistantMessage>>,
+    /// Frame spans encoded into `batch` since the last flush, awaiting
+    /// their frozen chunk so the debug log can share the batch's bytes
+    /// (`Bytes::slice`) instead of copying each payload.
+    logged: VecDeque<SseFrame>,
     /// The terminal outcome was already recorded via `complete`.
     finalized: bool,
     /// The cancel arm already logged `client_disconnected` (the drop
@@ -116,6 +161,9 @@ struct SseBody {
 }
 
 impl SseBody {
+    // The parameter set is the request pipeline's context; grouping it
+    // into a struct would obscure the Go handler's argument order.
+    #[allow(clippy::too_many_arguments)]
     fn new(
         source: Box<dyn HttpEventStream>,
         encoder: Box<dyn StreamEncoder>,
@@ -123,6 +171,8 @@ impl SseBody {
         cancel: CancellationToken,
         admission: Admission,
         completion: Completion,
+        result_cell: TerminalCell,
+        last_message: Option<Arc<AssistantMessage>>,
     ) -> Self {
         // `interval`'s first tick fires immediately; `reset` pushes it out
         // one period — the spawned producer's `interval.tick().await`
@@ -141,6 +191,9 @@ impl SseBody {
             pending: VecDeque::new(),
             frames: Vec::new(),
             terminal_result: None,
+            result_cell,
+            last_message,
+            logged: VecDeque::new(),
             finalized: false,
             disconnect_logged: false,
         }
@@ -149,7 +202,16 @@ impl SseBody {
     /// A body whose whole payload is already known (the pre-commit
     /// in-stream error path): the completion was already recorded, the
     /// body only delivers the bytes and still owns cancel + permit.
-    fn terminal(chunk: Bytes, cancel: CancellationToken, admission: Admission) -> Self {
+    fn terminal(
+        chunk: Bytes,
+        cancel: CancellationToken,
+        admission: Admission,
+        result_cell: TerminalCell,
+    ) -> Self {
+        // The wire verdict is known at construction: publish it now so
+        // `TrackedBody` reads `failed` even though this body's
+        // `set_terminal` never runs (it is already finalized).
+        result_cell.set("failed");
         Self {
             source: Box::new(EmptyEventStream),
             encoder: Box::new(NoopEncoder),
@@ -161,10 +223,35 @@ impl SseBody {
             batch: BytesMut::new(),
             pending: VecDeque::from([chunk]),
             frames: Vec::new(),
-            terminal_result: None,
+            // The queued chunk is an in-stream error frame: the wire
+            // verdict is failed even though the completion was already
+            // recorded (the scan this replaces reported the same).
+            terminal_result: Some("failed"),
+            result_cell,
+            last_message: None,
+            logged: VecDeque::new(),
             finalized: true,
             disconnect_logged: true,
         }
+    }
+
+    /// Record the terminal outcome: the body's own verdict plus the
+    /// shared cell `TrackedBody` reads at end-of-stream.
+    fn set_terminal(&mut self, result: &'static str) {
+        self.terminal_result = Some(result);
+        self.result_cell.set(result);
+    }
+
+    /// Flush the accumulated batch into `pending` and hand the debug
+    /// recorder each frame's slice of the frozen chunk — the payload
+    /// bytes are shared with the wire copy, not cloned.
+    fn flush_batch(&mut self) {
+        if self.batch.is_empty() {
+            return;
+        }
+        let chunk = self.batch.split().freeze();
+        log_frame_spans(&self.recorder, &chunk, &mut self.logged);
+        self.emit(chunk);
     }
 
     /// Record the terminal outcome once the tail is queued: mirrors the
@@ -181,15 +268,23 @@ impl SseBody {
             return;
         };
         self.finalized = true;
-        if let Some(completion) = self.completion.take()
-            && let Some(task) = spawn_complete(
+        if let Some(mut completion) = self.completion.take() {
+            // Go's `updateCompletionIdentity` runs once after
+            // `writeProtocolStream` with the last message-bearing event
+            // (nil on disconnect → the candidate flag clears).
+            if let Some(message) = &self.last_message {
+                update_completion(&mut completion, message);
+            } else {
+                completion.premature_end_turn = false;
+            }
+            if let Some(task) = spawn_complete(
                 self.recorder.clone(),
                 completion,
                 result,
                 self.admission.take(),
-            )
-        {
-            let _ = task.await;
+            ) {
+                let _ = task.await;
+            }
         }
     }
 
@@ -226,7 +321,7 @@ impl SseBody {
                 } else {
                     tokio::select! {
                         () = self.cancel.cancelled() => {
-                            self.terminal_result = Some("disconnected");
+                            self.set_terminal("disconnected");
                             self.disconnect_logged = true;
                             self.recorder.write_error("client_disconnected", &Failure::plain("client disconnected"));
                             break 'outer;
@@ -244,23 +339,23 @@ impl SseBody {
                 // can be dropped mid-await (a `now_or_never(recv())` here
                 // could lose a consumed pump frame inside a pending
                 // `try_reopen`).
-                match self.source.try_recv() {
-                    Some(event) => Ok(Some(event)),
-                    None => {
-                        // Source momentarily empty: flush the batch (Go
-                        // flushes when the pump channel would block).
-                        // `split().freeze()` emits the accumulated bytes
-                        // zero-copy and keeps the tail capacity — Go's
-                        // `batch = batch[:0]` reuse across the stream.
-                        return Some(self.batch.split().freeze());
-                    }
+                if let Some(event) = self.source.try_recv() {
+                    Ok(Some(event))
+                } else {
+                    // Source momentarily empty: flush the batch (Go
+                    // flushes when the pump channel would block).
+                    // `split().freeze()` emits the accumulated bytes
+                    // zero-copy and keeps the tail capacity — Go's
+                    // `batch = batch[:0]` reuse across the stream.
+                    self.flush_batch();
+                    return self.pending.pop_front();
                 }
             };
             // Cancellation attribution mirrors Go's per-item ctx.Err()
             // check: a cancel observed mid-batch still classifies the
             // request as disconnected rather than completed/failed.
             if self.cancel.is_cancelled() {
-                self.terminal_result = Some("disconnected");
+                self.set_terminal("disconnected");
                 self.disconnect_logged = true;
                 self.recorder.write_error(
                     "client_disconnected",
@@ -271,18 +366,16 @@ impl SseBody {
             match next {
                 Ok(Some(event)) => {
                     self.recorder.note_upstream_latency();
+                    // Go's `latest = eventMessage(event, latest)`: keep the
+                    // last message-bearing event's message (an Arc bump);
+                    // the field copies run once in `finalize`.
                     if let Some(message) = event
                         .message
                         .as_ref()
-                        .or(event.partial.as_deref())
                         .or(event.error.as_ref())
+                        .or(event.partial.as_ref())
                     {
-                        update_completion(
-                            self.completion
-                                .as_mut()
-                                .expect("live body holds its completion"),
-                            message,
-                        );
+                        self.last_message = Some(Arc::clone(message));
                     }
                     match append_event(
                         &mut *self.encoder,
@@ -290,6 +383,7 @@ impl SseBody {
                         &event,
                         &mut self.batch,
                         &mut self.frames,
+                        &mut self.logged,
                     ) {
                         Ok(_) => {
                             if event.kind == ResponseEventType::Error {
@@ -297,27 +391,24 @@ impl SseBody {
                                 // recording the failure — keep that order
                                 // (client-latency note precedes the error
                                 // record in the log queue).
-                                if !self.batch.is_empty() {
-                                    let batch = self.batch.split().freeze();
-                                    self.emit(batch);
-                                }
+                                self.flush_batch();
                                 self.recorder.write_error(
                                     "provider_stream",
-                                    &failure_of(event.error.as_ref()),
+                                    &failure_of(event.error.as_deref()),
                                 );
-                                self.terminal_result = Some("failed");
+                                self.set_terminal("failed");
                                 break 'outer;
                             }
                         }
                         Err(failure) => {
                             self.recorder.write_error("response_event", &failure);
-                            self.terminal_result = Some("failed");
+                            self.set_terminal("failed");
                             break 'outer;
                         }
                     }
                 }
                 Ok(None) => {
-                    self.terminal_result = Some("completed");
+                    self.set_terminal("completed");
                     break 'outer;
                 }
                 Err(failure) => {
@@ -329,15 +420,15 @@ impl SseBody {
                         &event,
                         &mut self.batch,
                         &mut self.frames,
+                        &mut self.logged,
                     )
                     .is_ok()
                         && self.batch.len() > before
                     {
-                        let batch = self.batch.split().freeze();
-                        self.emit(batch);
+                        self.flush_batch();
                     }
                     self.recorder.write_error("provider_stream", &failure);
-                    self.terminal_result = Some("failed");
+                    self.set_terminal("failed");
                     break 'outer;
                 }
             }
@@ -348,10 +439,7 @@ impl SseBody {
         // and the permit release still precede EOF (Go's `defer` order);
         // otherwise `drop` would run them detached and the next turn on a
         // sequential transport could observe the permit still held.
-        if !self.batch.is_empty() {
-            let batch = self.batch.split().freeze();
-            self.emit(batch);
-        }
+        self.flush_batch();
         if let Some(chunk) = self.pending.pop_front() {
             Some(chunk)
         } else {
@@ -373,7 +461,7 @@ impl Drop for SseBody {
         }
         self.finalized = true;
         if self.terminal_result.is_none() {
-            self.terminal_result = Some("disconnected");
+            self.set_terminal("disconnected");
             if !self.disconnect_logged {
                 self.recorder.write_error(
                     "client_disconnected",
@@ -381,7 +469,14 @@ impl Drop for SseBody {
                 );
             }
         }
-        if let Some(completion) = self.completion.take() {
+        if let Some(mut completion) = self.completion.take() {
+            // Same once-per-stream identity update as `finalize` (Go's
+            // `latest` may still hold a partial on disconnect).
+            if let Some(message) = &self.last_message {
+                update_completion(&mut completion, message);
+            } else {
+                completion.premature_end_turn = false;
+            }
             // Detached: the body is gone either way — the drain wait must
             // not park the dropping worker either.
             let _ = spawn_complete(
@@ -419,7 +514,10 @@ impl StreamEncoder for NoopEncoder {
 }
 
 fn sse_body_stream(state: SseBody) -> Body {
-    Body::from_stream(stream::unfold(state, |mut state| async move {
+    // The unfold state is boxed: `SseBody` is ~500 B and `unfold` moves
+    // the state into and out of the step future per emitted chunk — a
+    // pointer move instead of a struct memcpy.
+    Body::from_stream(stream::unfold(Box::new(state), |mut state| async move {
         state
             .step()
             .await
@@ -460,9 +558,10 @@ fn append_event(
     event: &ResponseEvent,
     dst: &mut BytesMut,
     frames: &mut Vec<SseFrame>,
+    logged: &mut VecDeque<SseFrame>,
 ) -> Result<usize, Failure> {
     // The disabled recorder is a no-op sink: skip the per-event record and
-    // the per-frame payload copies it would discard anyway (hot path).
+    // the per-frame span bookkeeping it would discard anyway (hot path).
     let active = recorder.is_active();
     if active {
         recorder.record_response_event(event);
@@ -476,41 +575,49 @@ fn append_event(
         return Err(failure);
     }
     if active {
-        for frame in frames.iter() {
-            let data = &dst[frame.data.clone()];
-            if frame.name == SSE_DONE {
-                // Go logs the [DONE] marker as a JSON string, not raw
-                // bytes (stream.go: `AppendJSONL(..., string(data))`).
-                recorder.append_jsonl(
-                    STAGE_HTTP_RESPONSE,
-                    frame.name,
-                    LogValue::text(String::from_utf8_lossy(data).into_owned()),
-                );
-            } else {
-                recorder.append_jsonl(
-                    STAGE_HTTP_RESPONSE,
-                    frame.name,
-                    LogValue::Raw(data.to_vec()),
-                );
-            }
-        }
+        // Defer the log enqueue to the batch flush: the frame payloads
+        // then slice the frozen chunk (zero-copy) instead of each frame
+        // copying its bytes out of the still-growing buffer.
+        logged.extend(frames.drain(..));
     }
     Ok(dst.len() - before)
+}
+
+/// Enqueue the deferred frame logs against the frozen chunk that
+/// carries them. `[DONE]` logs as a JSON string like Go's
+/// `AppendJSONL(..., string(data))`; other frames log verbatim.
+fn log_frame_spans(recorder: &Recorder, chunk: &Bytes, logged: &mut VecDeque<SseFrame>) {
+    while let Some(frame) = logged.pop_front() {
+        let data = chunk.slice(frame.data);
+        if frame.name == SSE_DONE {
+            recorder.append_jsonl(
+                STAGE_HTTP_RESPONSE,
+                frame.name,
+                LogValue::text(String::from_utf8_lossy(&data).into_owned()),
+            );
+        } else {
+            recorder.append_jsonl(STAGE_HTTP_RESPONSE, frame.name, LogValue::Raw(data));
+        }
+    }
 }
 
 fn terminal_error_event(failure: Failure) -> ResponseEvent {
     ResponseEvent {
         kind: ResponseEventType::Error,
         reason: Some(StopReason::Error),
-        error: Some(AssistantMessage {
+        error: Some(Arc::new(AssistantMessage {
             error_message: failure.to_string(),
             failure: Some(Box::new(failure)),
             ..AssistantMessage::default()
-        }),
+        })),
         ..ResponseEvent::default()
     }
 }
 
+/// Go's `updateCompletionIdentity`: run once per stream (in `finalize`)
+/// with the last message-bearing event — the per-event call it replaces
+/// also latched `premature_end_turn` false on the first pending partial,
+/// which Go never does.
 fn update_completion(completion: &mut Completion, message: &AssistantMessage) {
     completion.provider.clone_from(&message.provider);
     completion
@@ -526,6 +633,14 @@ fn update_completion(completion: &mut Completion, message: &AssistantMessage) {
             .content
             .iter()
             .any(|content| content.content_type() == crate::domain::ContentType::ToolCall);
+    // Go flags a declared-vs-requested model mismatch for routing
+    // diagnostics.
+    if !message.response_model.is_empty()
+        && !message.model.is_empty()
+        && message.response_model != message.model
+    {
+        completion.model_mismatch = true;
+    }
     if !message.response_model.is_empty() {
         completion.model.clone_from(&message.response_model);
     } else if !message.model.is_empty() {
@@ -569,6 +684,7 @@ fn spawn_complete(
 // The parameter set is the request pipeline's context; grouping it into
 // a struct would obscure the Go handler's argument order.
 #[allow(clippy::too_many_arguments)]
+#[allow(clippy::too_many_lines)]
 pub async fn sse_response(
     mut source: Box<dyn HttpEventStream>,
     protocol_kind: ProtocolKind,
@@ -586,6 +702,7 @@ pub async fn sse_response(
         result = tokio::time::timeout(KEEPALIVE_INTERVAL, source.recv()) => result,
     };
     let mut pending = VecDeque::new();
+    let mut last_message = None;
     match first {
         Err(_) => {
             pending.push_back(Bytes::from_static(SSE_KEEPALIVE));
@@ -597,7 +714,7 @@ pub async fn sse_response(
             ));
         }
         Ok(Ok(Some(event))) if event.kind == ResponseEventType::Error => {
-            let failure = failure_of(event.error.as_ref());
+            let failure = failure_of(event.error.as_deref());
             if !(protocol.stream_error_events() && (failure.rate_limited || failure.context_length))
             {
                 return Err(failure);
@@ -609,53 +726,101 @@ pub async fn sse_response(
             let start = ResponseEvent {
                 kind: ResponseEventType::Start,
                 reason: Some(StopReason::Pending),
-                partial: event.error.clone().map(Arc::new),
+                partial: event.error.clone(),
                 ..ResponseEvent::default()
             };
             let mut body = BytesMut::new();
             let mut frames = Vec::new();
-            append_event(&mut *encoder, &recorder, &start, &mut body, &mut frames)?;
-            append_event(&mut *encoder, &recorder, &event, &mut body, &mut frames)?;
+            let mut logged = VecDeque::new();
+            append_event(
+                &mut *encoder,
+                &recorder,
+                &start,
+                &mut body,
+                &mut frames,
+                &mut logged,
+            )?;
+            append_event(
+                &mut *encoder,
+                &recorder,
+                &event,
+                &mut body,
+                &mut frames,
+                &mut logged,
+            )?;
+            let chunk = body.freeze();
+            log_frame_spans(&recorder, &chunk, &mut logged);
             recorder.note_client_latency();
             recorder.write_error("provider_stream", &failure);
+            // Go still runs updateCompletionIdentity on this path — the
+            // error event's message is `latest`.
+            if let Some(message) = &event.error {
+                update_completion(&mut completion, message);
+            }
             complete(&recorder, completion, "failed");
-            return Ok((
-                committed_response(
-                    sse_body_stream(SseBody::terminal(body.freeze(), cancel, admission)),
-                    true,
-                ),
+            let cell = TerminalCell::default();
+            let mut response = committed_response(
+                sse_body_stream(SseBody::terminal(chunk, cancel, admission, cell.clone())),
                 true,
-            ));
+            );
+            response.extensions_mut().insert(cell);
+            return Ok((response, true));
         }
         Ok(Ok(Some(event))) => {
             recorder.note_upstream_latency();
+            // Seed `latest` (Go feeds the first event through the same
+            // writeProtocolStream loop); the field copies run once in
+            // `finalize`.
             if let Some(message) = event
                 .message
                 .as_ref()
-                .or(event.partial.as_deref())
                 .or(event.error.as_ref())
+                .or(event.partial.as_ref())
             {
-                update_completion(&mut completion, message);
+                last_message = Some(Arc::clone(message));
             }
             let mut body = BytesMut::new();
             let mut frames = Vec::new();
-            if append_event(&mut *encoder, &recorder, &event, &mut body, &mut frames)? > 0 {
+            let mut logged = VecDeque::new();
+            if append_event(
+                &mut *encoder,
+                &recorder,
+                &event,
+                &mut body,
+                &mut frames,
+                &mut logged,
+            )? > 0
+            {
+                let chunk = body.freeze();
+                log_frame_spans(&recorder, &chunk, &mut logged);
                 recorder.note_client_latency();
-                pending.push_back(body.freeze());
+                pending.push_back(chunk);
             }
         }
     }
 
-    let mut state = SseBody::new(source, encoder, recorder, cancel, admission, completion);
+    let cell = TerminalCell::default();
+    let mut state = SseBody::new(
+        source,
+        encoder,
+        recorder,
+        cancel,
+        admission,
+        completion,
+        cell.clone(),
+        last_message,
+    );
     state.pending = pending;
-    Ok((committed_response(sse_body_stream(state), true), true))
+    let mut response = committed_response(sse_body_stream(state), true);
+    response.extensions_mut().insert(cell);
+    Ok((response, true))
 }
 
 async fn collect_final(
     source: &mut dyn HttpEventStream,
     cancel: &CancellationToken,
     recorder: &Recorder,
-) -> Result<AssistantMessage, Failure> {
+) -> Result<Arc<AssistantMessage>, Failure> {
     let mut final_message = None;
     loop {
         let event = tokio::select! {
@@ -671,7 +836,7 @@ async fn collect_final(
         }
         match event.kind {
             ResponseEventType::Done => final_message = event.message,
-            ResponseEventType::Error => return Err(failure_of(event.error.as_ref())),
+            ResponseEventType::Error => return Err(failure_of(event.error.as_deref())),
             _ => {}
         }
     }
@@ -680,7 +845,7 @@ async fn collect_final(
 /// The JSON heartbeat path's body: `collect_final` runs inside the body
 /// stream and the single terminal chunk (success body or error body) is
 /// queued for the wire — the same fused ownership as [`SseBody`].
-type CollectFuture = Pin<Box<dyn Future<Output = Result<AssistantMessage, Failure>> + Send>>;
+type CollectFuture = Pin<Box<dyn Future<Output = Result<Arc<AssistantMessage>, Failure>> + Send>>;
 
 struct JsonBody {
     /// The in-flight collect, owning the event source: heartbeat ticks
@@ -707,7 +872,20 @@ struct JsonBody {
     collecting: bool,
     /// The stream's terminal outcome once known; `None` while live.
     terminal_result: Option<&'static str>,
+    /// Same shared-verdict cell as [`SseBody::result_cell`].
+    result_cell: TerminalCell,
+    /// The collected final message (Go's `updateCompletionIdentity`
+    /// input); the field copies run once in `finalize`.
+    last_message: Option<Arc<AssistantMessage>>,
     finalized: bool,
+}
+
+impl JsonBody {
+    /// Same contract as [`SseBody::set_terminal`].
+    fn set_terminal(&mut self, result: &'static str) {
+        self.terminal_result = Some(result);
+        self.result_cell.set(result);
+    }
 }
 
 impl JsonBody {
@@ -722,15 +900,23 @@ impl JsonBody {
             return;
         };
         self.finalized = true;
-        if let Some(completion) = self.completion.take()
-            && let Some(task) = spawn_complete(
+        if let Some(mut completion) = self.completion.take() {
+            // Go's `updateCompletionIdentity` runs only on the collect
+            // success path; a failed/disconnected collect leaves the
+            // candidate flag cleared (Go's message is nil there).
+            if let Some(message) = &self.last_message {
+                update_completion(&mut completion, message);
+            } else {
+                completion.premature_end_turn = false;
+            }
+            if let Some(task) = spawn_complete(
                 self.recorder.clone(),
                 completion,
                 result,
                 self.admission.take(),
-            )
-        {
-            let _ = task.await;
+            ) {
+                let _ = task.await;
+            }
         }
     }
 
@@ -767,7 +953,7 @@ impl JsonBody {
                 "client_disconnected",
                 &Failure::plain("client disconnected"),
             );
-            self.terminal_result = Some("disconnected");
+            self.set_terminal("disconnected");
             return if let Some(chunk) = self.pending.pop_front() {
                 Some(chunk)
             } else {
@@ -778,22 +964,18 @@ impl JsonBody {
         match result {
             Ok(message) => {
                 self.collecting = false;
-                update_completion(
-                    self.completion
-                        .as_mut()
-                        .expect("live body holds its completion"),
-                    &message,
-                );
+                self.last_message = Some(message.clone());
                 match self.protocol.encode_final(Some(&message), &self.model) {
                     Ok(body) => {
+                        let body = Bytes::from(body);
                         self.recorder.append_jsonl(
                             STAGE_HTTP_RESPONSE,
                             "response",
                             LogValue::Raw(body.clone()),
                         );
                         self.recorder.note_client_latency();
-                        self.pending.push_back(Bytes::from(body));
-                        self.terminal_result = Some("completed");
+                        self.pending.push_back(body);
+                        self.set_terminal("completed");
                     }
                     Err(err) => {
                         self.recorder.note_client_latency();
@@ -801,7 +983,7 @@ impl JsonBody {
                         self.pending.push_back(Bytes::from(
                             self.protocol.encode_error(&err, &self.recorder.dir_name()),
                         ));
-                        self.terminal_result = Some("failed");
+                        self.set_terminal("failed");
                     }
                 }
             }
@@ -812,7 +994,7 @@ impl JsonBody {
                 self.pending.push_back(Bytes::from(
                     self.protocol.encode_error(&err, &self.recorder.dir_name()),
                 ));
-                self.terminal_result = Some("failed");
+                self.set_terminal("failed");
             }
         }
         if let Some(chunk) = self.pending.pop_front() {
@@ -837,7 +1019,7 @@ impl Drop for JsonBody {
         }
         self.finalized = true;
         if self.terminal_result.is_none() {
-            self.terminal_result = Some("disconnected");
+            self.set_terminal("disconnected");
             if self.collecting {
                 self.recorder
                     .write_error("response_event", &Failure::plain("client disconnected"));
@@ -848,7 +1030,12 @@ impl Drop for JsonBody {
                 );
             }
         }
-        if let Some(completion) = self.completion.take() {
+        if let Some(mut completion) = self.completion.take() {
+            if let Some(message) = &self.last_message {
+                update_completion(&mut completion, message);
+            } else {
+                completion.premature_end_turn = false;
+            }
             let _ = spawn_complete(
                 self.recorder.clone(),
                 completion,
@@ -872,7 +1059,7 @@ pub async fn json_response(
     if protocol_kind == ProtocolKind::Anthropic {
         let message = collect_final(&mut *source, &cancel, &recorder).await?;
         update_completion(&mut completion, &message);
-        let body = protocol.encode_final(Some(&message), &model)?;
+        let body = Bytes::from(protocol.encode_final(Some(&message), &model)?);
         recorder.append_jsonl(STAGE_HTTP_RESPONSE, "response", LogValue::Raw(body.clone()));
         recorder.note_client_latency();
         let mut response = Response::new(Body::from(body));
@@ -890,7 +1077,7 @@ pub async fn json_response(
     if let Ok(result) = first_wait {
         let message = result?;
         update_completion(&mut completion, &message);
-        let body = protocol.encode_final(Some(&message), &model)?;
+        let body = Bytes::from(protocol.encode_final(Some(&message), &model)?);
         recorder.append_jsonl(STAGE_HTTP_RESPONSE, "response", LogValue::Raw(body.clone()));
         recorder.note_client_latency();
         let mut response = Response::new(Body::from(body));
@@ -908,6 +1095,7 @@ pub async fn json_response(
         let collection = Box::pin(async move {
             collect_final(&mut *source, &collect_cancel, &collect_recorder).await
         });
+        let cell = TerminalCell::default();
         let state = JsonBody {
             collection: Some(collection),
             protocol,
@@ -920,15 +1108,21 @@ pub async fn json_response(
             interval,
             collecting: true,
             terminal_result: None,
+            result_cell: cell.clone(),
+            last_message: None,
             finalized: false,
         };
-        let body = Body::from_stream(stream::unfold(state, |mut state| async move {
+        // Boxed unfold state like `sse_body_stream`: the ~500 B body
+        // moves as a pointer per emitted chunk.
+        let body = Body::from_stream(stream::unfold(Box::new(state), |mut state| async move {
             state
                 .step()
                 .await
                 .map(|chunk| (Ok::<_, Infallible>(chunk), state))
         }));
-        Ok((committed_response(body, false), true))
+        let mut response = committed_response(body, false);
+        response.extensions_mut().insert(cell);
+        Ok((response, true))
     }
 }
 

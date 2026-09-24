@@ -164,8 +164,10 @@ impl RetryAttempt {
 /// `json.Marshaler` path); `Deferred` defers projection building (Go's
 /// `func() any` thunk).
 pub enum LogValue {
-    /// Verbatim JSON bytes (`json.RawMessage` parity).
-    Raw(Vec<u8>),
+    /// Verbatim JSON bytes (`json.RawMessage` parity). `Bytes` so a
+    /// payload already frozen for the wire (SSE batch chunk, JSON body)
+    /// is shared, not copied, at enqueue.
+    Raw(bytes::Bytes),
     /// Pre-built JSON tree.
     Tree(JVal),
     /// Plain string value.
@@ -179,7 +181,7 @@ pub enum LogValue {
 
 impl LogValue {
     /// Wrap verbatim JSON bytes.
-    pub fn raw(bytes: impl Into<Vec<u8>>) -> Self {
+    pub fn raw(bytes: impl Into<bytes::Bytes>) -> Self {
         Self::Raw(bytes.into())
     }
 
@@ -669,7 +671,7 @@ impl Manager {
             .set("payload_hours", JVal::Int(policy.payload_hours))
             .set("keep_error_dirs", JVal::Int(policy.keep_error_dirs));
         if let Some(data) = bind_failure {
-            obj = obj.set("last_bind_failure", JVal::Raw(data));
+            obj = obj.set("last_bind_failure", JVal::Raw(data.into()));
         }
         obj.build()
     }
@@ -1355,7 +1357,7 @@ impl WCtx<'_> {
         {
             // Go marshals the RequestRepairs struct (tagged fields).
             if let Ok(raw) = serde_json::to_vec(repairs) {
-                meta = meta.set("repairs", JVal::Raw(raw));
+                meta = meta.set("repairs", JVal::Raw(raw.into()));
             }
         }
         let retries = shared
@@ -1367,7 +1369,12 @@ impl WCtx<'_> {
         if !retries.is_empty() {
             meta = meta.set(
                 "retry_attempts",
-                JVal::Arr(retries.iter().map(|r| JVal::Raw(r.to_go_json())).collect()),
+                JVal::Arr(
+                    retries
+                        .iter()
+                        .map(|r| JVal::Raw(r.to_go_json().into()))
+                        .collect(),
+                ),
             );
         }
         if let Some(completion) = completion {

@@ -39,7 +39,9 @@ pub enum JVal {
     /// JSON object; keys sort on emit like Go map marshaling.
     Obj(std::collections::BTreeMap<String, JVal>),
     /// `json.RawMessage`: verbatim JSON bytes, compacted+escaped on emit.
-    Raw(Vec<u8>),
+    /// `Bytes` so already-frozen payloads (SSE frame slices) pass through
+    /// the sanitize prescreen without a copy.
+    Raw(bytes::Bytes),
 }
 
 impl JVal {

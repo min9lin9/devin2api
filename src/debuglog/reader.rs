@@ -92,7 +92,7 @@ impl RequestDetail {
                 &JVal::Arr(
                     self.files
                         .iter()
-                        .map(|f| JVal::Raw(f.to_go_json()))
+                        .map(|f| JVal::Raw(f.to_go_json().into()))
                         .collect(),
                 ),
             );
@@ -203,7 +203,7 @@ impl ActiveRequest {
                 &JVal::Arr(
                     self.files
                         .iter()
-                        .map(|f| JVal::Raw(f.to_go_json()))
+                        .map(|f| JVal::Raw(f.to_go_json().into()))
                         .collect(),
                 ),
             );
@@ -234,7 +234,7 @@ impl ListResult {
             &JVal::Arr(
                 self.entries
                     .iter()
-                    .map(|e| JVal::Raw(e.to_go_json()))
+                    .map(|e| JVal::Raw(e.to_go_json().into()))
                     .collect(),
             ),
         )
@@ -642,7 +642,9 @@ pub fn json_valid(data: &[u8]) -> bool {
 /// Serialize a slice of `ActiveRequest` like Go's `json.Marshal` on the slice.
 pub fn active_requests_json(list: &[ActiveRequest]) -> Vec<u8> {
     gojson::marshal(&JVal::Arr(
-        list.iter().map(|r| JVal::Raw(r.to_go_json())).collect(),
+        list.iter()
+            .map(|r| JVal::Raw(r.to_go_json().into()))
+            .collect(),
     ))
     .unwrap_or_else(|_| b"[]".to_vec())
 }

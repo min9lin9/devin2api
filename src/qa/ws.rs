@@ -171,19 +171,19 @@ fn tool_reasoning_events() -> VecDeque<ResponseEvent> {
         ResponseEvent {
             kind: ResponseEventType::ToolCallEnd,
             content_index: 1,
-            tool_call: Some(call),
+            tool_call: Some(Box::new(call)),
             partial: Some(Arc::new(partial.clone())),
             ..ResponseEvent::default()
         },
         ResponseEvent {
             kind: ResponseEventType::Done,
             reason: Some(StopReason::ToolUse),
-            message: Some(AssistantMessage {
+            message: Some(Arc::new(AssistantMessage {
                 content: partial.content,
                 response_model: "stub-model".into(),
                 stop_reason: Some(StopReason::ToolUse),
                 ..AssistantMessage::default()
-            }),
+            })),
             ..ResponseEvent::default()
         },
     ])
@@ -227,12 +227,12 @@ fn text_events(text: &str) -> VecDeque<ResponseEvent> {
         ResponseEvent {
             kind: ResponseEventType::Done,
             reason: Some(StopReason::Stop),
-            message: Some(AssistantMessage {
+            message: Some(Arc::new(AssistantMessage {
                 response_model: "stub-model".into(),
                 stop_reason: Some(StopReason::Stop),
                 content: vec![Content::Text(TextContent { text: text.into() })],
                 ..AssistantMessage::default()
-            }),
+            })),
             ..ResponseEvent::default()
         },
     ])

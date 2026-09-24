@@ -188,7 +188,7 @@ impl Sanitizer<'_> {
                 // no tree build, no number re-spelling.
                 Ok(data) => {
                     if !raw_needs_sanitize(&data) {
-                        return JVal::Raw(data);
+                        return JVal::Raw(data.into());
                     }
                     match gojson::parse(&data) {
                         Ok(tree) => {
@@ -235,7 +235,7 @@ impl Sanitizer<'_> {
                     }
                 }
                 if let Some(reference) = self.extract_image(map) {
-                    *value = JVal::Raw(reference);
+                    *value = JVal::Raw(reference.into());
                     return;
                 }
                 for (key, item) in map.iter_mut() {
@@ -247,7 +247,7 @@ impl Sanitizer<'_> {
                 if text.starts_with("data:image/")
                     && let Some(reference) = self.write_data_url(text)
                 {
-                    *value = JVal::Raw(reference);
+                    *value = JVal::Raw(reference.into());
                 }
             }
             JVal::Raw(raw) => {

@@ -339,13 +339,13 @@ fn response_event_protocol_carries_partial_usage_and_final_message() {
         },
         ResponseEvent {
             content_index: 2,
-            tool_call: Some(call),
+            tool_call: Some(Box::new(call)),
             ..with_partial(ResponseEventType::ToolCallEnd)
         },
         ResponseEvent {
             kind: ResponseEventType::Done,
             reason: Some(StopReason::ToolUse),
-            message: Some(final_message),
+            message: Some(Arc::new(final_message)),
             ..ResponseEvent::default()
         },
     ];

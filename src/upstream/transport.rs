@@ -202,6 +202,15 @@ pub struct UpstreamTransport {
     /// Whole-call deadline applied per request (Go `http.Client.Timeout`
     /// on the unary client; `None` for streaming).
     call_timeout: Option<Duration>,
+    /// Per-request build caches shared across clones: the parsed request
+    /// URL (Connect calls hit one fixed path per client, so a one-entry
+    /// memo keyed on the `http::Uri` skips `Url::parse`'s idna/uts46
+    /// pass) and the `Basic <token>-<token>` header value keyed on the
+    /// token (the token function still runs per request — credential
+    /// repair needs no transport rebuild — but the header is only
+    /// rebuilt when the token actually changed).
+    url_cache: Arc<std::sync::Mutex<Option<(http::Uri, reqwest::Url)>>>,
+    auth_cache: Arc<std::sync::Mutex<Option<(String, HeaderValue)>>>,
 }
 
 impl UpstreamTransport {
@@ -212,6 +221,8 @@ impl UpstreamTransport {
             client,
             token_source,
             call_timeout: None,
+            url_cache: Arc::new(std::sync::Mutex::new(None)),
+            auth_cache: Arc::new(std::sync::Mutex::new(None)),
         }
     }
 
@@ -222,7 +233,50 @@ impl UpstreamTransport {
             client,
             token_source,
             call_timeout: Some(UNARY_CALL_TIMEOUT),
+            url_cache: Arc::new(std::sync::Mutex::new(None)),
+            auth_cache: Arc::new(std::sync::Mutex::new(None)),
         }
+    }
+
+    /// `Basic <token>-<token>` header for `token`, rebuilt only when the
+    /// token changed since the last request on this transport.
+    fn auth_header(&self, token: &str) -> Result<HeaderValue, ConnectError> {
+        let mut cache = self
+            .auth_cache
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        if let Some((cached_token, value)) = &*cache
+            && cached_token == token
+        {
+            return Ok(value.clone());
+        }
+        let value = HeaderValue::from_str(&format!("Basic {token}-{token}")).map_err(|_| {
+            ConnectError::new(ErrorCode::Internal, "token is not a valid header value")
+        })?;
+        *cache = Some((token.to_string(), value.clone()));
+        Ok(value)
+    }
+
+    /// `reqwest::Url` for the request URI, parsed once per distinct URI
+    /// (Connect requests always target the client's fixed endpoint).
+    fn request_url(&self, uri: &http::Uri) -> Result<reqwest::Url, ConnectError> {
+        let mut cache = self
+            .url_cache
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        if let Some((cached_uri, url)) = &*cache
+            && cached_uri == uri
+        {
+            return Ok(url.clone());
+        }
+        let url = reqwest::Url::parse(&uri.to_string()).map_err(|e| {
+            ConnectError::new(
+                ErrorCode::Internal,
+                format!("request URI {uri} is not absolute: {e}"),
+            )
+        })?;
+        *cache = Some((uri.clone(), url.clone()));
+        Ok(url)
     }
 }
 
@@ -536,13 +590,7 @@ impl ClientTransport for UpstreamTransport {
             // Bearer, per-call override) passes through untouched.
             if !headers.contains_key(http::header::AUTHORIZATION) {
                 let token = (this.token_source)();
-                let value = format!("Basic {token}-{token}");
-                headers.insert(
-                    http::header::AUTHORIZATION,
-                    HeaderValue::from_str(&value).map_err(|_| {
-                        ConnectError::new(ErrorCode::Internal, "token is not a valid header value")
-                    })?,
-                );
+                headers.insert(http::header::AUTHORIZATION, this.auth_header(&token)?);
             }
             // Go sets User-Agent to "" which net/http omits entirely.
             headers.remove(http::header::USER_AGENT);
@@ -556,12 +604,7 @@ impl ClientTransport for UpstreamTransport {
                 );
             }
 
-            let url = reqwest::Url::parse(&parts.uri.to_string()).map_err(|e| {
-                ConnectError::new(
-                    ErrorCode::Internal,
-                    format!("request URI {} is not absolute: {e}", parts.uri),
-                )
-            })?;
+            let url = this.request_url(&parts.uri)?;
 
             let mut builder = this
                 .client

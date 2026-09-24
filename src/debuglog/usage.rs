@@ -121,7 +121,7 @@ impl UsageTotals {
     fn to_jval(&self) -> JVal {
         let mut w = ObjWriter::new();
         self.write_to(&mut w);
-        JVal::Raw(w.finish().unwrap_or_else(|_| b"{}".to_vec()))
+        JVal::Raw(w.finish().unwrap_or_else(|_| b"{}".to_vec()).into())
     }
 }
 
@@ -468,7 +468,7 @@ impl UsageSnapshot {
                 &JVal::Arr(
                     self.days
                         .iter()
-                        .map(|d| JVal::Raw(d.to_go_json()))
+                        .map(|d| JVal::Raw(d.to_go_json().into()))
                         .collect(),
                 ),
             );
@@ -478,7 +478,7 @@ impl UsageSnapshot {
             &JVal::Arr(
                 self.points
                     .iter()
-                    .map(|p| JVal::Raw(p.to_go_json()))
+                    .map(|p| JVal::Raw(p.to_go_json().into()))
                     .collect(),
             ),
         );
@@ -487,7 +487,7 @@ impl UsageSnapshot {
             &JVal::Arr(
                 self.models
                     .iter()
-                    .map(|m| JVal::Raw(m.to_go_json()))
+                    .map(|m| JVal::Raw(m.to_go_json().into()))
                     .collect(),
             ),
         );
@@ -496,7 +496,7 @@ impl UsageSnapshot {
             &JVal::Arr(
                 self.keys
                     .iter()
-                    .map(|k| JVal::Raw(k.to_go_json()))
+                    .map(|k| JVal::Raw(k.to_go_json().into()))
                     .collect(),
             ),
         );
@@ -528,7 +528,7 @@ impl UsageSnapshot {
                 &JVal::Arr(
                     self.rate_limit_events
                         .iter()
-                        .map(|e| JVal::Raw(e.to_go_json()))
+                        .map(|e| JVal::Raw(e.to_go_json().into()))
                         .collect(),
                 ),
             );
@@ -885,9 +885,9 @@ impl LatencySummary {
         let mut map = BTreeMap::new();
         map.insert(
             "duration".to_string(),
-            JVal::Raw(self.duration.to_go_json()),
+            JVal::Raw(self.duration.to_go_json().into()),
         );
-        map.insert("ttfb".to_string(), JVal::Raw(self.ttfb.to_go_json()));
+        map.insert("ttfb".to_string(), JVal::Raw(self.ttfb.to_go_json().into()));
         super::gojson::marshal(&JVal::Obj(map)).unwrap_or_else(|_| b"{}".to_vec())
     }
 }

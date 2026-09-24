@@ -184,19 +184,19 @@ fn tool_turn(call_id: &str) -> Script {
         Ok(ResponseEvent {
             kind: ResponseEventType::ToolCallEnd,
             content_index: 0,
-            tool_call: Some(call),
+            tool_call: Some(Box::new(call)),
             partial: Some(Arc::new(partial.clone())),
             ..ResponseEvent::default()
         }),
         Ok(ResponseEvent {
             kind: ResponseEventType::Done,
             reason: Some(StopReason::ToolUse),
-            message: Some(AssistantMessage {
+            message: Some(Arc::new(AssistantMessage {
                 content: partial.content,
                 response_model: "stub-model".into(),
                 stop_reason: Some(StopReason::ToolUse),
                 ..AssistantMessage::default()
-            }),
+            })),
             ..ResponseEvent::default()
         }),
     ]))
@@ -226,10 +226,10 @@ fn failed_turn() -> Script {
         Ok(ResponseEvent {
             kind: ResponseEventType::Error,
             reason: Some(StopReason::Error),
-            error: Some(AssistantMessage {
+            error: Some(Arc::new(AssistantMessage {
                 error_message: "upstream exploded".into(),
                 ..AssistantMessage::default()
-            }),
+            })),
             ..ResponseEvent::default()
         }),
     ]))
@@ -285,7 +285,7 @@ fn upstream_too_big_turn() -> Script {
         Ok(ResponseEvent {
             kind: ResponseEventType::Error,
             reason: Some(StopReason::Error),
-            error: Some(AssistantMessage {
+            error: Some(Arc::new(AssistantMessage {
                 error_message: "upstream websocket message too big".into(),
                 failure: Some(Box::new(Failure {
                     code: "message_too_big".into(),
@@ -293,7 +293,7 @@ fn upstream_too_big_turn() -> Script {
                     ..Failure::default()
                 })),
                 ..AssistantMessage::default()
-            }),
+            })),
             ..ResponseEvent::default()
         }),
     ]))
@@ -337,13 +337,13 @@ fn text_turn(text: &str) -> Script {
         Ok(ResponseEvent {
             kind: ResponseEventType::Done,
             reason: Some(StopReason::Stop),
-            message: Some(AssistantMessage {
+            message: Some(Arc::new(AssistantMessage {
                 response_id: "resp_upstream".into(),
                 response_model: "stub-model".into(),
                 stop_reason: Some(StopReason::Stop),
                 content: vec![Content::Text(TextContent { text: text.into() })],
                 ..AssistantMessage::default()
-            }),
+            })),
             ..ResponseEvent::default()
         }),
     ]))
