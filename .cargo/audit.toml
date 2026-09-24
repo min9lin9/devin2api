@@ -1,0 +1,16 @@
+# cargo audit configuration
+# https://rustsec.org/contributing/configuration.html
+
+[advisories]
+# RUSTSEC-2026-0304 (connectrpc): "Finished streaming calls keep reading a
+# stalled request body indefinitely" — a SERVER-side issue: connectrpc's
+# server starts a background task reading the request body of every
+# client-streaming/bidi call before the handler runs. This crate uses
+# connectrpc exclusively as an upstream CLIENT (ClientTransport /
+# StreamMessage / ErrorCode); no connectrpc server is hosted, so the
+# vulnerable code path is unreachable. No patched release exists as of
+# 2026-09-24 (fix: connectrpc/connect-rust#313). Revisit on the next
+# connectrpc release.
+ignore = [
+    "RUSTSEC-2026-0304",
+]
