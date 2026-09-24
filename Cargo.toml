@@ -44,12 +44,16 @@ serde_yaml_ng = "0.10"
 toml = "1"
 
 # Upstream HTTP client: rustls, streaming bodies, SOCKS proxies.
+# `gzip` mirrors Go's http.Transport DisableCompression=false: a vacant
+# Accept-Encoding becomes `gzip` on the wire and gzip responses are
+# decoded transparently (streaming calls pin `identity` first).
 reqwest = { version = "0.12", default-features = false, features = [
     "rustls-tls-native-roots",
     "stream",
     "socks",
     "http2",
     "json",
+    "gzip",
 ] }
 
 # Utilities.

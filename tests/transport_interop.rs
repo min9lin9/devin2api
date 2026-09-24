@@ -589,6 +589,14 @@ async fn unary_and_stream_h1_headers_trailers_reuse() {
         header(resp.headers(), "x-seen-content-type"),
         "application/proto"
     );
+    // Unary: connect-go leaves Accept-Encoding to the transport, so Go's
+    // http.Transport (DisableCompression=false) sends `gzip` — reqwest's
+    // gzip feature fills the same vacant header.
+    assert_eq!(
+        header(resp.headers(), "x-seen-accept-encoding"),
+        "gzip",
+        "unary Accept-Encoding must be the transport's implicit gzip"
+    );
     let owned = resp.into_owned();
     assert_eq!(owned.show_review_prompt, Some(true));
 
@@ -602,6 +610,13 @@ async fn unary_and_stream_h1_headers_trailers_reuse() {
     assert_eq!(
         header(stream.headers(), "x-seen-content-type"),
         "application/connect+proto"
+    );
+    // Streaming: connect-go pins `Accept-Encoding: identity`
+    // (protocol_connect.go WriteRequestHeader, streamType != unary).
+    assert_eq!(
+        header(stream.headers(), "x-seen-accept-encoding"),
+        "identity",
+        "streaming Accept-Encoding must be pinned to identity"
     );
 
     let mut deltas = Vec::new();
@@ -830,10 +845,21 @@ async fn gzip_request_and_response_compression() {
         "gzip",
         "server should see a gzipped unary request body"
     );
+    // The server gzipped the response, but the transport decodes it
+    // transparently and strips content-encoding/content-length — the
+    // same view Go's http.Transport gives connect-go when it added the
+    // Accept-Encoding itself. The advertised value is the connectrpc
+    // registry's list (gzip+zstd registered by `compress_requests`),
+    // which the transport leaves untouched.
+    assert_eq!(
+        header(resp.headers(), "x-seen-accept-encoding"),
+        "gzip, zstd",
+        "server should see the registry's advertised encodings"
+    );
     assert_eq!(
         header(resp.headers(), "content-encoding"),
-        "gzip",
-        "server should gzip the unary response"
+        "",
+        "transparent gzip decode strips content-encoding"
     );
     assert_eq!(resp.into_owned().show_review_prompt, Some(true));
 
@@ -848,6 +874,12 @@ async fn gzip_request_and_response_compression() {
     assert_eq!(
         header(stream.headers(), "x-seen-connect-content-encoding"),
         "gzip"
+    );
+    // Streaming still pins Accept-Encoding: identity even when Connect
+    // compression is negotiated (connect-go overwrites it).
+    assert_eq!(
+        header(stream.headers(), "x-seen-accept-encoding"),
+        "identity"
     );
     assert_eq!(
         header(stream.headers(), "connect-content-encoding"),

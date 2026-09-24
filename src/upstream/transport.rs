@@ -21,6 +21,10 @@
 //!   whole-call deadline (Go's stream client leaves `Timeout` unset).
 //! - `ForceAttemptHTTP2` is false: HTTP/1.1 on cleartext, negotiated
 //!   HTTP/2 over TLS. `force_http1` pins ALPN to http/1.1 even on TLS.
+//! - `DisableCompression` is false: unary requests carry the transport's
+//!   implicit `Accept-Encoding: gzip` and gzip responses are decoded
+//!   transparently; streaming requests pin `Accept-Encoding: identity`
+//!   (connect-go `WriteRequestHeader`).
 //! - Proxy: `devin.proxy` non-empty → that proxy for all schemes
 //!   (`http.Transport.Proxy` static); empty → `ProxyFromEnvironment`
 //!   semantics via [`crate::upstream::envproxy`]. Go accepts only
@@ -598,10 +602,17 @@ impl ClientTransport for UpstreamTransport {
             }
             // Go sets User-Agent to "" which net/http omits entirely.
             headers.remove(http::header::USER_AGENT);
-            // Go's connect-go sends `Accept-Encoding: identity` on
-            // streaming calls (protocol_connect.go); reqwest adds none
-            // when built without compression features. Match the wire.
-            if !headers.contains_key(http::header::ACCEPT_ENCODING) {
+            // Go's connect-go pins `Accept-Encoding: identity` on
+            // streaming calls only (protocol_connect.go
+            // WriteRequestHeader: `streamType != StreamTypeUnary`, an
+            // unconditional overwrite — a caller-set value is replaced
+            // too). Unary calls leave the header to the transport: Go's
+            // http.Transport (DisableCompression=false) auto-adds
+            // `Accept-Encoding: gzip` and transparently decodes the
+            // response; reqwest's `gzip` feature does the same — fills a
+            // vacant header, decodes the body, strips
+            // content-encoding/content-length.
+            if this.call_timeout.is_none() {
                 headers.insert(
                     http::header::ACCEPT_ENCODING,
                     HeaderValue::from_static("identity"),
