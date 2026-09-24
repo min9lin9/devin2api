@@ -43,26 +43,40 @@ const SECRET_KEY_NAMES: &[&str] = &[
 /// in client payloads — a global rule would over-redact.
 const METADATA_SECRET_KEY_NAMES: &[&str] = &["f"];
 
-/// Whether `key` is a globally sensitive name. `equal_fold_key` does the
-/// `_`/`-` strip + ASCII case fold inline — no per-key allocation (the
-/// name list is pure ASCII, so a non-ASCII key byte can never match and
-/// Unicode folding is unobservable).
+/// Whether `key` is a globally sensitive name. Go's `secretKey` normalizes
+/// with `strings.ToLower` — Unicode simple case folding — so non-ASCII
+/// spellings still redact: `APİKEY` (U+0130 folds to `i`) and
+/// `API\u{212A}EY` (Kelvin sign folds to `k`) both hit `apikey`.
 fn secret_key(key: &str) -> bool {
     SECRET_KEY_NAMES
         .iter()
-        .any(|name| equal_fold_key(key.as_bytes(), name))
+        .any(|name| normalized_key_eq(key, name))
 }
 
 /// Whether `key` is sensitive only inside a `metadata` scope.
 fn metadata_secret_key(key: &str) -> bool {
     METADATA_SECRET_KEY_NAMES
         .iter()
-        .any(|name| equal_fold_key(key.as_bytes(), name))
+        .any(|name| normalized_key_eq(key, name))
 }
 
 /// Whether `key` opens a `metadata` scope.
 fn is_metadata_key(key: &str) -> bool {
-    equal_fold_key(key.as_bytes(), "metadata")
+    normalized_key_eq(key, "metadata")
+}
+
+/// `strings.ToLower(keyNormalizer.Replace(key)) == name`: strip `_`/`-`,
+/// then compare under Unicode *simple* case folding. `char::to_lowercase`
+/// yields the full mapping (`İ` → `i` + combining dot), but its first
+/// char is exactly the simple mapping — the single rune Go's
+/// `unicode.ToLower` emits — so `next()` reproduces Go byte-for-byte
+/// (verified against go1.27: `İ`→`i`, `\u{212A}`→`k`, `Σ`→`σ` with no
+/// final-sigma context rule).
+fn normalized_key_eq(key: &str, name: &str) -> bool {
+    key.chars()
+        .filter(|c| *c != '_' && *c != '-')
+        .map(|c| c.to_lowercase().next().unwrap_or(c))
+        .eq(name.chars())
 }
 
 /// Prescreen a raw JSON record: only inline images or sensitive key names
@@ -125,7 +139,11 @@ fn secret_key_span(span: &[u8]) -> bool {
 }
 
 /// Compare a raw key span with a normalized list entry: skip `_`/`-`,
-/// fold ASCII case.
+/// fold ASCII case. Go's `equalFoldKey` is deliberately byte-wise ASCII —
+/// the prescreen cannot decode Unicode folds, so a raw payload key spelled
+/// `APİKEY` slips through unredacted in both implementations (the
+/// tree-path `secretKey` still catches that spelling; the asymmetry is
+/// Go's own).
 fn equal_fold_key(span: &[u8], name: &str) -> bool {
     let mut i = 0;
     for &want in name.as_bytes() {
@@ -362,5 +380,62 @@ fn image_extension(mime_type: &str) -> &'static str {
         "image/gif" => ".gif",
         "image/webp" => ".webp",
         _ => ".bin",
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Go `strings.ToLower` case table (verified against go1.27.1):
+    /// simple per-rune folding — `İ`→`i` (no combining dot), Kelvin
+    /// `\u{212A}`→`k`, `Σ`→`σ` (no final-sigma context rule), `ß`
+    /// unchanged. The tree-path key check must match it exactly.
+    #[test]
+    fn normalized_key_eq_matches_go_to_lower() {
+        // ASCII + separator stripping (the pre-existing coverage).
+        assert!(normalized_key_eq("api_key", "apikey"));
+        assert!(normalized_key_eq("API-KEY", "apikey"));
+        assert!(normalized_key_eq("Set-Cookie", "setcookie"));
+        // Unicode simple folds that Go redacts: dotted İ (U+0130) folds
+        // to plain `i`, Kelvin sign (U+212A) folds to `k`.
+        assert!(normalized_key_eq("AP\u{0130}KEY", "apikey"));
+        assert!(normalized_key_eq("api\u{212A}ey", "apikey"));
+        assert!(normalized_key_eq("\u{212A}ey", "key"));
+        // Simple mapping only: `Σ` folds to `σ`, never the final `ς` —
+        // `str::to_lowercase` would apply the context rule and diverge.
+        assert!(normalized_key_eq("\u{03A3}\u{03A3}", "\u{03C3}\u{03C3}"));
+        assert!(!normalized_key_eq("\u{03A3}\u{03A3}", "\u{03C3}\u{03C2}"));
+        // `ß` has no simple fold to `ss` — Go leaves it, so no match.
+        assert!(!normalized_key_eq("\u{00DF}", "ss"));
+        // Non-matches stay non-matches.
+        assert!(!normalized_key_eq("apikeys", "apikey"));
+        assert!(!normalized_key_eq("apikey\u{0130}", "apikey"));
+        assert!(!normalized_key_eq("", "apikey"));
+    }
+
+    /// The tree-path gates Go drives through `strings.ToLower`.
+    #[test]
+    fn secret_key_folds_unicode() {
+        assert!(secret_key("AP\u{0130}KEY"));
+        assert!(secret_key("ACCESS\u{212A}EY")); // Kelvin sign folds to `k`
+        assert!(is_metadata_key("METADATA"));
+        assert!(metadata_secret_key("F"));
+        assert!(!secret_key("plain"));
+    }
+
+    /// The raw prescreen stays byte-wise ASCII like Go's `equalFoldKey`:
+    /// a non-ASCII spelling that the tree path redacts does NOT trip the
+    /// prescreen — Go leaks it in raw payloads too (parity quirk).
+    #[test]
+    fn prescreen_stays_ascii_only() {
+        assert!(equal_fold_key(b"api-key", "apikey"));
+        assert!(!equal_fold_key("AP\u{0130}KEY".as_bytes(), "apikey"));
+        assert!(!equal_fold_key("api\u{212A}ey".as_bytes(), "apikey"));
+        // End-to-end: a raw payload with the İ spelling passes through
+        // untouched, exactly like Go's rawNeedsSanitize fast path.
+        let raw = "{\"AP\u{0130}KEY\":\"secret\"}".as_bytes().to_vec();
+        assert!(!raw_needs_sanitize(&raw));
+        assert!(raw_needs_sanitize(br#"{"apikey":"secret"}"#));
     }
 }

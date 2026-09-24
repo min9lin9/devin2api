@@ -1141,6 +1141,54 @@ fn SanitizeEscapedAndHyphenatedKeys() {
     manager.close();
 }
 
+/// Go's `secretKey` folds with `strings.ToLower` (Unicode simple case
+/// folding), so non-ASCII spellings of a sensitive name still redact on
+/// the tree path: `APİKEY` (U+0130 → `i`) and `ACCESSKEY` (Kelvin
+/// sign U+212A → `k`) both hit the list. The raw-payload prescreen stays
+/// byte-wise ASCII like Go's `equalFoldKey`, so the same spelling in a
+/// `Raw` payload passes through untouched — Go leaks it there too.
+#[test]
+fn SanitizeUnicodeFoldedKeys() {
+    let root = support::work_dir("unicode-fold").join("logs");
+    let manager = Manager::new(&root, &RetentionPolicy::default());
+    let recorder = manager.start(&RequestMeta::default());
+    recorder.write_json(
+        "01-http-request.json",
+        LogValue::Tree(
+            JVal::obj()
+                .set("AP\u{0130}KEY", JVal::Str("secret".into()))
+                .set("ACCESS\u{212A}EY", JVal::Str("secret".into()))
+                .set("keep", JVal::Str("ok".into()))
+                .build(),
+        ),
+    );
+    // Raw payload: the prescreen cannot byte-match the İ spelling, so
+    // the record passes through verbatim — Go's rawNeedsSanitize does
+    // the same (its equalFoldKey is ASCII-only).
+    recorder.write_json(
+        "02-request-messages.json",
+        LogValue::raw("{\"AP\u{0130}KEY\":\"secret\"}".as_bytes().to_vec()),
+    );
+    recorder.complete(Completion {
+        status_code: 200,
+        result: "completed".into(),
+        ..Default::default()
+    });
+    let dir = recorder.directory_path();
+    let tree_log = std::fs::read_to_string(dir.join("01-http-request.json")).unwrap();
+    assert!(
+        !tree_log.contains("secret") && tree_log.contains("\\u003credacted\\u003e"),
+        "tree path must redact Unicode-folded keys: {tree_log}"
+    );
+    assert!(tree_log.contains("\"keep\": \"ok\""), "{tree_log}");
+    let raw_log = std::fs::read_to_string(dir.join("02-request-messages.json")).unwrap();
+    assert!(
+        raw_log.contains("secret"),
+        "raw prescreen must pass the non-ASCII spelling through like Go: {raw_log}"
+    );
+    manager.close();
+}
+
 /// `TestIOErrorsCountedOncePerKind` — worker write failures count into
 /// `io_errors`, deduplicated per kind per dir.
 #[test]
