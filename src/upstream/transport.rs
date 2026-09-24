@@ -492,7 +492,11 @@ impl EnvelopeCheckedBody {
                     self.header[4],
                 ]) as usize;
                 self.end_stream_pending = self.header[0] & 0x02 != 0;
-                continue;
+                // Fall through: a zero-length envelope completes right
+                // here (Go's io.CopyN with size 0 succeeds immediately).
+                // Without this, an END_STREAM header with length 0 at
+                // EOF left `header_len == 5`/`remaining == 0` and
+                // `eof_error` misreported "promised 0 bytes, got 0".
             }
             let take = self.remaining.min(data.len());
             self.remaining -= take;
@@ -931,6 +935,101 @@ mod tests {
             }
         }
         assert!(saw_error, "truncated envelope error never surfaced");
+    }
+
+    /// Collect every frame a checked body yields: `Ok(data)` payloads,
+    /// the first error's message, or a clean `None` end.
+    async fn drain_checked(mut body: EnvelopeCheckedBody) -> (Vec<Bytes>, Result<(), String>) {
+        let mut payloads = Vec::new();
+        loop {
+            match body.frame().await {
+                Some(Ok(frame)) => {
+                    if let Some(data) = frame.data_ref() {
+                        payloads.push(data.clone());
+                    }
+                }
+                Some(Err(ResponseBodyError::Wire(message))) => {
+                    return (payloads, Err(message));
+                }
+                Some(Err(ResponseBodyError::Transport(err))) => {
+                    return (payloads, Err(format!("transport: {err}")));
+                }
+                None => return (payloads, Ok(())),
+            }
+        }
+    }
+
+    fn checked_body(chunks: Vec<Vec<u8>>) -> EnvelopeCheckedBody {
+        let frames: Vec<Result<Frame<Bytes>, std::convert::Infallible>> = chunks
+            .into_iter()
+            .map(|chunk| Ok(Frame::data(Bytes::from(chunk))))
+            .collect();
+        EnvelopeCheckedBody::new(
+            reqwest::Body::wrap(http_body_util::StreamBody::new(stream::iter(frames))),
+            true,
+        )
+    }
+
+    /// A zero-length `END_STREAM` envelope completes on its header alone
+    /// (Go's `io.CopyN` with size 0 succeeds immediately): EOF after it
+    /// is a clean end, not "promised 0 bytes, got 0 bytes". Covers the
+    /// single-frame and split-header spellings.
+    #[tokio::test(flavor = "current_thread")]
+    async fn zero_length_end_stream_at_eof_is_clean() {
+        // Whole 5-byte header in one frame, then EOF.
+        let (payloads, result) =
+            drain_checked(checked_body(vec![vec![0x02, 0x00, 0x00, 0x00, 0x00]])).await;
+        assert_eq!(payloads.len(), 1);
+        assert!(
+            result.is_ok(),
+            "zero-length END_STREAM misreported: {result:?}"
+        );
+
+        // Header split across two frames, then EOF.
+        let (payloads, result) =
+            drain_checked(checked_body(vec![vec![0x02, 0x00], vec![0x00, 0x00, 0x00]])).await;
+        assert_eq!(payloads.len(), 2);
+        assert!(
+            result.is_ok(),
+            "split zero-length END_STREAM misreported: {result:?}"
+        );
+
+        // A data message followed by the zero-length END_STREAM, then EOF.
+        let (payloads, result) = drain_checked(checked_body(vec![
+            vec![0x00, 0x00, 0x00, 0x00, 0x01, 0xAA],
+            vec![0x02, 0x00, 0x00, 0x00, 0x00],
+        ]))
+        .await;
+        assert_eq!(payloads.len(), 2);
+        assert!(
+            result.is_ok(),
+            "END_STREAM after data misreported: {result:?}"
+        );
+    }
+
+    /// The neighboring EOF cases keep their Go wording: a zero-length
+    /// DATA envelope at EOF is still a missing `END_STREAM` (boundary
+    /// "unexpected EOF"), and a truncated `END_STREAM` payload still
+    /// reports promised/got.
+    #[tokio::test(flavor = "current_thread")]
+    async fn eof_reporting_around_zero_length_envelopes() {
+        let (_payloads, result) =
+            drain_checked(checked_body(vec![vec![0x00, 0x00, 0x00, 0x00, 0x00]])).await;
+        assert_eq!(
+            result.err().as_deref(),
+            Some("protocol error: unexpected EOF"),
+            "zero-length DATA at EOF must still report missing END_STREAM"
+        );
+
+        let (_payloads, result) = drain_checked(checked_body(vec![vec![
+            0x02, 0x00, 0x00, 0x00, 0x0A, 0xAA, 0xBB, 0xCC,
+        ]]))
+        .await;
+        assert_eq!(
+            result.err().as_deref(),
+            Some("protocol error: promised 10 bytes in enveloped message, got 3 bytes"),
+            "truncated END_STREAM payload must report promised/got"
+        );
     }
 
     /// Dropping the pumped body cancels the ferry: a body that never ends
