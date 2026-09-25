@@ -30,10 +30,10 @@ runs:
       if: runner.os == 'Linux'
       shell: bash
       run: |
-        sudo fallocate -l 16G /swapfile || sudo dd if=/dev/zero of=/swapfile bs=1M count=16384
-        sudo chmod 600 /swapfile
-        sudo mkswap /swapfile
-        sudo swapon /swapfile
+        sudo fallocate -l 16G /devin2api.swap || sudo dd if=/dev/zero of=/devin2api.swap bs=1M count=16384
+        sudo chmod 600 /devin2api.swap
+        sudo mkswap /devin2api.swap
+        sudo swapon /devin2api.swap
         free -h
 
     - name: Cache cargo artifacts
