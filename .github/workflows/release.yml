@@ -13,6 +13,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
+      # devin-proto single rustc peaks ~16GB; see setup-rust action comment.
+      - name: Add swap for devin-proto compile
+        run: |
+          sudo fallocate -l 16G /devin2api.swap || sudo dd if=/dev/zero of=/devin2api.swap bs=1M count=16384
+          sudo chmod 600 /devin2api.swap
+          sudo mkswap /devin2api.swap
+          sudo swapon /devin2api.swap
       - run: cargo test --locked --workspace --all-features
 
   binaries:
@@ -32,6 +39,13 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
+      - name: Add swap for devin-proto compile (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo fallocate -l 16G /devin2api.swap || sudo dd if=/dev/zero of=/devin2api.swap bs=1M count=16384
+          sudo chmod 600 /devin2api.swap
+          sudo mkswap /devin2api.swap
+          sudo swapon /devin2api.swap
       - name: Install musl linker
         if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install -y musl-tools
