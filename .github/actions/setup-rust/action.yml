@@ -22,6 +22,20 @@ runs:
       shell: bash
       run: rustup target add '${{ inputs.targets }}'
 
+    # devin-proto is ~82MB of generated Rust; a single rustc invocation
+    # peaks at ~16GB RSS, which meets the 16GB hosted-runner RAM ceiling
+    # head-on (parallel rustc instances OOM -> "runner shutdown" SIGTERM).
+    # A swapfile on the root disk gives the compile headroom to survive.
+    - name: Add swap for devin-proto compile (Linux)
+      if: runner.os == 'Linux'
+      shell: bash
+      run: |
+        sudo fallocate -l 16G /swapfile || sudo dd if=/dev/zero of=/swapfile bs=1M count=16384
+        sudo chmod 600 /swapfile
+        sudo mkswap /swapfile
+        sudo swapon /swapfile
+        free -h
+
     - name: Cache cargo artifacts
       uses: swatinem/rust-cache@v2
 
