@@ -97,7 +97,14 @@ async fn bind_or_report(
     log_root: &Path,
     reuse_port: bool,
 ) -> anyhow::Result<tokio::net::TcpListener> {
-    let address = tokio::net::lookup_host(listen)
+    // Go's net.Listen accepts ":PORT" (empty host = wildcard); Rust's
+    // lookup_host rejects an empty host, so normalize it to 0.0.0.0 first.
+    let normalized = if listen.starts_with(':') {
+        format!("0.0.0.0{listen}")
+    } else {
+        listen.to_string()
+    };
+    let address = tokio::net::lookup_host(&normalized)
         .await?
         .next()
         .ok_or_else(|| anyhow::anyhow!("listen address resolved to no endpoints"))?;

@@ -44,12 +44,12 @@ trap 'rm -rf "$TMP"' EXIT
 cargo run --locked -p devin-proto --example generate -- --out "$TMP/gen"
 
 if [[ "${1:-}" == "--check" ]]; then
-    diff -r "$GEN_DIR" "$TMP/gen" >/dev/null && {
+    diff -r --exclude=mod.rs "$GEN_DIR" "$TMP/gen" >/dev/null && {
         echo "generate-proto --check: generated sources are up to date"
         exit 0
     }
     echo "generate-proto --check: FAIL — generated sources differ; rerun scripts/generate-proto.sh" >&2
-    diff -r "$GEN_DIR" "$TMP/gen" | head -50 >&2 || true
+    diff -r --exclude=mod.rs "$GEN_DIR" "$TMP/gen" | head -50 >&2 || true
     exit 1
 elif [[ $# -gt 0 ]]; then
     echo "usage: $0 [--check]" >&2

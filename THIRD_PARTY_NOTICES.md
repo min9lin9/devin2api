@@ -276,3 +276,10 @@ full texts are in each crate's source under the Cargo registry.
 | zstd                         | 0.13.3                        | MIT                                                 |
 | zstd-safe                    | 7.3.0                         | BSD-3-Clause                                        |
 | zstd-sys                     | 2.1.0+zstd.1.5.7              | BSD-3-Clause                                        |
+| adler2                         | 2.0.1                         | 0BSD OR MIT OR Apache-2.0                           |
+| async-compression              | 0.4.48                        | MIT OR Apache-2.0                                   |
+| compression-codecs             | 0.4.43                        | MIT OR Apache-2.0                                   |
+| compression-core               | 0.4.33                        | MIT OR Apache-2.0                                   |
+| crc32fast                      | 1.5.2                         | MIT OR Apache-2.0                                   |
+| miniz_oxide                    | 0.9.1                         | MIT OR Zlib OR Apache-2.0                           |
+| simd-adler32                   | 0.3.10                        | MIT                                                 |
