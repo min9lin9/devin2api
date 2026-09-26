@@ -115,8 +115,8 @@ fn manifest_symbol_mappings_resolve() {
 }
 
 /// The generated bindings cover the pruned reachable schema: codegen input
-/// is all-protos.fds filtered to proto/prune-roots.txt by examples/prune.rs,
-/// so only ApiServerService and its transitive types exist. The manifest
+/// is all-protos.fds filtered to `proto/prune-roots.txt` by `examples/prune.rs`,
+/// so only `ApiServerService` and its transitive types exist. The manifest
 /// counts still describe the full flattened schema (the FDS itself is
 /// unchanged — pruning happens at generation time).
 #[test]
@@ -124,7 +124,10 @@ fn generated_bindings_cover_schema() {
     use devin_proto::generated::exa::api_server_pb as pb;
 
     assert!(pb::API_SERVER_SERVICE_SERVICE_NAME.starts_with("exa.api_server_pb."));
-    let _chat_spec: ::connectrpc::Spec = pb::API_SERVER_SERVICE_GET_CHAT_MESSAGE_SPEC;
+    assert_eq!(
+        pb::API_SERVER_SERVICE_GET_CHAT_MESSAGE_SPEC.procedure,
+        "/exa.api_server_pb.ApiServerService/GetChatMessage"
+    );
 
     // Manifest counts: 2633 messages / 247 enums / 20 services flattened.
     let manifest: Value = serde_json::from_slice(&read("manifest.json")).expect("parse manifest");

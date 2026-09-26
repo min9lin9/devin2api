@@ -23,9 +23,7 @@ fn main() {
                 ));
             }
             "--fds" => {
-                fds = Some(PathBuf::from(
-                    args.next().expect("--fds requires a file"),
-                ));
+                fds = Some(PathBuf::from(args.next().expect("--fds requires a file")));
             }
             other => {
                 eprintln!("unknown argument: {other}");
