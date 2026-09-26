@@ -358,9 +358,4 @@ fn connect_service_names_and_specs() {
         pb::API_SERVER_SERVICE_ASSIGN_MODEL_SPEC.stream_type,
         connectrpc::StreamType::Unary
     );
-    // Seat management service (Seat JSON RPC surface).
-    assert_eq!(
-        pb::EXA_SEAT_MANAGEMENT_PB_SEAT_MANAGEMENT_SERVICE_SERVICE_NAME,
-        "exa.api_server_pb.ExaSeatManagementPb_SeatManagementService"
-    );
 }

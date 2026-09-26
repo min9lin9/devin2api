@@ -13,12 +13,18 @@ use std::path::PathBuf;
 
 fn main() {
     let mut out: Option<PathBuf> = None;
+    let mut fds: Option<PathBuf> = None;
     let mut args = std::env::args().skip(1);
     while let Some(arg) = args.next() {
         match arg.as_str() {
             "--out" => {
                 out = Some(PathBuf::from(
                     args.next().expect("--out requires a directory"),
+                ));
+            }
+            "--fds" => {
+                fds = Some(PathBuf::from(
+                    args.next().expect("--fds requires a file"),
                 ));
             }
             other => {
@@ -34,7 +40,7 @@ fn main() {
         .and_then(|p| p.parent())
         .expect("workspace root")
         .to_path_buf();
-    let fds = workspace.join("proto/all-protos.fds");
+    let fds = fds.unwrap_or_else(|| workspace.join("proto/all-protos.fds"));
     let out = out.unwrap_or_else(|| crate_dir.join("src/generated"));
 
     connectrpc_build::Config::new()

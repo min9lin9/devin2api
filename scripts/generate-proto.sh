@@ -38,10 +38,17 @@ GEN_DIR="crates/devin-proto/src/generated"
 (cd proto && sha256sum --check SHA256SUMS)
 
 # 2. Regenerate into a temp dir, then swap in (or diff in --check mode).
+#    The FDS is first pruned to the reachable closure (proto/prune-roots.txt)
+#    because the full flattened schema generates ~80MB of Rust that pushes a
+#    single rustc past 16GB RSS — the full fds remains the provenance input.
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 
-cargo run --locked -p devin-proto --example generate -- --out "$TMP/gen"
+cargo run --locked -p devin-proto --example prune -- \
+	proto/all-protos.fds "$TMP/pruned.fds"
+
+cargo run --locked -p devin-proto --example generate -- \
+	--fds "$TMP/pruned.fds" --out "$TMP/gen"
 
 if [[ "${1:-}" == "--check" ]]; then
     diff -r --exclude=mod.rs "$GEN_DIR" "$TMP/gen" >/dev/null && {

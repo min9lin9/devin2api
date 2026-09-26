@@ -114,39 +114,17 @@ fn manifest_symbol_mappings_resolve() {
     );
 }
 
-/// The generated bindings cover the flattened schema: every service in the
-/// flattened set has a generated `*_SERVICE_NAME` constant, and message
-/// counts match the manifest.
+/// The generated bindings cover the pruned reachable schema: codegen input
+/// is all-protos.fds filtered to proto/prune-roots.txt by examples/prune.rs,
+/// so only ApiServerService and its transitive types exist. The manifest
+/// counts still describe the full flattened schema (the FDS itself is
+/// unchanged — pruning happens at generation time).
 #[test]
 fn generated_bindings_cover_schema() {
     use devin_proto::generated::exa::api_server_pb as pb;
 
-    // All 20 services from the flattened schema.
-    let service_names = [
-        pb::API_SERVER_SERVICE_SERVICE_NAME,
-        pb::EXA_ANALYTICS_PB_ANALYTICS_SERVICE_SERVICE_NAME,
-        pb::EXA_AUTH_PB_AUTH_SERVICE_SERVICE_NAME,
-        pb::EXA_BROWSER_PREVIEW_PB_BROWSER_PREVIEW_SERVICE_SERVICE_NAME,
-        pb::EXA_CASCADE_PLUGINS_PB_CASCADE_PLUGINS_SERVICE_SERVICE_NAME,
-        pb::EXA_CHAT_CLIENT_SERVER_PB_CHAT_CLIENT_SERVER_SERVICE_SERVICE_NAME,
-        pb::EXA_DEV_PB_DEV_SERVICE_SERVICE_NAME,
-        pb::EXA_EVAL_PB_EVAL_QUEUE_SERVICE_SERVICE_NAME,
-        pb::EXA_EXTENSION_SERVER_PB_EXTENSION_SERVER_SERVICE_SERVICE_NAME,
-        pb::EXA_FILE_SYSTEM_PROVIDER_PB_FILE_SYSTEM_PROVIDER_SERVICE_SERVICE_NAME,
-        pb::EXA_INDEX_PB_INDEX_MANAGEMENT_SERVICE_SERVICE_NAME,
-        pb::EXA_INDEX_PB_INDEX_SERVICE_SERVICE_NAME,
-        pb::EXA_KNOWLEDGE_BASE_PB_KNOWLEDGE_BASE_SERVICE_SERVICE_NAME,
-        pb::EXA_LANGUAGE_SERVER_PB_LANGUAGE_SERVER_SERVICE_SERVICE_NAME,
-        pb::EXA_MODEL_MANAGEMENT_PB_MODEL_MANAGEMENT_SERVICE_SERVICE_NAME,
-        pb::EXA_OPENSEARCH_CLIENTS_PB_KNOWLEDGE_BASE_SERVICE_SERVICE_NAME,
-        pb::EXA_OPENSEARCH_CLIENTS_PB_CODE_INDEX_SERVICE_SERVICE_NAME,
-        pb::EXA_PRODUCT_ANALYTICS_PB_PRODUCT_ANALYTICS_SERVICE_SERVICE_NAME,
-        pb::EXA_SEAT_MANAGEMENT_PB_SEAT_MANAGEMENT_SERVICE_SERVICE_NAME,
-        pb::EXA_USER_ANALYTICS_PB_USER_ANALYTICS_SERVICE_SERVICE_NAME,
-    ];
-    for name in service_names {
-        assert!(name.starts_with("exa.api_server_pb."), "{name}");
-    }
+    assert!(pb::API_SERVER_SERVICE_SERVICE_NAME.starts_with("exa.api_server_pb."));
+    let _chat_spec: ::connectrpc::Spec = pb::API_SERVER_SERVICE_GET_CHAT_MESSAGE_SPEC;
 
     // Manifest counts: 2633 messages / 247 enums / 20 services flattened.
     let manifest: Value = serde_json::from_slice(&read("manifest.json")).expect("parse manifest");
