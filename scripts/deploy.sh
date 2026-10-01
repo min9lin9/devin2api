@@ -29,7 +29,7 @@ STATE_DIR="${DEVIN2API_STATE_DIR:-${DEVIN2API_RUNTIME:-${HOME}/Library/Applicati
 LEGACY_RUNTIME="${HOME}/Library/Application Support/devin-2api"
 
 # 服务管理动词：lib-deploy.sh 的 handoff_* 族经它们抹平 launchd/systemd 差异。
-svc_pid()     { launchctl print "gui/$(id -u)/${LABEL}" 2>/dev/null | awk '/^[ \t]*pid = /{print $3}'; }
+svc_pid()     { launchctl print "gui/$(id -u)/${LABEL}" 2>/dev/null | awk '/^[ \t]*pid = /{print $3}' || true; }
 svc_restart() { launchctl kickstart -k "gui/$(id -u)/${LABEL}"; }
 
 # svc_reload_restart：plist 变更时「让新实例跑起来」的动作——kickstart 不载入
